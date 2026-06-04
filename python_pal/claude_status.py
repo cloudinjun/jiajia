@@ -47,7 +47,7 @@ class ClaudeSession:
     idle_seconds: float
 
     def label(self) -> str:
-        return "Desktop" if "desktop" in self.entrypoint else "Code"
+        return "Claude"
 
     def activity_zh(self) -> str:
         return ACTIVITY_ZH.get(self.activity, self.activity)

@@ -1425,7 +1425,7 @@ _CODEX_STATUS_PROFILES: dict[str, CodexStatusProfile] = {
         ),
     ),
     "running": (
-        ("它在跑命令{summary}", "Codex 把事情交给终端了{summary}", "Codex 正在执行命令{summary}"),
+        ("Codex 在跑命令{summary}", "Codex 把事情交给终端了{summary}", "Codex 正在执行命令{summary}"),
         "thinking",
         ("scan", "thinking_tilt", "peek"),
         "thought",
@@ -1637,7 +1637,7 @@ _CLAUDE_SPINNER_TAILS = (
 
 _CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
     "started": (
-        ("{label} 在 {project} 开工了", "{label}@{project} 出现了", "Claude 的 {label} 会话进了 {project}"),
+        ("{label} 在 {project} 开工了", "{label}@{project} 出现了", "新的 {label} 会话进了 {project}"),
         "smirk",
         ("scan", "peek", "nod"),
         "thought",
@@ -1799,7 +1799,7 @@ def _claude_overview_reaction(
     if active:
         prefixes = (
             "Claude 有 {count} 个会话：{summary}",
-            "现在有 {count} 个 Claude 在场，最忙的是 {focus_label}@{focus_project}",
+            "现在有 {count} 个 Claude 会话在场，最忙的是 {focus_label}@{focus_project}",
             "Claude 场面有点热闹：{summary}",
         )
         tails = _CLAUDE_OVERVIEW_TAILS + _CLAUDE_SPINNER_TAILS
