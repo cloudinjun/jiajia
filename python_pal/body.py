@@ -14,7 +14,7 @@ import tkinter.font as tkfont
 from .actions import ACTION_LABELS, ACTION_MENU_GROUPS
 from .brain_ollama import OllamaBrain
 from .mood import MoodEngine, FREQUENCY_PRESETS, FREQUENCY_DEFAULT
-from .claude_status import ClaudeOverview, ClaudeStatusMonitor
+from .claude_status import ClaudeOverview, ClaudeSession, ClaudeStatusMonitor
 from .codex_status import CodexStatus, CodexStatusMonitor
 from .ears import Ears
 from .eyes import Eyes
@@ -364,6 +364,8 @@ class PaperclipPalApp:
         self.claude_monitor = ClaudeStatusMonitor()
         self._last_claude_event = ""
         self._last_claude_alive_pids: set[int] = set()
+        self._last_claude_sessions_by_pid: dict[int, ClaudeSession] = {}
+        self._recent_claude_status_fragments: list[str] = []
         self.mood = MoodEngine()
         initial_frequency = self._load_frequency_setting()
         self.mood.set_frequency(initial_frequency)
@@ -603,7 +605,7 @@ class PaperclipPalApp:
     def _show_codex_status(self) -> None:
         status = self.codex_status.sample()
         if status.status == "unknown":
-            line = _pick_codex_status_fragment(_CODEX_UNKNOWN_LINES, self._recent_codex_status_fragments)
+            line = _pick_status_fragment(_CODEX_UNKNOWN_LINES, self._recent_codex_status_fragments)
             self.show_bubble(line, kind="thought")
             return
         reaction = _codex_status_reaction(status, self._recent_codex_status_fragments, manual=True)
@@ -780,28 +782,36 @@ class PaperclipPalApp:
         self.root.after(CLAUDE_STATUS_POLL_MS, self._poll_claude_status)
 
     def _claude_change_reaction(self, overview: ClaudeOverview) -> Reaction | None:
-        current_pids = {s.pid for s in overview.sessions if s.alive}
-        new_pids = current_pids - self._last_claude_alive_pids
-        gone_pids = self._last_claude_alive_pids - current_pids
+        current_sessions = {s.pid: s for s in overview.sessions if s.alive}
+        current_pids = set(current_sessions)
+        previous_sessions = self._last_claude_sessions_by_pid
+        new_pids = current_pids - set(previous_sessions)
+        gone_pids = set(previous_sessions) - current_pids
+        changed_pids = {
+            pid
+            for pid in current_pids & set(previous_sessions)
+            if current_sessions[pid].activity != previous_sessions[pid].activity
+        }
         self._last_claude_alive_pids = current_pids
+        self._last_claude_sessions_by_pid = current_sessions
 
-        new_sessions = [s for s in overview.sessions if s.pid in new_pids]
-        if new_sessions:
-            s = new_sessions[0]
-            return Reaction(True, f"{s.label()} 在 {s.project} 开工了。希望效率比你高。", "smirk", "scan", "thought")
+        if new_pids:
+            session = _pick_claude_session([current_sessions[pid] for pid in new_pids])
+            return _claude_session_reaction(session, "started", self._recent_claude_status_fragments)
 
         if gone_pids:
-            return Reaction(True, "一个 Claude 会话收工了。不知道是完成了还是放弃了。", "thinking", "blink", "thought")
+            session = _pick_claude_session([previous_sessions[pid] for pid in gone_pids])
+            return _claude_session_reaction(session, "ended", self._recent_claude_status_fragments)
 
-        active = [s for s in overview.sessions if s.alive and s.activity not in ("idle", "offline")]
-        if active:
-            s = active[0]
-            return None
+        if changed_pids:
+            session = _pick_claude_session([current_sessions[pid] for pid in changed_pids])
+            return _claude_session_reaction(session, session.activity, self._recent_claude_status_fragments)
         return None
 
     def _show_claude_status(self) -> None:
         overview = self.claude_monitor.sample()
-        self.show_bubble(overview.summary_line(), kind="thought")
+        reaction = _claude_overview_reaction(overview, self._recent_claude_status_fragments)
+        self._apply_reaction(reaction)
 
     def _apply_reaction(self, reaction: Reaction) -> None:
         self.state.mood = reaction.mood
@@ -1339,6 +1349,7 @@ def _scale_coords(coords: list[float]) -> list[float]:
 
 
 CodexStatusProfile = tuple[tuple[str, ...], str, tuple[str, ...], str, tuple[str, ...]]
+ClaudeStatusProfile = tuple[tuple[str, ...], str, tuple[str, ...], str, tuple[str, ...]]
 
 
 _CODEX_UNKNOWN_LINES = (
@@ -1540,16 +1551,244 @@ def _codex_status_reaction(
 
     prefixes, mood, actions, bubble, tails = profile
     summary = f"：{status.summary}" if status.summary else ""
-    prefix_template = _pick_codex_status_fragment(prefixes, recent_fragments)
+    prefix_template = _pick_status_fragment(prefixes, recent_fragments)
     prefix = prefix_template.format(summary=summary, status=status_key)
-    tail = _pick_codex_status_fragment(tails, recent_fragments)
+    tail = _pick_status_fragment(tails, recent_fragments)
     line = f"{prefix}。{tail}"
     if manual and status.stale:
-        line = f"{line} {_pick_codex_status_fragment(_CODEX_STALE_TAILS, recent_fragments)}"
+        line = f"{line} {_pick_status_fragment(_CODEX_STALE_TAILS, recent_fragments)}"
     return Reaction(True, line, mood, random.choice(actions), bubble)
 
 
-def _pick_codex_status_fragment(
+_CLAUDE_NO_SESSION_LINES = (
+    "没有发现活跃的 Claude 会话。桌面突然少了一位假装冷静的同事。",
+    "Claude 现在没有露面。任务看起来少了一个借口。",
+    "我没有看到 Claude 在跑。空气里只剩人类责任。",
+    "Claude 不在场。夹夹先把监督权轻轻捡起来。",
+)
+
+
+_CLAUDE_OVERVIEW_TAILS = (
+    "它们看起来各忙各的，也各有一点可疑。",
+    "场面很像协作，暂时。",
+    "多线程热闹起来了，人类可以先别装没看见。",
+    "夹夹负责围观，不负责背锅。",
+    "这张桌面现在有一点点办公室味。",
+)
+
+
+_CLAUDE_IDLE_OVERVIEW_TAILS = (
+    "大家都安静了。可能是完成了，也可能是在等勇气。",
+    "它们没有明显动作。发呆也算一种状态，勉强。",
+    "Claude 会话还在，但推进感比较轻。",
+    "桌面进入了很礼貌的停顿。",
+)
+
+
+_CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
+    "started": (
+        ("{label} 在 {project} 开工了", "{label}@{project} 出现了", "Claude 的 {label} 会话进了 {project}"),
+        "smirk",
+        ("scan", "peek", "nod"),
+        "thought",
+        (
+            "希望效率比你高一点点。",
+            "它看起来很专业，先不揭穿。",
+            "桌面多了一位会假装镇定的同事。",
+            "夹夹先登记一下，不代表信任。",
+            "任务突然有了第二个目击者。",
+        ),
+    ),
+    "ended": (
+        ("{label}@{project} 收工了", "{label} 离开了 {project}", "一个 Claude 会话从 {project} 退场了"),
+        "thinking",
+        ("blink", "nod", "hide"),
+        "thought",
+        (
+            "不知道是完成了还是体面撤退。",
+            "它走得很安静，像结果还没完全负责。",
+            "桌面少了一个会解释的声音。",
+            "夹夹先不评价，虽然很想。",
+            "如果它真的做完了，那就很稀有。",
+        ),
+    ),
+    "editing": (
+        ("{label}@{project} 正在改代码", "Claude 在 {project} 动文件了", "{label} 手里现在有改动"),
+        "focused",
+        ("patrol", "scan", "wiggle"),
+        "thought",
+        (
+            "代码正在接受另一种命运。",
+            "希望它比刚才那个人类少犹豫一点。",
+            "补丁味飘出来了，夹夹先眯一下眼。",
+            "文件被盯上了，逃不掉了。",
+            "这一步很像认真，也很像快出事。",
+        ),
+    ),
+    "running": (
+        ("{label}@{project} 正在跑命令", "Claude 把 {project} 交给终端了", "{label} 在 {project} 执行东西"),
+        "thinking",
+        ("scan", "thinking_tilt", "peek"),
+        "thought",
+        (
+            "黑框框又开始承担情绪价值。",
+            "终端输出马上会变成现实证词。",
+            "夹夹看不懂，但夹夹知道要紧张。",
+            "这时候最好不要把自信说太满。",
+            "命令在跑，借口也暂时跑不动。",
+        ),
+    ),
+    "reading": (
+        ("{label}@{project} 正在读文件", "Claude 在 {project} 翻材料", "{label} 开始补上下文"),
+        "thinking",
+        ("scan", "thinking_tilt", "nod"),
+        "thought",
+        (
+            "它正在努力假装自己一直都懂。",
+            "上下文被翻出来晒太阳了。",
+            "先让它读，读完再看它怎么装从容。",
+            "文件没有逃跑，但尊严可能会。",
+            "夹夹安静三秒，显得很懂事。",
+        ),
+    ),
+    "searching": (
+        ("{label}@{project} 正在搜索", "Claude 在 {project} 到处找线索", "{label} 开始翻箱倒柜"),
+        "suspicious",
+        ("scan", "peek", "thinking_tilt"),
+        "thought",
+        (
+            "它看起来像终于承认自己不知道。",
+            "找资料这件事，比嘴硬健康一点。",
+            "线索正在被迫出现。",
+            "搜索很忙，方向感暂时未知。",
+            "夹夹先不说它迷路，先。",
+        ),
+    ),
+    "thinking": (
+        ("{label}@{project} 正在思考", "Claude 在 {project} 脑内排队", "{label} 暂时进入沉思"),
+        "thinking",
+        ("thinking_tilt", "nod", "blink"),
+        "thought",
+        (
+            "它的沉默看起来比人类有条理。",
+            "思路可能在路上，也可能刚起床。",
+            "夹夹先装作相信这是深度思考。",
+            "空气里有一点点计算的味道。",
+            "它没有卡住，它只是把卡住包装得更优雅。",
+        ),
+    ),
+    "idle": (
+        ("{label}@{project} 现在安静了", "Claude 在 {project} 发呆中", "{label} 暂时没有明显动作"),
+        "sleepy",
+        ("blink", "hide", "flop"),
+        "thought",
+        (
+            "它可能在等你，也可能在等奇迹。",
+            "静止很礼貌，推进就不一定了。",
+            "桌面进入了低速燃烧。",
+            "夹夹没有催，只是比较清醒。",
+            "发呆不是错，太久就像计划。",
+        ),
+    ),
+}
+
+
+def _claude_change_priority(activity: str) -> int:
+    return {
+        "editing": 0,
+        "running": 1,
+        "searching": 2,
+        "reading": 3,
+        "thinking": 4,
+        "idle": 5,
+    }.get(activity, 6)
+
+
+def _pick_claude_session(sessions: list[ClaudeSession]) -> ClaudeSession:
+    return sorted(sessions, key=lambda s: (_claude_change_priority(s.activity), s.project, s.pid))[0]
+
+
+def _claude_session_reaction(
+    session: ClaudeSession,
+    event: str,
+    recent_fragments: list[str] | None = None,
+) -> Reaction:
+    event_key = event if event in _CLAUDE_STATUS_PROFILES else session.activity
+    profile = _CLAUDE_STATUS_PROFILES.get(event_key)
+    if not profile:
+        return Reaction(False)
+
+    prefixes, mood, actions, bubble, tails = profile
+    prefix = _pick_status_fragment(prefixes, recent_fragments).format(
+        label=session.label(),
+        project=session.project,
+        activity=session.activity_zh(),
+        idle=_format_idle_seconds(session.idle_seconds),
+    )
+    tail = _pick_status_fragment(tails, recent_fragments)
+    return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), bubble)
+
+
+def _claude_overview_reaction(
+    overview: ClaudeOverview,
+    recent_fragments: list[str] | None = None,
+) -> Reaction:
+    alive = [s for s in overview.sessions if s.alive]
+    if not alive:
+        line = _pick_status_fragment(_CLAUDE_NO_SESSION_LINES, recent_fragments)
+        return Reaction(True, line, "sleepy", "blink", "thought")
+
+    if len(alive) == 1:
+        session = alive[0]
+        return _claude_session_reaction(session, session.activity, recent_fragments)
+
+    active = [s for s in alive if s.activity not in ("idle", "offline")]
+    focus = _pick_claude_session(active or alive)
+    summary = _claude_compact_summary(alive)
+    if active:
+        prefixes = (
+            "Claude 有 {count} 个会话：{summary}",
+            "现在有 {count} 个 Claude 在场，最忙的是 {focus_label}@{focus_project}",
+            "Claude 场面有点热闹：{summary}",
+        )
+        tails = _CLAUDE_OVERVIEW_TAILS
+        mood, actions = "smirk", ("scan", "peek", "nod")
+    else:
+        prefixes = (
+            "Claude 有 {count} 个会话都安静着",
+            "现在 {count} 个 Claude 会话都没明显动作",
+            "Claude 会话还在：{summary}",
+        )
+        tails = _CLAUDE_IDLE_OVERVIEW_TAILS
+        mood, actions = "sleepy", ("blink", "hide", "flop")
+
+    prefix = _pick_status_fragment(prefixes, recent_fragments).format(
+        count=len(alive),
+        summary=summary,
+        focus_label=focus.label(),
+        focus_project=focus.project,
+        focus_activity=focus.activity_zh(),
+    )
+    tail = _pick_status_fragment(tails, recent_fragments)
+    return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), "thought")
+
+
+def _claude_compact_summary(sessions: list[ClaudeSession]) -> str:
+    ordered = sorted(sessions, key=lambda s: (_claude_change_priority(s.activity), s.project, s.pid))
+    parts = [f"{s.label()}@{s.project} {s.activity_zh()}" for s in ordered[:3]]
+    if len(ordered) > 3:
+        parts.append(f"另有 {len(ordered) - 3} 个")
+    return " / ".join(parts)
+
+
+def _format_idle_seconds(seconds: float) -> str:
+    if seconds < 60:
+        return f"{round(seconds)} 秒"
+    minutes = round(seconds / 60)
+    return f"{minutes} 分钟"
+
+
+def _pick_status_fragment(
     fragments: tuple[str, ...],
     recent_fragments: list[str] | None = None,
 ) -> str:
