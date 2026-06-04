@@ -1,0 +1,155 @@
+schema_version: 1
+source:
+  name: IconPark
+  repository: https://github.com/bytedance/IconPark
+  license: Apache-2.0
+  commit: 8dc132da4c85671ba6a5962c87aa2bdafbf158e9
+  license_file: LICENSE-IconPark.txt
+style:
+  viewbox: "0 0 48 48"
+  stroke: "#3E3038"
+  base_fill: "#FFFDFE"
+  note: "Small flat accessories for identity/status decoration. Not body art."
+groups:
+  agent:
+    - id: terminal
+      file: icons/terminal.svg
+      upstream: Terminal
+      suggested_use: codex_or_claude_status
+    - id: status_monitor
+      file: icons/status-monitor.svg
+      upstream: Monitor
+      suggested_use: agent_screen_watch
+    - id: robot
+      file: icons/robot.svg
+      upstream: Robot
+      suggested_use: ai_agent_identity
+    - id: code_computer
+      file: icons/code-computer.svg
+      upstream: CodeComputer
+      suggested_use: running_code_or_tests
+  hardware:
+    - id: cpu
+      file: icons/cpu.svg
+      upstream: Cpu
+      suggested_use: cpu_load
+    - id: thermometer
+      file: icons/thermometer.svg
+      upstream: Thermometer
+      suggested_use: temperature
+    - id: fan
+      file: icons/fan.svg
+      upstream: Fan
+      suggested_use: cooling_or_fan_noise
+    - id: fire
+      file: icons/fire.svg
+      upstream: Fire
+      suggested_use: hot_state
+    - id: lightning
+      file: icons/lightning.svg
+      upstream: Lightning
+      suggested_use: power_spike
+    - id: battery_charge
+      file: icons/battery-charge.svg
+      upstream: BatteryCharge
+      suggested_use: battery_or_recovery
+  task:
+    - id: checklist
+      file: icons/checklist.svg
+      upstream: Checklist
+      suggested_use: task_auditor
+    - id: list_success
+      file: icons/list-success.svg
+      upstream: ListSuccess
+      suggested_use: done_or_tiny_celebrate
+    - id: notebook_and_pen
+      file: icons/notebook-and-pen.svg
+      upstream: NotebookAndPen
+      suggested_use: note_or_planning
+  usage:
+    - id: chart_line
+      file: icons/chart-line.svg
+      upstream: ChartLine
+      suggested_use: usage_trend
+    - id: chart_histogram
+      file: icons/chart-histogram.svg
+      upstream: ChartHistogram
+      suggested_use: quota_bar
+  focus:
+    - id: lock
+      file: icons/lock.svg
+      upstream: Lock
+      suggested_use: focus_mode
+    - id: unlock
+      file: icons/unlock.svg
+      upstream: Unlock
+      suggested_use: resume_mode
+    - id: moon
+      file: icons/moon.svg
+      upstream: Moon
+      suggested_use: quiet_mode
+    - id: sleep
+      file: icons/sleep.svg
+      upstream: Sleep
+      suggested_use: sleepy_idle
+  perception:
+    - id: search
+      file: icons/search.svg
+      upstream: Search
+      suggested_use: screen_scan
+    - id: eyes
+      file: icons/eyes.svg
+      upstream: Eyes
+      suggested_use: mouse_follow_or_observe
+    - id: brain
+      file: icons/brain.svg
+      upstream: Brain
+      suggested_use: thinking_state
+    - id: thinking_problem
+      file: icons/thinking-problem.svg
+      upstream: ThinkingProblem
+      suggested_use: stuck_or_reasoning
+  chat:
+    - id: message
+      file: icons/message.svg
+      upstream: Message
+      suggested_use: speech
+    - id: comment
+      file: icons/comment.svg
+      upstream: Comment
+      suggested_use: thought_or_idle_chatter
+  critique:
+    - id: pencil
+      file: icons/pencil.svg
+      upstream: Pencil
+      suggested_use: red_pen_mark
+    - id: stamp
+      file: icons/stamp.svg
+      upstream: Stamp
+      suggested_use: review_stamp
+  debug:
+    - id: bug
+      file: icons/bug.svg
+      upstream: Bug
+      suggested_use: bug_coroner
+    - id: error
+      file: icons/error.svg
+      upstream: Error
+      suggested_use: error_state
+    - id: caution
+      file: icons/caution.svg
+      upstream: Caution
+      suggested_use: warning_state
+    - id: attention
+      file: icons/attention.svg
+      upstream: Attention
+      suggested_use: critical_attention
+  utility:
+    - id: tool
+      file: icons/tool.svg
+      upstream: Tool
+      suggested_use: maintenance
+    - id: tips
+      file: icons/tips.svg
+      upstream: Tips
+      suggested_use: hint_or_small_idea
