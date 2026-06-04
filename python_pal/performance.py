@@ -89,6 +89,7 @@ PERFORMANCE_PHRASES: dict[str, PerformancePhrase] = {
 
 
 def phrase_for_reaction(mood: str, action: str, bubble: str) -> str:
+    bubble_shape = "thought" if bubble.endswith("thought") else "speech" if bubble.endswith("speech") else bubble
     if mood in {"happy", "proud", "done"} or action in {"happy_bounce", "celebrate"}:
         return "tiny_celebrate"
     if mood in {"sulky", "sulk"} or action in {"sulk", "hide"}:
@@ -97,11 +98,11 @@ def phrase_for_reaction(mood: str, action: str, bubble: str) -> str:
         return "quiet_companion"
     if mood == "suspicious" or action in {"scan", "peek", "patrol"}:
         return "suspicious_observe"
-    if mood in {"smirk", "smug"} and bubble == "speech":
+    if mood in {"smirk", "smug"} and bubble_shape == "speech":
         return "cold_arrow_then_innocent"
     if mood in {"guilty", "innocent"}:
         return "smug_but_caught" if mood == "guilty" else "quiet_companion"
-    if action in {"smug_sway", "thinking_tilt"} and bubble == "thought":
+    if action in {"smug_sway", "thinking_tilt"} and bubble_shape == "thought":
         return "suspicious_observe"
     return ""
 

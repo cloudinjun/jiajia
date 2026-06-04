@@ -55,6 +55,15 @@ BUBBLE_PAGE_MAX_MS = 8200
 BUBBLE_PAGE_CHAR_MS = 92
 BUBBLE_FONT = ("Microsoft YaHei UI", 11)
 THOUGHT_FONT = ("Microsoft YaHei UI", 10, "italic")
+BubbleStyle = tuple[bool, str, str, str]
+BUBBLE_STYLES: dict[str, BubbleStyle] = {
+    "speech": (False, "#fdfdfd", "#d4dee8", "#202932"),
+    "thought": (True, "#f7f5fb", "#c9c2d7", "#33293a"),
+    "codex_speech": (False, "#eefbf5", "#10a37f", "#123d32"),
+    "codex_thought": (True, "#eefbf5", "#10a37f", "#123d32"),
+    "claude_speech": (False, "#fff2e8", "#d97757", "#442414"),
+    "claude_thought": (True, "#fff2e8", "#d97757", "#442414"),
+}
 BLINK_MIN_MS = 3200
 BLINK_MAX_MS = 8200
 LOOK_MIN_MS = 1200
@@ -620,7 +629,7 @@ class PaperclipPalApp:
         status = self.codex_status.sample()
         if status.status == "unknown":
             line = _pick_status_fragment(_CODEX_UNKNOWN_LINES, self._recent_codex_status_fragments)
-            self.show_bubble(line, kind="thought")
+            self.show_bubble(line, kind="codex_thought")
             return
         reaction = _codex_status_reaction(status, self._recent_codex_status_fragments, manual=True)
         self._apply_reaction(reaction)
@@ -1296,7 +1305,8 @@ class PaperclipPalApp:
 
     def show_bubble(self, text: str, milliseconds: int = 3200, kind: str = "speech") -> None:
         self._clear_bubble()
-        font_spec = THOUGHT_FONT if kind == "thought" else BUBBLE_FONT
+        is_thought, _fill, _outline, _text_fill = _bubble_style(kind)
+        font_spec = THOUGHT_FONT if is_thought else BUBBLE_FONT
         font = tkfont.Font(family=font_spec[0], size=font_spec[1], slant=font_spec[2] if len(font_spec) > 2 else "roman")
         text_width = BUBBLE_WIDTH - BUBBLE_PADDING_X * 2
         pages = _paginate_bubble_text(text, text_width, font)
@@ -1307,7 +1317,7 @@ class PaperclipPalApp:
         self._clear_bubble(cancel_after=False)
         if index >= len(pages):
             return
-        is_thought = kind == "thought"
+        is_thought, fill, outline, text_fill = _bubble_style(kind)
         font_spec = THOUGHT_FONT if is_thought else BUBBLE_FONT
         font = tkfont.Font(family=font_spec[0], size=font_spec[1], slant=font_spec[2] if len(font_spec) > 2 else "roman")
         text_width = BUBBLE_WIDTH - BUBBLE_PADDING_X * 2
@@ -1334,8 +1344,8 @@ class PaperclipPalApp:
                 y1,
                 x2,
                 y2,
-                fill="#f7f5fb",
-                outline="#c9c2d7",
+                fill=fill,
+                outline=outline,
             )
             self._bubble_items.extend(thought_items)
             self._thought_dot_items = thought_items[-3:]
@@ -1359,8 +1369,8 @@ class PaperclipPalApp:
                     y2,
                     radius=14,
                     tail=tail,
-                    fill="#fdfdfd",
-                    outline="#d4dee8",
+                    fill=fill,
+                    outline=outline,
                 )
             )
         self._bubble_items.append(
@@ -1370,7 +1380,7 @@ class PaperclipPalApp:
                 anchor="w",
                 text=wrapped_text,
                 width=text_width,
-                fill="#33293a" if is_thought else "#202932",
+                fill=text_fill,
                 font=font_spec,
                 justify="left",
             )
@@ -1676,7 +1686,7 @@ def _codex_status_reaction(
     line = f"{prefix}。{tail}"
     if manual and status.stale:
         line = f"{line} {_pick_status_fragment(_CODEX_STALE_TAILS, recent_fragments)}"
-    return Reaction(True, line, mood, random.choice(actions), bubble)
+    return Reaction(True, line, mood, random.choice(actions), _source_bubble_kind("codex", bubble))
 
 
 _CLAUDE_NO_SESSION_LINES = (
@@ -1896,7 +1906,7 @@ def _claude_session_reaction(
     )
     tail_template = _pick_status_fragment(_claude_tail_choices(tails, event_key), recent_fragments)
     tail = _format_claude_status_text(tail_template, session, recent_fragments)
-    return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), bubble)
+    return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), _source_bubble_kind("claude", bubble))
 
 
 def _claude_overview_reaction(
@@ -1906,7 +1916,7 @@ def _claude_overview_reaction(
     alive = [s for s in overview.sessions if s.alive]
     if not alive:
         line = _pick_status_fragment(_CLAUDE_NO_SESSION_LINES, recent_fragments)
-        return Reaction(True, line, "sleepy", "blink", "thought")
+        return Reaction(True, line, "sleepy", "blink", "claude_thought")
 
     if len(alive) == 1:
         session = alive[0]
@@ -1941,7 +1951,7 @@ def _claude_overview_reaction(
     )
     tail_template = _pick_status_fragment(tails, recent_fragments)
     tail = _format_claude_status_text(tail_template, focus, recent_fragments)
-    return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), "thought")
+    return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), "claude_thought")
 
 
 def _claude_compact_summary(sessions: list[ClaudeSession]) -> str:
@@ -1997,6 +2007,17 @@ def _pick_status_fragment(
     recent_fragments.append(fragment)
     del recent_fragments[:-12]
     return fragment
+
+
+def _source_bubble_kind(source: str, bubble: str) -> str:
+    shape = "thought" if bubble == "thought" else "speech"
+    if source in {"codex", "claude"}:
+        return f"{source}_{shape}"
+    return shape
+
+
+def _bubble_style(kind: str) -> BubbleStyle:
+    return BUBBLE_STYLES.get(kind, BUBBLE_STYLES["thought" if kind == "thought" else "speech"])
 
 
 def _paginate_bubble_text(text: str, max_width: int, font: tkfont.Font) -> list[str]:

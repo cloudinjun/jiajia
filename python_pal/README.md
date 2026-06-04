@@ -34,6 +34,9 @@ Supported statuses: `idle`, `thinking`, `reading`, `working`, `editing`,
 `error`, `blocked`. The old `running_command` value is accepted as an alias for
 `running`.
 
+Codex status bubbles use a green Codex/OpenAI accent. Claude status bubbles use
+a warm orange Claude accent. Both stay flat, with no drop shadow.
+
 Idle boredom:
 
 When the user has been idle for a while, the pet may ask the local brain for a
