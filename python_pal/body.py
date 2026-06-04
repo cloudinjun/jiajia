@@ -356,6 +356,7 @@ class PaperclipPalApp:
         self._thought_dot_after: str | None = None
         self._last_codex_status_event = ""
         self._last_codex_status: CodexStatus = CodexStatus()
+        self._recent_codex_status_fragments: list[str] = []
         self._brain_thread: threading.Thread | None = None
         self._line_bank_thread: threading.Thread | None = None
         self._vision_thread: threading.Thread | None = None
@@ -602,11 +603,11 @@ class PaperclipPalApp:
     def _show_codex_status(self) -> None:
         status = self.codex_status.sample()
         if status.status == "unknown":
-            self.show_bubble("我还没有收到 Codex 状态。很神秘，也很像没接线。", kind="thought")
+            line = _pick_codex_status_fragment(_CODEX_UNKNOWN_LINES, self._recent_codex_status_fragments)
+            self.show_bubble(line, kind="thought")
             return
-        summary = f"：{status.summary}" if status.summary else ""
-        stale = " 但这条有点旧了。" if status.stale else ""
-        self.show_bubble(f"Codex 现在是 {status.status}{summary}.{stale}", kind="thought")
+        reaction = _codex_status_reaction(status, self._recent_codex_status_fragments, manual=True)
+        self._apply_reaction(reaction)
 
     def _on_press(self, event: tk.Event) -> None:
         self._begin_drag(event.x_root, event.y_root)
@@ -754,7 +755,7 @@ class PaperclipPalApp:
         status = self.codex_status.sample()
         self._last_codex_status = status
         if self._should_announce_codex_status(status):
-            reaction = _codex_status_reaction(status)
+            reaction = _codex_status_reaction(status, self._recent_codex_status_fragments)
             self._last_codex_status_event = status.event_id
             self._apply_reaction(reaction)
         self.root.after(CODEX_STATUS_POLL_MS, self._poll_codex_status)
@@ -1337,33 +1338,232 @@ def _scale_coords(coords: list[float]) -> list[float]:
     ]
 
 
-def _codex_status_reaction(status: CodexStatus) -> Reaction:
+CodexStatusProfile = tuple[tuple[str, ...], str, tuple[str, ...], str, tuple[str, ...]]
+
+
+_CODEX_UNKNOWN_LINES = (
+    "我还没有收到 Codex 状态。很神秘，也很像没接线。",
+    "Codex 状态栏空空的。像一份没有开始的计划。",
+    "我暂时看不见 Codex。它可能在很认真地失联。",
+    "这里没有 Codex 回声。夹夹先假装镇定。",
+)
+
+
+_CODEX_STALE_TAILS = (
+    "这条有点旧，先别当新鲜证据。",
+    "它像刚从缓存里醒来。",
+    "时间戳不太年轻了。",
+)
+
+
+_CODEX_STATUS_PROFILES: dict[str, CodexStatusProfile] = {
+    "thinking": (
+        ("Codex 在想{summary}", "Codex 正在脑内排队{summary}", "Codex 进入思考模式{summary}"),
+        "thinking",
+        ("thinking_tilt", "scan", "nod"),
+        "thought",
+        (
+            "它的脑内文件夹正在小声翻页。",
+            "先别催，它正在给思路找出口。",
+            "姿势很认真，含金量待观察。",
+            "它像把一句话拆成了三层意思。",
+            "夹夹先眨眼站岗。",
+            "现在空气里有一点点加载味。",
+        ),
+    ),
+    "reading": (
+        ("Codex 正在读上下文{summary}", "Codex 在翻记录{summary}", "Codex 正在补课{summary}"),
+        "thinking",
+        ("scan", "thinking_tilt", "peek"),
+        "thought",
+        (
+            "它努力装作自己从来没忘过。",
+            "记忆力正在临时营业。",
+            "先让它把线头捡起来。",
+            "它看起来像在给上下文排座位。",
+            "夹夹不催，夹夹只是盯着。",
+            "这一步很像认真，其实也可能是找路。",
+        ),
+    ),
+    "working": (
+        ("Codex 正在工作{summary}", "Codex 开始推进{summary}", "Codex 正在处理{summary}"),
+        "thinking",
+        ("nod", "patrol", "thinking_tilt"),
+        "thought",
+        (
+            "我暂时假装不监督。",
+            "它看起来终于和任务正面相遇了。",
+            "桌面上出现了罕见的推进迹象。",
+            "这不像拖延，夹夹有点不适应。",
+            "我先把冷箭收起来半根。",
+            "它正在把计划从空气里拽下来。",
+        ),
+    ),
+    "editing": (
+        ("Codex 正在改文件{summary}", "Codex 手里有补丁{summary}", "Codex 正在动代码{summary}"),
+        "focused",
+        ("patrol", "scan", "wiggle"),
+        "thought",
+        (
+            "现在每一笔都可能有后果。",
+            "小心，它正在给文件做微整形。",
+            "代码被夹住了，暂时不能逃跑。",
+            "希望它没有把眼睛也顺手改掉。",
+            "补丁正在靠近，表情很无辜。",
+            "这一步需要一点信任，和一点备份。",
+        ),
+    ),
+    "running": (
+        ("它在跑命令{summary}", "Codex 把事情交给终端了{summary}", "Codex 正在执行命令{summary}"),
+        "thinking",
+        ("scan", "thinking_tilt", "peek"),
+        "thought",
+        (
+            "现在把紧张交给终端。",
+            "黑框框正在替大家承受压力。",
+            "希望输出不要突然很有性格。",
+            "这时候最适合假装从容。",
+            "夹夹看不懂，但夹夹会装。",
+            "进度条没有出现，所以焦虑比较自由。",
+        ),
+    ),
+    "testing": (
+        ("Codex 在检查结果{summary}", "Codex 正在验收{summary}", "Codex 开始看测试{summary}"),
+        "thinking",
+        ("thinking_tilt", "scan", "nod"),
+        "thought",
+        (
+            "希望测试不要突然拥有个性。",
+            "事实正在准备发表意见。",
+            "这一步通常负责打破幻想。",
+            "夹夹先把庆祝动作憋住。",
+            "输出很快会说明谁在嘴硬。",
+            "测试通过前，所有自信都只是预告片。",
+        ),
+    ),
+    "reconnecting": (
+        ("Codex 好像在重连{summary}", "Codex 正在找回连接{summary}", "Codex 信号有点飘{summary}"),
+        "suspicious",
+        ("scan", "peek", "thinking_tilt"),
+        "thought",
+        (
+            "网络也有逃避型人格。",
+            "它正在和远方互相假装在线。",
+            "连接这件事看起来很需要缘分。",
+            "夹夹先守着，不保证优雅。",
+            "空气里有一点掉线的礼貌。",
+            "它可能只是去很远的地方想了一下。",
+        ),
+    ),
+    "disconnected": (
+        ("Codex 暂时断线了{summary}", "Codex 现在不在服务区{summary}", "Codex 的连接断开了{summary}"),
+        "sleepy",
+        ("hide", "blink", "flop"),
+        "thought",
+        (
+            "夹夹先小声站岗。",
+            "这不是沉默，是被迫安静。",
+            "桌面突然少了一个会思考的借口。",
+            "我会在这里，虽然我只是文具。",
+            "先不要慌，慌也可以小一点。",
+            "它不说话的时候，任务看起来更诚实了。",
+        ),
+    ),
+    "waiting_user": (
+        ("Codex 好像在等你{summary}", "Codex 把球递回来了{summary}", "Codex 需要你点头{summary}"),
+        "smirk",
+        ("bob", "peek", "smug_sway"),
+        "speech",
+        (
+            "我只是小文具，我不催。",
+            "你看，轮到人类承担一点点存在感了。",
+            "这一步需要你的许可，不需要你的逃避。",
+            "它停住了，像在礼貌地盯着你。",
+            "夹夹没有催，只是眼睛比较圆。",
+            "你可以慢慢来，但它确实在等。",
+        ),
+    ),
+    "done": (
+        ("Codex 回来了{summary}", "Codex 说它做完了{summary}", "Codex 收工了{summary}"),
+        "smirk",
+        ("bob", "happy_bounce", "nod"),
+        "speech",
+        (
+            "看起来它假装一切都在掌控中。",
+            "成功的样子很短暂，建议立刻验一下。",
+            "夹夹先鼓掌半下。",
+            "它带着一种刚刚没有迷路的自信。",
+            "现在可以开始怀疑它哪里改对了。",
+            "这听起来像好消息，暂时。",
+        ),
+    ),
+    "error": (
+        ("嗯，Codex 遇到报错{summary}", "Codex 撞到错误了{summary}", "Codex 被电脑反驳了{summary}"),
+        "thinking",
+        ("blink", "thinking_tilt", "flop"),
+        "thought",
+        (
+            "电脑也会表达不同意。",
+            "现实轻轻敲了一下桌面。",
+            "这不是失败，是错误比较会说话。",
+            "夹夹建议先深呼吸，再怪终端。",
+            "它的无辜程度正在上升。",
+            "现在最重要的是别把锅递给眉毛。",
+        ),
+    ),
+    "blocked": (
+        ("Codex 卡住了{summary}", "Codex 走到门口停下了{summary}", "Codex 需要下一步指令{summary}"),
+        "thinking",
+        ("blink", "thinking_tilt", "peek"),
+        "speech",
+        (
+            "这听起来很像需要人类点头。",
+            "它不是摆烂，是没有钥匙。",
+            "夹夹看见了一个小小的岔路口。",
+            "现在需要决定，不是再准备一下。",
+            "任务没有消失，只是站得很安静。",
+            "你一句话，可能比它想十分钟有用。",
+        ),
+    ),
+}
+
+
+def _codex_status_reaction(
+    status: CodexStatus,
+    recent_fragments: list[str] | None = None,
+    manual: bool = False,
+) -> Reaction:
+    status_key = "running" if status.status == "running_command" else status.status
+    profile = _CODEX_STATUS_PROFILES.get(status_key)
+    if not profile:
+        return Reaction(False)
+
+    prefixes, mood, actions, bubble, tails = profile
     summary = f"：{status.summary}" if status.summary else ""
-    if status.status == "thinking":
-        return Reaction(True, f"Codex 在想{summary}。它现在看起来像在脑内翻文件夹。", "thinking", "thinking_tilt", "thought")
-    if status.status == "reading":
-        return Reaction(True, f"Codex 正在读上下文{summary}。先别催，它还在假装记性很好。", "thinking", "scan", "thought")
-    if status.status == "working":
-        return Reaction(True, f"Codex 正在认真工作{summary}。我会暂时假装不监督。", "thinking", "nod", "thought")
-    if status.status == "editing":
-        return Reaction(True, f"Codex 正在改文件{summary}。小心，它现在手里有补丁。", "focused", "patrol", "thought")
-    if status.status in {"running", "running_command"}:
-        return Reaction(True, f"它在跑命令{summary}。现在把紧张交给终端。", "thinking", "scan", "thought")
-    if status.status == "testing":
-        return Reaction(True, f"Codex 在检查结果{summary}。希望测试不要突然拥有个性。", "thinking", "thinking_tilt", "thought")
-    if status.status == "reconnecting":
-        return Reaction(True, f"Codex 好像在重连{summary}。网络也有逃避型人格。", "suspicious", "scan", "thought")
-    if status.status == "disconnected":
-        return Reaction(True, f"Codex 暂时断线了{summary}。夹夹先小声站岗。", "sleepy", "hide", "thought")
-    if status.status == "waiting_user":
-        return Reaction(True, f"Codex 好像在等你{summary}。我只是一个小文具，我不催。", "smirk", "bob", "speech")
-    if status.status == "done":
-        return Reaction(True, f"Codex 回来了{summary}。看起来它假装一切都在掌控中。", "smirk", "bob", "speech")
-    if status.status == "error":
-        return Reaction(True, f"嗯，Codex 遇到报错{summary}。电脑也会表达不同意。", "thinking", "blink", "thought")
-    if status.status == "blocked":
-        return Reaction(True, f"Codex 卡住了{summary}。这听起来很像需要人类点头。", "thinking", "blink", "speech")
-    return Reaction(False)
+    prefix_template = _pick_codex_status_fragment(prefixes, recent_fragments)
+    prefix = prefix_template.format(summary=summary, status=status_key)
+    tail = _pick_codex_status_fragment(tails, recent_fragments)
+    line = f"{prefix}。{tail}"
+    if manual and status.stale:
+        line = f"{line} {_pick_codex_status_fragment(_CODEX_STALE_TAILS, recent_fragments)}"
+    return Reaction(True, line, mood, random.choice(actions), bubble)
+
+
+def _pick_codex_status_fragment(
+    fragments: tuple[str, ...],
+    recent_fragments: list[str] | None = None,
+) -> str:
+    if not fragments:
+        return ""
+    if recent_fragments is None:
+        return random.choice(fragments)
+
+    recent_window = set(recent_fragments[-max(1, min(len(fragments) - 1, 8)):])
+    choices = [fragment for fragment in fragments if fragment not in recent_window]
+    fragment = random.choice(choices or list(fragments))
+    recent_fragments.append(fragment)
+    del recent_fragments[:-12]
+    return fragment
 
 
 def _paginate_bubble_text(text: str, max_width: int, font: tkfont.Font) -> list[str]:
