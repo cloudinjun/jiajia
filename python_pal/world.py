@@ -7,6 +7,7 @@ from .claude_status import ClaudeOverview
 from .codex_status import CodexStatus
 from .ears import EarContext
 from .eyes import ScreenContext
+from .hardware_status import HardwareSnapshot
 from .state import PalState
 
 
@@ -32,6 +33,7 @@ class WorldState:
     screen: ScreenContext
     codex: CodexStatus
     claude: ClaudeOverview
+    hardware: HardwareSnapshot
     pal: PalState
     mood: MoodSnapshot
     sampled_at: float = 0.0
@@ -49,6 +51,7 @@ class WorldState:
             tags.add("claude_active")
         elif self.claude.total_alive:
             tags.add("claude_idle")
+        tags.update(self.hardware.tags)
         return sorted(tags)
 
     def as_context(self, event: str) -> dict[str, object]:
@@ -60,6 +63,7 @@ class WorldState:
             **self.user_activity.as_dict(),
             **self.screen.as_dict(),
             **self.codex.as_dict(),
+            **self.hardware.as_dict(),
             "claude_total_alive": self.claude.total_alive,
             "claude_active_count": self.claude.active_count,
             "claude_sessions": [

@@ -21,6 +21,7 @@ from .codex_status import CodexStatus, CodexStatusMonitor
 from .decision import DecisionEngine
 from .ears import Ears
 from .eyes import Eyes
+from .hardware_status import HardwareSnapshot, HardwareStatusMonitor
 from .performance import PERFORMANCE_PHRASES, phrase_for_reaction
 from .soul import Soul
 from .state import PalState, Reaction
@@ -66,6 +67,16 @@ BUBBLE_STYLES: dict[str, BubbleStyle] = {
     "codex_thought": (True, "#eefbf5", "#10a37f", "#123d32"),
     "claude_speech": (False, "#fff2e8", "#d97757", "#442414"),
     "claude_thought": (True, "#fff2e8", "#d97757", "#442414"),
+    "hardware_thought": (True, "#fff4f4", "#d86b6b", "#4b2424"),
+    "hardware_speech": (False, "#fff4f4", "#d86b6b", "#4b2424"),
+}
+HARDWARE_TINTS = {
+    "normal": WIRE,
+    "unavailable": WIRE,
+    "cooling": "#b8b8b8",
+    "warm": "#caa0a0",
+    "hot": "#d86b6b",
+    "overloaded": "#bd4343",
 }
 BLINK_MIN_MS = 3200
 BLINK_MAX_MS = 8200
@@ -78,6 +89,7 @@ GLOBAL_MOUSE_POLL_MS = 24
 PAL_HIT_INSET = 6
 CODEX_STATUS_POLL_MS = 2500
 CLAUDE_STATUS_POLL_MS = 8000
+HARDWARE_STATUS_POLL_MS = 5000
 LERP_TICK_MS = 18
 VISION_REFRESH_MS = 45_000
 AMBIENT_MIN_MS = 18_000
@@ -304,6 +316,7 @@ class PaperclipPalApp:
         self.ears = Ears()
         self.eyes = Eyes(model=soul.vision_model)
         self.codex_status = CodexStatusMonitor(project_root / "codex_status.json")
+        self.hardware_status = HardwareStatusMonitor()
         self.state = PalState()
         self.decision = DecisionEngine()
         self.animation_player = AnimationPlayer(load_animation_manifest(project_root / "python_pal" / "animations.yaml"))
@@ -377,6 +390,10 @@ class PaperclipPalApp:
         self._thought_dot_after: str | None = None
         self._last_codex_status_event = ""
         self._last_codex_status: CodexStatus = CodexStatus()
+        self._last_hardware_status_event = ""
+        self._last_hardware_status: HardwareSnapshot = HardwareSnapshot()
+        self._last_hardware_announcement_at = 0.0
+        self._hardware_tint_level = "normal"
         self._recent_codex_status_fragments: list[str] = []
         self._brain_thread: threading.Thread | None = None
         self._line_bank_thread: threading.Thread | None = None
@@ -406,6 +423,7 @@ class PaperclipPalApp:
         self.root.after(100, self._poll_brain)
         self.root.after(1500, self._poll_codex_status)
         self.root.after(3500, self._poll_claude_status)
+        self.root.after(4200, self._poll_hardware_status)
         self._schedule_blink()
         self._schedule_look()
         self._schedule_idle(first=True)
@@ -482,6 +500,7 @@ class PaperclipPalApp:
             self.left_brow: left_brow_coords,
             self.right_brow: right_brow_coords,
         }
+        self._apply_hardware_tint()
 
     def _reset_pal_geometry(self) -> None:
         look = self._pupil_look
@@ -494,6 +513,7 @@ class PaperclipPalApp:
         self._draw_pal()
         self._pupil_look = look
         self._set_pupil_pose(*look, blink_scale=1.0)
+        self._apply_hardware_tint()
 
     def _bind_events(self) -> None:
         self.canvas.bind("<ButtonPress-1>", self._on_press)
@@ -534,6 +554,7 @@ class PaperclipPalApp:
         self.menu.add_cascade(label="Identity", menu=identity_menu)
         self.menu.add_command(label="Codex status", command=self._show_codex_status)
         self.menu.add_command(label="Claude 状态", command=self._show_claude_status)
+        self.menu.add_command(label="Hardware status", command=self._show_hardware_status)
         self.menu.add_command(label="Debug last decision", command=self._show_last_decision_debug)
         self.menu.add_command(label="Debug animation", command=self._show_last_animation_debug)
         self.menu.add_command(label="Debug identity", command=self._show_identity_debug)
@@ -755,6 +776,7 @@ class PaperclipPalApp:
             screen=self.eyes.sample(),
             codex=self.codex_status.sample(),
             claude=self.claude_monitor.sample(),
+            hardware=self._last_hardware_status,
             pal=self.state,
             mood=MoodSnapshot(
                 key=self._freq_var.get(),
@@ -861,6 +883,47 @@ class PaperclipPalApp:
             if reaction and not self.state.brain_busy and not self._bubble_items:
                 self._apply_reaction(reaction)
         self.root.after(CLAUDE_STATUS_POLL_MS, self._poll_claude_status)
+
+    def _poll_hardware_status(self) -> None:
+        snapshot = self.hardware_status.sample()
+        self._last_hardware_status = snapshot
+        self._set_hardware_tint(snapshot.level)
+        if self._should_announce_hardware_status(snapshot):
+            self._last_hardware_status_event = snapshot.event_id
+            self._last_hardware_announcement_at = time.time()
+            self._apply_reaction(_hardware_status_reaction(snapshot))
+        self.root.after(HARDWARE_STATUS_POLL_MS, self._poll_hardware_status)
+
+    def _should_announce_hardware_status(self, snapshot: HardwareSnapshot) -> bool:
+        if snapshot.level in {"normal", "unavailable"}:
+            return False
+        if self.state.brain_busy or self._bubble_items:
+            return False
+        cooldown = {
+            "warm": 240,
+            "hot": 75,
+            "overloaded": 60,
+            "cooling": 45,
+        }.get(snapshot.level, 180)
+        if snapshot.level in {"hot", "overloaded"}:
+            return self.state.can_speak(cooldown) and time.time() - self._last_hardware_announcement_at >= cooldown
+        if not snapshot.event_id or snapshot.event_id == self._last_hardware_status_event:
+            return False
+        return self.state.can_speak(cooldown)
+
+    def _show_hardware_status(self) -> None:
+        snapshot = self.hardware_status.sample()
+        self._last_hardware_status = snapshot
+        self._set_hardware_tint(snapshot.level)
+        self._apply_reaction(_hardware_status_reaction(snapshot, manual=True))
+
+    def _set_hardware_tint(self, level: str) -> None:
+        self._hardware_tint_level = level
+        self._apply_hardware_tint()
+
+    def _apply_hardware_tint(self) -> None:
+        fill = HARDWARE_TINTS.get(self._hardware_tint_level, WIRE)
+        self.canvas.itemconfigure("wire", fill=fill)
 
     def _claude_change_reaction(self, overview: ClaudeOverview) -> Reaction | None:
         current_sessions = {s.pid: s for s in overview.sessions if s.alive}
@@ -1783,6 +1846,87 @@ def _scale_coords(coords: list[float]) -> list[float]:
 
 CodexStatusProfile = tuple[tuple[str, ...], str, tuple[str, ...], str, tuple[str, ...]]
 ClaudeStatusProfile = tuple[tuple[str, ...], str, tuple[str, ...], str, tuple[str, ...]]
+
+
+def _hardware_status_reaction(snapshot: HardwareSnapshot, manual: bool = False) -> Reaction:
+    summary = snapshot.summary_line or "硬件状态暂时没有说话。"
+    level = snapshot.level
+    if level == "unavailable":
+        return Reaction(
+            True,
+            summary,
+            "sleepy",
+            "blink",
+            "hardware_thought",
+            "quiet_companion",
+            event="hardware_unavailable",
+        )
+    if level == "normal":
+        line = f"{summary}。夹夹暂时不熟。"
+        return Reaction(
+            True,
+            line,
+            "innocent",
+            "blink",
+            "hardware_thought" if manual else "thought",
+            "quiet_companion",
+            event="hardware_normal",
+        )
+
+    choices = {
+        "warm": (
+            (
+                f"{summary}。有点热，夹夹先微微变红，不报警。",
+                f"{summary}。电脑开始努力了。努力到我有点粉。",
+                f"{summary}。这不是发烧，是硬件在认真冒充冷静。",
+            ),
+            "startled",
+            ("scan", "thinking_tilt", "nod"),
+            "suspicious_observe",
+        ),
+        "hot": (
+            (
+                f"{summary}。它在烤自己。我只是变红给你看。",
+                f"{summary}。电风扇如果有尊严，现在应该在加班。",
+                f"{summary}。这份热情有点物理意义了。",
+            ),
+            "startled",
+            ("shake", "flop", "scan"),
+            "fake_sulk",
+        ),
+        "overloaded": (
+            (
+                f"{summary}。任务们挤成早高峰，夹夹先熟为敬。",
+                f"{summary}。内存和显存开始互相踩脚了。",
+                f"{summary}。这不是卡顿，是硬件在进行个人奋斗。",
+            ),
+            "sulky",
+            ("flop", "shake", "sleepy_sag"),
+            "fake_sulk",
+        ),
+        "cooling": (
+            (
+                f"{summary}。温度下来了。我先不熟了。",
+                f"{summary}。散热回到文具级别，暂时体面。",
+                f"{summary}。电脑退烧了，夹夹恢复成办公用品。",
+            ),
+            "innocent",
+            ("nod", "blink", "happy_bounce"),
+            "quiet_companion",
+        ),
+    }
+    lines, mood, actions, performance = choices.get(level, choices["warm"])
+    bubble = "hardware_speech" if manual and level in {"hot", "overloaded"} else "hardware_thought"
+    return Reaction(
+        True,
+        random.choice(lines),
+        mood,
+        random.choice(actions),
+        bubble,
+        performance,
+        decision_reason=f"hardware={level}",
+        event=f"hardware_{level}",
+    )
 
 
 _CODEX_UNKNOWN_LINES = (

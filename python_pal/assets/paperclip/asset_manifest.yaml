@@ -195,3 +195,20 @@ first_movement_actions:
     frequency: rare
     implementation: window_geometry_procedural
     emotion: entrance_or_wake
+
+hardware_status_levels:
+  normal:
+    body_tint: "#AEAEAE"
+    behavior: no_alert
+  warm:
+    body_tint: "#CAA0A0"
+    behavior: subtle_pink_tint
+  hot:
+    body_tint: "#D86B6B"
+    behavior: short_shake_or_fake_sulk
+  overloaded:
+    body_tint: "#BD4343"
+    behavior: deeper_red_plus_flop
+  cooling:
+    body_tint: "#B8B8B8"
+    behavior: one_recovery_line_then_normal

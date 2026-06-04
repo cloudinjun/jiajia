@@ -106,8 +106,11 @@ identities:
     color_accent: warm_red
     default_mood: startled
     fallback_action: shake
+    fallback_animation: fan_shake
     preferred_performance: fake_sulk
-    triggers: [gpu_temp_high, cpu_temp_high, gpu_usage_high, ram_high, system_hot, overheated]
+    allowed_moods: [startled, sulky, innocent, thinking]
+    core_animations: [warm_idle, fan_shake, meltdown, cooldown_recover, fake_sulk]
+    triggers: [hardware_warm, hardware_hot, hardware_overloaded, hardware_cooling, gpu_temp_high, cpu_temp_high, gpu_usage_high, ram_high, vram_high, system_hot, overheated]
     visual_addons: [thermometer_icon, heat_tint]
     animations:
       idle: warm_idle
