@@ -1585,6 +1585,56 @@ _CLAUDE_IDLE_OVERVIEW_TAILS = (
 )
 
 
+_CLAUDE_SPINNER_WORDS = (
+    "Patch-waltzing",
+    "Context-combing",
+    "Prompt-polishing",
+    "Diff-dusting",
+    "Token-folding",
+    "Stack-sorting",
+    "Syntax-squinting",
+    "Error-negotiating",
+    "Cache-rummaging",
+    "Terminal-humming",
+    "Plan-unfolding",
+    "File-straightening",
+    "Trace-stitching",
+    "Commit-gazing",
+    "Log-tasting",
+    "Cursor-drifting",
+    "Path-untangling",
+    "Todo-stacking",
+    "Loop-coaxing",
+    "Schema-buffing",
+    "Hook-tapping",
+    "Line-straightening",
+    "Json-massaging",
+    "Yaml-teasing",
+    "Regex-squinting",
+    "Shell-surfacing",
+    "Bug-bargaining",
+    "Patch-folding",
+    "Context-ironing",
+    "Token-shuffling",
+    "Branch-balancing",
+    "Output-sifting",
+    "Intent-buffering",
+    "Result-smoothing",
+    "Stack-tracing",
+    "Lint-whispering",
+)
+
+
+_CLAUDE_SPINNER_TAILS = (
+    "如果它有 spinner，现在大概写着 {spinner}。",
+    "状态词可以叫 {spinner}，听起来就很像认真。",
+    "角落里的小字应该是 {spinner}，懂不懂另说。",
+    "这一步可以命名为 {spinner}，很高级，也很可疑。",
+    "我猜它正在 {spinner}，主要是听起来像在做事。",
+    "Claude 味出来了，屏幕边缘仿佛写着 {spinner}。",
+)
+
+
 _CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
     "started": (
         ("{label} 在 {project} 开工了", "{label}@{project} 出现了", "Claude 的 {label} 会话进了 {project}"),
@@ -1725,7 +1775,8 @@ def _claude_session_reaction(
         activity=session.activity_zh(),
         idle=_format_idle_seconds(session.idle_seconds),
     )
-    tail = _pick_status_fragment(tails, recent_fragments)
+    tail_template = _pick_status_fragment(_claude_tail_choices(tails, event_key), recent_fragments)
+    tail = _format_claude_status_text(tail_template, session, recent_fragments)
     return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), bubble)
 
 
@@ -1751,7 +1802,7 @@ def _claude_overview_reaction(
             "现在有 {count} 个 Claude 在场，最忙的是 {focus_label}@{focus_project}",
             "Claude 场面有点热闹：{summary}",
         )
-        tails = _CLAUDE_OVERVIEW_TAILS
+        tails = _CLAUDE_OVERVIEW_TAILS + _CLAUDE_SPINNER_TAILS
         mood, actions = "smirk", ("scan", "peek", "nod")
     else:
         prefixes = (
@@ -1769,7 +1820,8 @@ def _claude_overview_reaction(
         focus_project=focus.project,
         focus_activity=focus.activity_zh(),
     )
-    tail = _pick_status_fragment(tails, recent_fragments)
+    tail_template = _pick_status_fragment(tails, recent_fragments)
+    tail = _format_claude_status_text(tail_template, focus, recent_fragments)
     return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), "thought")
 
 
@@ -1786,6 +1838,29 @@ def _format_idle_seconds(seconds: float) -> str:
         return f"{round(seconds)} 秒"
     minutes = round(seconds / 60)
     return f"{minutes} 分钟"
+
+
+def _claude_tail_choices(tails: tuple[str, ...], event: str) -> tuple[str, ...]:
+    if event in {"started", "editing", "running", "reading", "searching", "thinking"}:
+        return tails + _CLAUDE_SPINNER_TAILS
+    return tails
+
+
+def _format_claude_status_text(
+    template: str,
+    session: ClaudeSession,
+    recent_fragments: list[str] | None = None,
+) -> str:
+    spinner = ""
+    if "{spinner}" in template:
+        spinner = _pick_status_fragment(_CLAUDE_SPINNER_WORDS, recent_fragments)
+    return template.format(
+        label=session.label(),
+        project=session.project,
+        activity=session.activity_zh(),
+        idle=_format_idle_seconds(session.idle_seconds),
+        spinner=spinner,
+    )
 
 
 def _pick_status_fragment(
