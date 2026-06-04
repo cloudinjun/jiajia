@@ -79,3 +79,13 @@ Performance phrases:
 first, speak, then snap back to an innocent pose. Reactions and line-bank
 entries may optionally set `performance`; otherwise the body picks a simple
 phrase from mood, action, and bubble type.
+
+Animation direction:
+
+Animation complexity should come from layers, timing, combinations,
+responsiveness, and emotional continuity rather than from ever larger motions.
+The current first-class performance phrases are
+`cold_arrow_then_innocent`, `smug_but_caught`, `fake_sulk`,
+`suspicious_observe`, `quiet_companion`, and `tiny_celebrate`. The body also has
+internal `micro_*` actions for eyes, pupils, and brows; these are meant for
+performance phrases, not for the visible action menu.

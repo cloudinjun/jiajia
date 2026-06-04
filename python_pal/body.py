@@ -341,6 +341,8 @@ class PaperclipPalApp:
         self._breath_depth = 2.2
         self._pupil_bounds: dict[int, tuple[float, float, float, float]] = {}
         self._pupil_look = (0.0, 0.0)
+        self._pupil_size_scale = 1.0
+        self._brow_base_coords: dict[int, tuple[float, ...]] = {}
         self._is_blinking = False
         self._mouse_follow_after: str | None = None
         self._mouse_follow_until = 0.0
@@ -370,6 +372,7 @@ class PaperclipPalApp:
         self._last_claude_sessions_by_pid: dict[int, ClaudeSession] = {}
         self._recent_claude_status_fragments: list[str] = []
         self._performance_after: list[str] = []
+        self._expression_after: list[str] = []
         self.mood = MoodEngine()
         initial_frequency = self._load_frequency_setting()
         self.mood.set_frequency(initial_frequency)
@@ -446,16 +449,22 @@ class PaperclipPalApp:
             self.left_pupil: left_pupil_bounds,
             self.right_pupil: right_pupil_bounds,
         }
-        c.create_line(
-            *_scale_coords(_path_coords(LEFT_BROW_START, LEFT_BROW_CURVES)), smooth=False,
+        left_brow_coords = tuple(_scale_coords(_path_coords(LEFT_BROW_START, LEFT_BROW_CURVES)))
+        right_brow_coords = tuple(_scale_coords(_path_coords(RIGHT_BROW_START, RIGHT_BROW_CURVES)))
+        self.left_brow = c.create_line(
+            *left_brow_coords, smooth=False,
             width=30 * PAL_SCALE, fill=BROW, capstyle=tk.ROUND,
             tags=("pal", "brow"),
         )
-        c.create_line(
-            *_scale_coords(_path_coords(RIGHT_BROW_START, RIGHT_BROW_CURVES)), smooth=False,
+        self.right_brow = c.create_line(
+            *right_brow_coords, smooth=False,
             width=30 * PAL_SCALE, fill=BROW, capstyle=tk.ROUND,
             tags=("pal", "brow"),
         )
+        self._brow_base_coords = {
+            self.left_brow: left_brow_coords,
+            self.right_brow: right_brow_coords,
+        }
 
     def _reset_pal_geometry(self) -> None:
         look = self._pupil_look
@@ -873,9 +882,13 @@ class PaperclipPalApp:
             except tk.TclError:
                 pass
         self._performance_after.clear()
+        self._cancel_expression_after(reset=True)
 
     def _perform_action(self, action: str) -> None:
         if not action or action == "idle":
+            return
+        if action.startswith("micro_"):
+            self._perform_micro_action(action)
             return
         if action == "bob":
             self._run_large_action(ACTION_FRAMES["nod"])
@@ -895,6 +908,81 @@ class PaperclipPalApp:
         frames = ACTION_FRAMES.get(action)
         if frames:
             self._run_large_action(frames)
+
+    def _perform_micro_action(self, action: str) -> None:
+        if action == "micro_focus_pause":
+            self._stop_mouse_follow()
+            self._set_brow_pose("soft")
+            self._set_pupil_pose(*self._pupil_look, size_scale=0.94)
+            self._animate_look((0.0, 0.0))
+        elif action == "micro_side_eye":
+            self._set_brow_pose("judge")
+            self._set_pupil_pose(*self._pupil_look, size_scale=0.98)
+            self._animate_look((-3.1, 0.35))
+        elif action == "micro_brow_judge":
+            self._set_brow_pose("judge")
+        elif action == "micro_snap_innocent":
+            self._stop_mouse_follow()
+            self._set_brow_pose("innocent")
+            self._pupil_look = (0.0, 0.0)
+            self._set_pupil_pose(0.0, 0.0, size_scale=1.08)
+            self._schedule_expression_reset(1200)
+        elif action == "micro_caught_guilty":
+            self._stop_mouse_follow()
+            self._set_brow_pose("guilty")
+            self._pupil_look = (0.0, -0.1)
+            self._set_pupil_pose(0.0, -0.1, size_scale=1.10)
+            self._schedule_expression_reset(1400)
+        elif action == "micro_holding_laugh":
+            self._set_brow_pose("laugh")
+            self._set_pupil_pose(0.45, -0.1, size_scale=1.03)
+        elif action == "micro_peek_up":
+            self._set_brow_pose("sulk")
+            self._set_pupil_pose(1.9, -0.75, size_scale=0.92)
+        elif action == "micro_soften":
+            self._set_brow_pose("soft")
+            self._set_pupil_pose(0.0, 0.0, size_scale=0.96)
+        elif action == "micro_tiny_proud":
+            self._set_brow_pose("proud")
+            self._set_pupil_pose(-0.35, -0.25, size_scale=1.02)
+        elif action == "micro_soft_reset":
+            self._reset_expression_pose()
+
+    def _set_brow_pose(self, pose: str) -> None:
+        poses: dict[str, tuple[tuple[float, float, float], tuple[float, float, float]]] = {
+            "neutral": ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
+            "soft": ((0.0, -0.7, 0.0), (0.0, -0.5, 0.0)),
+            "judge": ((-0.4, 1.7, -0.08), (0.3, 1.2, 0.09)),
+            "innocent": ((0.0, -2.0, 0.02), (0.0, -1.6, -0.03)),
+            "guilty": ((0.0, 2.3, 0.05), (0.0, 2.0, -0.05)),
+            "laugh": ((0.0, 1.4, -0.02), (0.0, 1.2, 0.02)),
+            "sulk": ((0.0, 2.6, -0.03), (0.0, 2.1, 0.03)),
+            "proud": ((0.0, -1.4, -0.06), (0.0, -1.1, 0.06)),
+        }
+        left_spec, right_spec = poses.get(pose, poses["neutral"])
+        for item, spec in ((self.left_brow, left_spec), (self.right_brow, right_spec)):
+            base = self._brow_base_coords.get(item)
+            if base:
+                self.canvas.coords(item, *_brow_pose_coords(base, *spec))
+
+    def _schedule_expression_reset(self, delay_ms: int) -> None:
+        self._expression_after.append(self.root.after(delay_ms, self._reset_expression_pose))
+
+    def _reset_expression_pose(self) -> None:
+        self._cancel_expression_after(reset=False)
+        self._set_brow_pose("neutral")
+        self._set_pupil_pose(*self._pupil_look, size_scale=1.0)
+
+    def _cancel_expression_after(self, reset: bool = True) -> None:
+        for after_id in self._expression_after:
+            try:
+                self.root.after_cancel(after_id)
+            except tk.TclError:
+                pass
+        self._expression_after.clear()
+        if reset:
+            self._set_brow_pose("neutral")
+            self._set_pupil_pose(*self._pupil_look, size_scale=1.0)
 
     def _schedule_idle(self, first: bool = False) -> None:
         if first:
@@ -1189,13 +1277,21 @@ class PaperclipPalApp:
 
         step()
 
-    def _set_pupil_pose(self, dx: float, dy: float, blink_scale: float = 1.0) -> None:
+    def _set_pupil_pose(
+        self,
+        dx: float,
+        dy: float,
+        blink_scale: float = 1.0,
+        size_scale: float | None = None,
+    ) -> None:
+        if size_scale is not None:
+            self._pupil_size_scale = max(0.75, min(1.16, size_scale))
         for item, bounds in self._pupil_bounds.items():
             x1, y1, x2, y2 = bounds
             cx = (x1 + x2) / 2 + dx + self._bob_x
             cy = (y1 + y2) / 2 + dy + self._bob_y
-            rx = (x2 - x1) / 2
-            ry = max(0.8, (y2 - y1) / 2 * blink_scale)
+            rx = (x2 - x1) / 2 * self._pupil_size_scale
+            ry = max(0.8, (y2 - y1) / 2 * blink_scale * self._pupil_size_scale)
             self.canvas.coords(item, cx - rx, cy - ry, cx + rx, cy + ry)
 
     def show_bubble(self, text: str, milliseconds: int = 3200, kind: str = "speech") -> None:
@@ -1519,7 +1615,7 @@ _CODEX_STATUS_PROFILES: dict[str, CodexStatusProfile] = {
     ),
     "done": (
         ("Codex 回来了{summary}", "Codex 说它做完了{summary}", "Codex 收工了{summary}"),
-        "smirk",
+        "done",
         ("bob", "happy_bounce", "nod"),
         "speech",
         (
@@ -2041,6 +2137,17 @@ def _oval_center_radius(coords: list[float]) -> tuple[float, float, float]:
 
 def _clamp(value: float, low: float, high: float) -> float:
     return max(low, min(high, value))
+
+
+def _brow_pose_coords(base: tuple[float, ...], dx: float, dy: float, tilt: float) -> list[float]:
+    xs = [base[i] for i in range(0, len(base), 2)]
+    center_x = sum(xs) / max(1, len(xs))
+    coords: list[float] = []
+    for i in range(0, len(base), 2):
+        x = base[i]
+        y = base[i + 1]
+        coords.extend((x + dx, y + dy + (x - center_x) * tilt))
+    return coords
 
 
 def _oval_bounds(cx: float, cy: float, rx: float, ry: float | None = None) -> tuple[float, float, float, float]:

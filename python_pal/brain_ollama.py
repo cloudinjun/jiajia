@@ -10,7 +10,7 @@ import urllib.request
 
 from .actions import ACTION_PROMPT, ACTION_SCHEMA_VALUE, MODEL_ACTIONS
 from .line_bank import LineBank
-from .performance import PERFORMANCE_PHRASES
+from .performance import PERFORMANCE_PHRASES, PERFORMANCE_PROMPT, PERFORMANCE_SCHEMA_VALUE
 from .soul import Soul
 from .state import Reaction
 
@@ -156,7 +156,8 @@ class OllamaBrain:
             "动作可以表达情绪或状态，从下面选择一个最贴切的 action:\n"
             f"{ACTION_PROMPT}\n"
             "performance 是可选表演短语，用来安排先做一个小动作、再冒泡、再收尾装无辜。"
-            "可选: cold_arrow, snap_innocent, fake_innocent, guilty_after_roast, tiny_comfort；不确定就留空。\n"
+            "优先从下面 6 个里选；不确定就留空:\n"
+            f"{PERFORMANCE_PROMPT}\n"
             "thought 不要写“我在想”“心里想”，气泡样式会表达这一点。\n"
             "只输出 JSON，不要 Markdown，不要解释。"
         )
@@ -168,7 +169,7 @@ class OllamaBrain:
             "bubble": "speech|thought",
             "mood": "idle|smirk|smug|happy|thinking|sleepy|startled|proud|shy|sulky|focused|bored|done|innocent|suspicious|guilty",
             "action": ACTION_SCHEMA_VALUE,
-            "performance": "cold_arrow|snap_innocent|fake_innocent|guilty_after_roast|tiny_comfort|",
+            "performance": PERFORMANCE_SCHEMA_VALUE,
         }
         bubble_hint = (
             "poke/manual 事件优先 speech；idle 事件可以 speech 或 thought；"
@@ -207,9 +208,9 @@ class OllamaBrain:
             "event": "manual|idle|bored|poke|ambient",
             "line": "一句短中文",
             "bubble": "speech|thought",
-            "mood": "smirk|thinking|innocent|suspicious|guilty|sleepy|startled",
+            "mood": "smirk|smug|thinking|innocent|suspicious|guilty|sleepy|startled|happy|proud",
             "action": ACTION_SCHEMA_VALUE,
-            "performance": "cold_arrow|snap_innocent|fake_innocent|guilty_after_roast|tiny_comfort|",
+            "performance": PERFORMANCE_SCHEMA_VALUE,
             "tags": ["procrastination"],
         }
         return (

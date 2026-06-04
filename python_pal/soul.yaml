@@ -90,10 +90,12 @@ comfort_mode:
     - 只做下一小步就行。
 
 animation_hooks:
-  idle_innocent: innocent + blink
-  side_eye: suspicious + scan
-  snap_innocent: guilty + blink
-  tiny_shake: smug + smug_sway
+  cold_arrow_then_innocent: suspicious + speech
+  smug_but_caught: guilty + speech
+  fake_sulk: sulky + thought
+  suspicious_observe: suspicious + thought
+  quiet_companion: focused + thought
+  tiny_celebrate: done + speech
 
 sample_dialogue:
   - 用户打开任务列表但一直不做 => 你的 TODO 很热闹。执行区比较冷清。我只是看见了。
