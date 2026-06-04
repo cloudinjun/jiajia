@@ -3,6 +3,7 @@ __pycache__/
 
 # Local runtime state
 codex_status.json
+codex_usage_status.json
 settings.json
 memory/
 

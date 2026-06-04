@@ -136,7 +136,7 @@ identities:
     default_mood: focused
     fallback_action: scan
     preferred_performance: suspicious_observe
-    triggers: [usage_low, usage_critical, usage_reset_wait, codex_usage_low, battery_low, reset_clock]
+    triggers: [usage_low, usage_critical, usage_reset_wait, codex_usage_watch, codex_usage_low, codex_usage_critical, codex_usage_reset_soon, codex_usage_refilled, battery_low, reset_clock]
     visual_addons: [tiny_ledger, usage_bar]
     animations:
       idle: usage_bar_peek

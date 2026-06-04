@@ -5,6 +5,7 @@ import time
 
 from .claude_status import ClaudeOverview
 from .codex_status import CodexStatus
+from .codex_usage import CodexUsageStatus
 from .ears import EarContext
 from .eyes import ScreenContext
 from .hardware_status import HardwareSnapshot
@@ -32,6 +33,7 @@ class WorldState:
     user_activity: EarContext
     screen: ScreenContext
     codex: CodexStatus
+    codex_usage: CodexUsageStatus
     claude: ClaudeOverview
     hardware: HardwareSnapshot
     pal: PalState
@@ -47,6 +49,7 @@ class WorldState:
         tags = set(self.user_activity.behavior_tags) | set(self.screen.screen_tags)
         if self.codex.status not in {"unknown", "idle"} and not self.codex.stale:
             tags.add(f"codex_{self.codex.status}")
+        tags.update(self.codex_usage.tags)
         if self.claude.active_count:
             tags.add("claude_active")
         elif self.claude.total_alive:
@@ -63,6 +66,7 @@ class WorldState:
             **self.user_activity.as_dict(),
             **self.screen.as_dict(),
             **self.codex.as_dict(),
+            **self.codex_usage.as_dict(),
             **self.hardware.as_dict(),
             "claude_total_alive": self.claude.total_alive,
             "claude_active_count": self.claude.active_count,

@@ -212,3 +212,23 @@ hardware_status_levels:
   cooling:
     body_tint: "#B8B8B8"
     behavior: one_recovery_line_then_normal
+
+codex_usage_levels:
+  normal:
+    badge: hidden
+    behavior: manual_report_only
+  watch:
+    badge: small_blue_bar
+    behavior: usage_bar_peek
+  low:
+    badge: small_orange_bar
+    behavior: low_usage_warning
+  critical:
+    badge: small_red_bar
+    behavior: critical_usage_panic
+  reset_soon:
+    badge: small_green_bar
+    behavior: reset_clock_watch
+  refilled:
+    badge: hidden_after_recovery
+    behavior: usage_refilled

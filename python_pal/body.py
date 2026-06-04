@@ -18,6 +18,7 @@ from .brain_ollama import OllamaBrain
 from .mood import MoodEngine, FREQUENCY_PRESETS, FREQUENCY_DEFAULT
 from .claude_status import ClaudeOverview, ClaudeSession, ClaudeStatusMonitor
 from .codex_status import CodexStatus, CodexStatusMonitor
+from .codex_usage import CodexUsageMonitor, CodexUsageStatus, format_reset_in
 from .decision import DecisionEngine
 from .ears import Ears
 from .eyes import Eyes
@@ -69,6 +70,17 @@ BUBBLE_STYLES: dict[str, BubbleStyle] = {
     "claude_thought": (True, "#fff2e8", "#d97757", "#442414"),
     "hardware_thought": (True, "#fff4f4", "#d86b6b", "#4b2424"),
     "hardware_speech": (False, "#fff4f4", "#d86b6b", "#4b2424"),
+    "usage_thought": (True, "#f2f7ff", "#4f7ecf", "#20304f"),
+    "usage_speech": (False, "#f2f7ff", "#4f7ecf", "#20304f"),
+}
+CODEX_USAGE_COLORS = {
+    "normal": "#10a37f",
+    "watch": "#4f7ecf",
+    "low": "#e4a03b",
+    "critical": "#d65b4a",
+    "reset_soon": "#10a37f",
+    "refilled": "#10a37f",
+    "unavailable": "#a8a8a8",
 }
 HARDWARE_TINTS = {
     "normal": WIRE,
@@ -88,6 +100,7 @@ MOUSE_FOLLOW_NEAR_RADIUS = 150
 GLOBAL_MOUSE_POLL_MS = 24
 PAL_HIT_INSET = 6
 CODEX_STATUS_POLL_MS = 2500
+CODEX_USAGE_POLL_MS = 60_000
 CLAUDE_STATUS_POLL_MS = 8000
 HARDWARE_STATUS_POLL_MS = 5000
 LERP_TICK_MS = 18
@@ -316,6 +329,7 @@ class PaperclipPalApp:
         self.ears = Ears()
         self.eyes = Eyes(model=soul.vision_model)
         self.codex_status = CodexStatusMonitor(project_root / "codex_status.json")
+        self.codex_usage = CodexUsageMonitor(project_root / "codex_usage_status.json")
         self.hardware_status = HardwareStatusMonitor()
         self.state = PalState()
         self.decision = DecisionEngine()
@@ -388,8 +402,12 @@ class PaperclipPalApp:
         self._thought_dot_base: list[tuple[float, float, float]] = []
         self._thought_dot_phase = 0
         self._thought_dot_after: str | None = None
+        self._usage_badge_items: list[int] = []
         self._last_codex_status_event = ""
         self._last_codex_status: CodexStatus = CodexStatus()
+        self._last_codex_usage_event = ""
+        self._last_codex_usage_status: CodexUsageStatus = CodexUsageStatus()
+        self._last_codex_usage_announcement_at = 0.0
         self._last_hardware_status_event = ""
         self._last_hardware_status: HardwareSnapshot = HardwareSnapshot()
         self._last_hardware_announcement_at = 0.0
@@ -422,6 +440,7 @@ class PaperclipPalApp:
         self.root.after(120, self._poll_global_mouse)
         self.root.after(100, self._poll_brain)
         self.root.after(1500, self._poll_codex_status)
+        self.root.after(6000, self._poll_codex_usage)
         self.root.after(3500, self._poll_claude_status)
         self.root.after(4200, self._poll_hardware_status)
         self._schedule_blink()
@@ -553,6 +572,7 @@ class PaperclipPalApp:
             )
         self.menu.add_cascade(label="Identity", menu=identity_menu)
         self.menu.add_command(label="Codex status", command=self._show_codex_status)
+        self.menu.add_command(label="Codex usage", command=self._show_codex_usage)
         self.menu.add_command(label="Claude 状态", command=self._show_claude_status)
         self.menu.add_command(label="Hardware status", command=self._show_hardware_status)
         self.menu.add_command(label="Debug last decision", command=self._show_last_decision_debug)
@@ -775,6 +795,7 @@ class PaperclipPalApp:
             user_activity=self.ears.sample(),
             screen=self.eyes.sample(),
             codex=self.codex_status.sample(),
+            codex_usage=self._last_codex_usage_status,
             claude=self.claude_monitor.sample(),
             hardware=self._last_hardware_status,
             pal=self.state,
@@ -865,6 +886,42 @@ class PaperclipPalApp:
             self._apply_reaction(reaction)
         self.root.after(CODEX_STATUS_POLL_MS, self._poll_codex_status)
 
+    def _poll_codex_usage(self) -> None:
+        status = self.codex_usage.sample()
+        self._last_codex_usage_status = status
+        self._set_codex_usage_badge(status)
+        if self._should_announce_codex_usage(status):
+            self._last_codex_usage_event = status.event_id
+            self._last_codex_usage_announcement_at = time.time()
+            self._apply_reaction(_codex_usage_reaction(status))
+        self.root.after(CODEX_USAGE_POLL_MS, self._poll_codex_usage)
+
+    def _should_announce_codex_usage(self, status: CodexUsageStatus) -> bool:
+        if status.level in {"unavailable", "normal", "watch"} or status.stale:
+            return False
+        if self.state.brain_busy or self._bubble_items:
+            return False
+        cooldown = {
+            "low": 30 * 60,
+            "critical": 10 * 60,
+            "reset_soon": 20 * 60,
+            "refilled": 30 * 60,
+        }.get(status.level, 30 * 60)
+        is_new_event = bool(status.event_id and status.event_id != self._last_codex_usage_event)
+        if is_new_event and self._last_codex_usage_announcement_at <= 0:
+            return self.state.can_speak(8)
+        if status.level in {"reset_soon", "refilled"}:
+            return is_new_event and self.state.can_speak(8)
+        if status.level in {"low", "critical"}:
+            return self.state.can_speak(cooldown) and time.time() - self._last_codex_usage_announcement_at >= cooldown
+        return False
+
+    def _show_codex_usage(self) -> None:
+        status = self.codex_usage.sample()
+        self._last_codex_usage_status = status
+        self._set_codex_usage_badge(status)
+        self._apply_reaction(_codex_usage_reaction(status, manual=True))
+
     def _should_announce_codex_status(self, status: CodexStatus) -> bool:
         if status.status in {"unknown", "idle"} or status.stale:
             return False
@@ -924,6 +981,64 @@ class PaperclipPalApp:
     def _apply_hardware_tint(self) -> None:
         fill = HARDWARE_TINTS.get(self._hardware_tint_level, WIRE)
         self.canvas.itemconfigure("wire", fill=fill)
+
+    def _set_codex_usage_badge(self, status: CodexUsageStatus) -> None:
+        self._clear_codex_usage_badge()
+        if status.level not in {"watch", "low", "critical", "reset_soon"}:
+            return
+        percent = status.usage_remaining_percent
+        if percent is None:
+            return
+        color = CODEX_USAGE_COLORS.get(status.level, CODEX_USAGE_COLORS["watch"])
+        x, y = 10, 12
+        width, height = 78, 26
+        fill_width = max(4, round((width - 8) * percent / 100))
+        self._usage_badge_items.extend(
+            [
+                self.canvas.create_rectangle(
+                    x,
+                    y,
+                    x + width,
+                    y + height,
+                    fill="#f7fbff",
+                    outline=color,
+                    width=1,
+                ),
+                self.canvas.create_rectangle(
+                    x + 4,
+                    y + 16,
+                    x + 4 + fill_width,
+                    y + 21,
+                    fill=color,
+                    outline="",
+                ),
+                self.canvas.create_rectangle(
+                    x + 4,
+                    y + 16,
+                    x + width - 4,
+                    y + 21,
+                    fill="",
+                    outline="#d7e2f4",
+                    width=1,
+                ),
+                self.canvas.create_text(
+                    x + 6,
+                    y + 8,
+                    anchor="w",
+                    text=f"CODEX {percent:.0f}%",
+                    fill="#20304f",
+                    font=("Microsoft YaHei UI", 7),
+                ),
+            ]
+        )
+
+    def _clear_codex_usage_badge(self) -> None:
+        for item in self._usage_badge_items:
+            try:
+                self.canvas.delete(item)
+            except tk.TclError:
+                pass
+        self._usage_badge_items.clear()
 
     def _claude_change_reaction(self, overview: ClaudeOverview) -> Reaction | None:
         current_sessions = {s.pid: s for s in overview.sessions if s.alive}
@@ -1846,6 +1961,103 @@ def _scale_coords(coords: list[float]) -> list[float]:
 
 CodexStatusProfile = tuple[tuple[str, ...], str, tuple[str, ...], str, tuple[str, ...]]
 ClaudeStatusProfile = tuple[tuple[str, ...], str, tuple[str, ...], str, tuple[str, ...]]
+
+
+def _codex_usage_reaction(status: CodexUsageStatus, manual: bool = False) -> Reaction:
+    if status.level == "unavailable":
+        line = status.summary_line or "还没有 codex_usage_status.json。夹夹暂时不知道饭点。"
+        return Reaction(
+            True,
+            line,
+            "sleepy",
+            "blink",
+            "usage_thought",
+            "quiet_companion",
+            event="codex_usage_unavailable",
+        )
+
+    percent = _format_usage_percent(status.usage_remaining_percent)
+    reset_label = format_reset_in(status.reset_in_seconds)
+    reset_suffix = f" {reset_label}后回血。" if reset_label and reset_label != "现在" else ""
+    if reset_label == "现在":
+        reset_suffix = " 现在应该回血。"
+
+    choices = {
+        "normal": (
+            (f"Codex 还有 {percent}%。暂时不用精打细算。{reset_suffix}",),
+            "innocent",
+            ("blink", "nod"),
+            "quiet_companion",
+            "usage_thought",
+        ),
+        "watch": (
+            (
+                f"还剩 {percent}%。不是贫穷，是需要规划。{reset_suffix}",
+                f"Codex 还有 {percent}%。可以用，但不适合铺张。{reset_suffix}",
+            ),
+            "thinking",
+            ("scan", "peek", "thinking_tilt"),
+            "suspicious_observe",
+            "usage_thought",
+        ),
+        "low": (
+            (
+                f"Codex 只剩 {percent}%。现在不适合让它写史诗。{reset_suffix}",
+                f"还剩 {percent}%。额度正在用乖巧语气提醒你节制。{reset_suffix}",
+            ),
+            "suspicious",
+            ("thinking_tilt", "sulk", "scan"),
+            "fake_sulk",
+            "usage_speech",
+        ),
+        "critical": (
+            (
+                f"剩 {percent}%。它不是累了，它是快没饭了。{reset_suffix}",
+                f"Codex 只剩 {percent}%。现在每个大活都需要先过会计。{reset_suffix}",
+            ),
+            "sulky",
+            ("flop", "shake", "sleepy_sag"),
+            "fake_sulk",
+            "usage_speech",
+        ),
+        "reset_soon": (
+            (
+                f"还剩 {reset_label}回血。先别让它干大活，等饭点。",
+                f"reset 快到了，{reset_label}后回血。可以理性地期待一下。",
+            ),
+            "thinking",
+            ("peek", "nod", "smug_sway"),
+            "quiet_companion",
+            "usage_thought",
+        ),
+        "refilled": (
+            (
+                f"回血了。Codex 又能继续装作很能干。",
+                f"额度回来了。理性也可以顺便回来一点。",
+            ),
+            "done",
+            ("happy_bounce", "nod", "smug_sway"),
+            "tiny_celebrate",
+            "usage_speech",
+        ),
+    }
+    lines, mood, actions, performance, bubble = choices.get(status.level, choices["watch"])
+    if manual and bubble == "usage_thought":
+        bubble = "usage_speech" if status.level in {"low", "critical"} else "usage_thought"
+    return Reaction(
+        True,
+        random.choice(lines).strip(),
+        mood,
+        random.choice(actions),
+        bubble,
+        performance,
+        decision_reason=f"codex_usage={status.level}",
+        event=f"codex_usage_{status.level}",
+    )
+
+
+def _format_usage_percent(percent: float | None) -> str:
+    return "未知" if percent is None else f"{percent:.0f}"
 
 
 def _hardware_status_reaction(snapshot: HardwareSnapshot, manual: bool = False) -> Reaction:
