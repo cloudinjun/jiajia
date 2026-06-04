@@ -22,9 +22,12 @@ class IdentityPack:
     color_accent: str = ""
     default_mood: str = "smirk"
     fallback_action: str = "blink"
+    fallback_animation: str = ""
     preferred_performance: str = ""
     triggers: tuple[str, ...] = ()
     visual_addons: tuple[str, ...] = ()
+    allowed_moods: tuple[str, ...] = ()
+    core_animations: tuple[str, ...] = ()
     animations: dict[str, str] = field(default_factory=dict)
     lines: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
@@ -41,8 +44,11 @@ class IdentityPack:
         bits.append(
             "动作倾向: "
             f"mood={self.default_mood}, action={self.fallback_action}, "
-            f"performance={self.preferred_performance or 'auto'}"
+            f"performance={self.preferred_performance or 'auto'}, "
+            f"fallback_animation={self.fallback_animation or self.fallback_action}"
         )
+        if self.core_animations:
+            bits.append(f"core_animations: {', '.join(self.core_animations[:5])}")
         if line:
             bits.append(f"台词味道: {line}")
         return "\n".join(bits)
@@ -158,9 +164,12 @@ def _parse_pack(raw: dict[str, Any]) -> IdentityPack:
         color_accent=_key(raw.get("color_accent")),
         default_mood=_key(raw.get("default_mood")) or "smirk",
         fallback_action=_key(raw.get("fallback_action")) or "blink",
+        fallback_animation=_key(raw.get("fallback_animation")),
         preferred_performance=_key(raw.get("preferred_performance")),
         triggers=tuple(_key_list(raw.get("triggers"))),
         visual_addons=tuple(_key_list(raw.get("visual_addons"))),
+        allowed_moods=tuple(_key_list(raw.get("allowed_moods"))),
+        core_animations=tuple(_key_list(raw.get("core_animations"))),
         animations={_key(key): _key(value) for key, value in _dict(raw.get("animations")).items()},
         lines=lines,
     )
@@ -203,7 +212,10 @@ def _fallback_pack() -> IdentityPack:
         visual_formula="同一只回形针，不加嘴和四肢。",
         default_mood="smirk",
         fallback_action="blink",
+        fallback_animation="idle_breathe",
         preferred_performance="cold_arrow_then_innocent",
+        allowed_moods=("smirk", "innocent", "guilty"),
+        core_animations=("idle_breathe", "blink", "side_eye", "cold_arrow_then_innocent", "fake_sulk"),
         lines={"normal": ("我只是路过。意见暂时折起来。",)},
     )
 

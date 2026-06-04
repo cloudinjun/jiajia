@@ -126,3 +126,14 @@ paperclip whose expression comes from eyes, brows, timing, squash/stretch, and
 after-reactions. The first animation batch is intentionally small:
 `idle_breathe`, `blink`, `side_eye`, `cold_arrow_then_innocent`, and
 `fake_sulk`.
+
+Identity animation scope:
+
+Identity packs may declare `allowed_moods`, `core_animations`, and
+`fallback_animation`, but those names are asset/performance concepts first.
+Unknown identity-specific animation names should fall back to existing actions
+or performance phrases instead of requiring new GIF/APNG assets. The first
+identity animation batch is only: Default Pal (`idle_breathe`,
+`cold_arrow_then_innocent`), Task Auditor (`audit_scan`, `soft_nudge`), Agent
+Watcher (`agent_running`, `agent_error`), and Sleepy Clip (`sleep_loop`,
+`wake_startled`).

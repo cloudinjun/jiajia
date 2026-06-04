@@ -1,5 +1,16 @@
 schema_version: 1
 default_identity: default_pal
+priority_identity_packs:
+  - default_pal
+  - task_auditor
+  - agent_supervisor
+  - sleepy_clip
+
+first_identity_animation_batch:
+  default_pal: [idle_breathe, cold_arrow_then_innocent]
+  task_auditor: [audit_scan, soft_nudge]
+  agent_supervisor: [agent_running, agent_error]
+  sleepy_clip: [sleep_loop, wake_startled]
 
 visual_strategy:
   formula: "同一只回形针 + 一个小图标 + 一种颜色状态 + 一套动作节奏"
@@ -19,7 +30,10 @@ identities:
     color_accent: paperclip_gray
     default_mood: smirk
     fallback_action: blink
+    fallback_animation: idle_breathe
     preferred_performance: cold_arrow_then_innocent
+    allowed_moods: [smirk, smug, innocent, guilty, thinking]
+    core_animations: [idle_breathe, blink, side_eye, cold_arrow_then_innocent, fake_sulk, holding_laugh]
     triggers: [event_manual, event_bored, event_poke]
     visual_addons: []
     animations:
@@ -38,7 +52,10 @@ identities:
     color_accent: audit_green
     default_mood: suspicious
     fallback_action: thinking_tilt
+    fallback_animation: audit_scan
     preferred_performance: suspicious_observe
+    allowed_moods: [suspicious, smirk, focused, guilty]
+    core_animations: [audit_scan, clipboard_judgement, soft_nudge, audit_done]
     triggers: [rapid_switching, idle_staring, blank_document, todo_visible, browser_research, event_idle, event_ambient]
     visual_addons: [tiny_checklist]
     animations:
@@ -61,7 +78,10 @@ identities:
     color_accent: agent_green
     default_mood: thinking
     fallback_action: scan
+    fallback_animation: agent_running
     preferred_performance: suspicious_observe
+    allowed_moods: [thinking, suspicious, done, startled, guilty]
+    core_animations: [agent_listening, agent_running, agent_stuck, agent_error, agent_done_smug]
     triggers: [app_codex, codex_thinking, codex_reading, codex_working, codex_editing, codex_running, codex_testing, codex_waiting_user, codex_done, codex_error, codex_blocked, claude_active]
     visual_addons: [tiny_terminal, status_dot]
     animations:
@@ -135,7 +155,10 @@ identities:
     color_accent: calm_lavender
     default_mood: innocent
     fallback_action: blink
+    fallback_animation: quiet_breathe
     preferred_performance: quiet_companion
+    allowed_moods: [innocent, focused, sleepy]
+    core_animations: [quiet_breathe, slow_blink, look_away_respectfully, tiny_support_bob]
     triggers: [long_focus, deep_work, comfort_mode, privacy_sensitive]
     visual_addons: []
     animations:
@@ -154,7 +177,10 @@ identities:
     color_accent: sleepy_gray
     default_mood: sleepy
     fallback_action: sleepy_sag
+    fallback_animation: sleep_loop
     preferred_performance: fake_sulk
+    allowed_moods: [sleepy, sulky, innocent]
+    core_animations: [yawn_to_sleep, sleep_loop, wake_startled, pretend_not_sleeping, sleepy_sass]
     triggers: [event_idle, idle_staring, user_away, low_energy, sleepy]
     visual_addons: []
     animations:
@@ -194,7 +220,10 @@ identities:
     color_accent: critic_red
     default_mood: smirk
     fallback_action: thinking_tilt
+    fallback_animation: roast_charge
     preferred_performance: cold_arrow_then_innocent
+    allowed_moods: [smirk, smug, suspicious, guilty]
+    core_animations: [roast_charge, cold_arrow_heavy, red_pen_circle, smug_but_caught, apology_fake]
     triggers: [design_review, deck_review, app_figma, app_powerpoint, visual_design, layout]
     visual_addons: [red_pen, annotation_circle]
     animations:

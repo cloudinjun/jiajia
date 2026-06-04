@@ -113,3 +113,39 @@ first_batch_animations:
     type: performance_phrase
     current_implementation: animations.yaml
     priority: 1
+
+identity_turnaround_sheet:
+  status: planned
+  identities: [default_pal, task_auditor, agent_supervisor, focus_companion, critic_clip, sleepy_clip]
+  layout: one front pose plus two micro-expressions per identity
+  accessory_strip: [brows, eyes, status_dot, tiny_terminal, z_symbol, red_pen_mark]
+
+first_identity_animation_batch:
+  default_pal:
+    - animation: idle_breathe
+      fallback_action: idle
+      fallback_performance: ""
+    - animation: cold_arrow_then_innocent
+      fallback_action: thinking_tilt
+      fallback_performance: cold_arrow_then_innocent
+  task_auditor:
+    - animation: audit_scan
+      fallback_action: scan
+      fallback_performance: suspicious_observe
+    - animation: soft_nudge
+      fallback_action: nod
+      fallback_performance: quiet_companion
+  agent_supervisor:
+    - animation: agent_running
+      fallback_action: patrol
+      fallback_performance: suspicious_observe
+    - animation: agent_error
+      fallback_action: shake
+      fallback_performance: fake_sulk
+  sleepy_clip:
+    - animation: sleep_loop
+      fallback_action: sleepy_sag
+      fallback_performance: fake_sulk
+    - animation: wake_startled
+      fallback_action: startled_pop
+      fallback_performance: smug_but_caught
