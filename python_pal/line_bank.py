@@ -100,11 +100,22 @@ class LineBank:
 
     def add_entries(self, entries: list[dict[str, object]], source: str | None = None) -> bool:
         existing_ids = {entry["id"] for entry in self.data["entries"]}
-        existing_lines = {str(entry["line"]).strip() for entry in self.data["entries"]}
+        existing_by_line = {str(entry["line"]).strip(): entry for entry in self.data["entries"]}
+        existing_lines = set(existing_by_line)
         added = False
         for raw in entries:
             line = str(raw.get("line") or "").strip()
             if not line or line in existing_lines:
+                if line and str(raw.get("source") or source or "") == "identity_seed":
+                    entry = existing_by_line.get(line)
+                    if entry is not None:
+                        entry["tags"] = _tags(raw.get("tags"))
+                        entry["mood"] = str(raw.get("mood") or entry.get("mood") or "smirk")
+                        entry["action"] = str(raw.get("action") or entry.get("action") or "blink")
+                        entry["bubble"] = _bubble(str(raw.get("bubble") or entry.get("bubble") or "speech"))
+                        entry["performance"] = str(raw.get("performance") or entry.get("performance") or "")
+                        entry["source"] = "identity_seed"
+                        added = True
                 continue
             event = _event_key(str(raw.get("event") or raw.get("category") or "manual"))
             entry = LineEntry(
@@ -221,13 +232,13 @@ class LineBank:
             if tags & {str(tag) for tag in entry.get("tags", []) if str(tag).strip()}
         ]
         if tagged:
-            return tagged
+            return _best_tag_matches(tagged, tags)
         library_tagged = [
             entry for entry in self._candidates(event)
             if str(entry.get("line") or "").strip() not in recent_text
             and tags & {str(tag) for tag in entry.get("tags", []) if str(tag).strip()}
         ]
-        return library_tagged if library_tagged else entries
+        return _best_tag_matches(library_tagged, tags) if library_tagged else entries
 
     def _choose_entry(self, entries: list[dict[str, object]]) -> dict[str, object] | None:
         if not entries:
@@ -285,6 +296,20 @@ def _tags(value: object) -> list[str]:
     if value:
         return [str(value).strip()]
     return []
+
+
+def _best_tag_matches(entries: list[dict[str, object]], tags: set[str]) -> list[dict[str, object]]:
+    if not entries:
+        return entries
+    scored = [
+        (
+            len(tags & {str(tag) for tag in entry.get("tags", []) if str(tag).strip()}),
+            entry,
+        )
+        for entry in entries
+    ]
+    best = max(score for score, _entry in scored)
+    return [entry for score, entry in scored if score == best]
 
 
 def _seed_entries() -> list[dict[str, object]]:

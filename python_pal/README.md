@@ -102,3 +102,14 @@ sequences made from `action`, `eyes`, `brows`, `pause_ms`, `bubble: speak`, and
 `reset: expression` steps. `animation_player.py` reads this manifest and falls
 back to the older hard-coded performance table if a phrase is missing, so
 current actions keep working while the animation system becomes configurable.
+
+Identity packs:
+
+`identities.yaml` is the lightweight identity-pack library. Each pack keeps the
+same paperclip silhouette and defines only a purpose, trigger tags, one or two
+visual add-ons, an accent color, preferred action/performance, and seed lines.
+`identity.py` selects one pack from the current event/context. The live brain
+receives only the selected pack's short `identity_brief`, and the line bank is
+seeded with pack-specific lines so identities can work without increasing live
+model pressure. Use the right-click `Identity` menu to keep Auto mode or force a
+specific pack, and `Debug identity` to see what Auto selected.

@@ -9,6 +9,7 @@ import urllib.error
 import urllib.request
 
 from .actions import ACTION_PROMPT, ACTION_SCHEMA_VALUE, MODEL_ACTIONS
+from .identity import DEFAULT_IDENTITY, IdentityPack, load_identity_manifest
 from .line_bank import LineBank
 from .performance import PERFORMANCE_PHRASES, PERFORMANCE_PROMPT, PERFORMANCE_SCHEMA_VALUE
 from .soul import Soul
@@ -20,14 +21,23 @@ class OllamaBrain:
         self.soul = soul
         self.endpoint = endpoint.rstrip("/")
         root = project_root or Path(__file__).resolve().parent.parent
+        self.identities = load_identity_manifest(root / "python_pal" / "identities.yaml")
         self.line_bank = LineBank(root / "memory" / "line_bank.json")
+        self.line_bank.add_entries(self.identities.seed_entries(), source="identity_seed")
 
     def react(self, event: str, context: dict[str, object] | None = None) -> Reaction:
-        context = context or {}
+        context = dict(context or {})
+        identity = self.identities.select(event, context)
+        identity_level = self.identities.level_for(event, context, identity)
+        context.setdefault("identity_id", identity.id)
+        context.setdefault("identity_display_name", identity.display_name)
+        context.setdefault("identity_level", identity_level)
+        context.setdefault("identity_brief", identity.prompt_brief())
         cached = self.line_bank.pick(event, _recent_lines(context), _context_tags(context))
         if cached:
+            cached.decision_reason = f"identity={identity.id}"
             return cached
-        fallback = self.fallback_reaction(event)
+        fallback = self.fallback_reaction(event, context)
         prompt = self._prompt(event, context)
         payload = {
             "model": self.soul.text_model,
@@ -46,6 +56,7 @@ class OllamaBrain:
             content = response.get("message", {}).get("content", "")
             reaction = self._parse_reaction(str(content), fallback)
             reaction.line = self._clean_line(reaction.line or fallback.line)
+            reaction.decision_reason = f"identity={identity.id}"
             self.line_bank.add_reaction(event, reaction, source="live_ollama", tags=_context_tags(context))
             return reaction
         except (OSError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
@@ -75,7 +86,13 @@ class OllamaBrain:
         content = str(response.get("message", {}).get("content", ""))
         return self._parse_line_entries(content)
 
-    def fallback_reaction(self, event: str) -> Reaction:
+    def fallback_reaction(self, event: str, context: dict[str, object] | None = None) -> Reaction:
+        context = context or {}
+        identity = self.identities.select(event, context)
+        identity_level = self.identities.level_for(event, context, identity)
+        identity_reaction = self._identity_fallback(event, identity, identity_level)
+        if identity_reaction:
+            return identity_reaction
         if event == "poke" and self.soul.poke_responses:
             line = random.choice(self.soul.poke_responses)
             return Reaction(True, line, "smirk", "wiggle", "speech")
@@ -93,6 +110,23 @@ class OllamaBrain:
             return Reaction(True, random.choice(lines), "thinking", "blink", "thought")
         candidates = self.soul.catchphrases or ["我在。虽然作用不明，但态度积极。"]
         return Reaction(True, random.choice(candidates), "smirk", "bob", "speech")
+
+    def _identity_fallback(self, event: str, identity: IdentityPack, level: str) -> Reaction | None:
+        if identity.id == DEFAULT_IDENTITY:
+            return None
+        line = identity.pick_line(level)
+        if not line:
+            return None
+        bubble = "thought" if event in {"ambient", "idle"} else "speech"
+        return Reaction(
+            True,
+            line,
+            identity.default_mood,
+            identity.fallback_action,
+            bubble,
+            identity.preferred_performance,
+            decision_reason=f"identity={identity.id}",
+        )
 
     def _fallback_boredom(self) -> Reaction:
         kind, lines = random.choice(
@@ -333,4 +367,10 @@ def _context_tags(context: dict[str, object]) -> list[str]:
         value = context.get(key)
         if isinstance(value, list):
             tags.extend(str(item).strip() for item in value if str(item).strip())
+    identity_id = str(context.get("identity_id") or "").strip()
+    if identity_id:
+        tags.append(identity_id)
+    identity_level = str(context.get("identity_level") or "").strip()
+    if identity_level:
+        tags.append(identity_level)
     return sorted(set(tags))

@@ -391,6 +391,7 @@ class PaperclipPalApp:
         initial_frequency = self._load_frequency_setting()
         self.mood.set_frequency(initial_frequency)
         self._freq_var = tk.StringVar(value=initial_frequency)
+        self._identity_var = tk.StringVar(value=self._load_identity_setting())
         self._micro_after: str | None = None
         self._companion_after: str | None = None
         self._place_initially()
@@ -514,10 +515,26 @@ class PaperclipPalApp:
                 )
             action_menu.add_cascade(label=group_label, menu=group_menu)
         self.menu.add_cascade(label="Actions", menu=action_menu)
+        identity_menu = tk.Menu(self.menu, tearoff=False)
+        identity_menu.add_radiobutton(
+            label="Auto",
+            variable=self._identity_var,
+            value="auto",
+            command=lambda: self._set_identity("auto"),
+        )
+        for pack in self.brain.identities.menu_packs():
+            identity_menu.add_radiobutton(
+                label=pack.display_name,
+                variable=self._identity_var,
+                value=pack.id,
+                command=lambda identity_id=pack.id: self._set_identity(identity_id),
+            )
+        self.menu.add_cascade(label="Identity", menu=identity_menu)
         self.menu.add_command(label="Codex status", command=self._show_codex_status)
         self.menu.add_command(label="Claude 状态", command=self._show_claude_status)
         self.menu.add_command(label="Debug last decision", command=self._show_last_decision_debug)
         self.menu.add_command(label="Debug animation", command=self._show_last_animation_debug)
+        self.menu.add_command(label="Debug identity", command=self._show_identity_debug)
         freq_menu = tk.Menu(self.menu, tearoff=False)
         for label, _mult in FREQUENCY_PRESETS:
             freq_menu.add_radiobutton(
@@ -581,22 +598,49 @@ class PaperclipPalApp:
             self._perform_action("happy_bounce")
             self._start_mouse_follow(1400, force=True)
 
+    def _set_identity(self, identity_id: str) -> None:
+        key = self._valid_identity_id(identity_id)
+        self._identity_var.set(key)
+        self._save_identity_setting(key)
+        if key == "auto":
+            self.show_bubble("身份切回 Auto。夹夹会按场景换班。", milliseconds=2600, kind="thought")
+            return
+        pack = self.brain.identities.get(key)
+        self.show_bubble(f"身份切到 {pack.display_name}。", milliseconds=2600, kind="thought")
+
     def _load_frequency_setting(self) -> str:
-        try:
-            data = json.loads((self.project_root / "settings.json").read_text(encoding="utf-8-sig"))
-        except (OSError, json.JSONDecodeError):
-            return FREQUENCY_DEFAULT
+        data = self._load_settings()
         key = str(data.get("frequency") or FREQUENCY_DEFAULT)
         valid = {label for label, _mult in FREQUENCY_PRESETS}
         return key if key in valid else FREQUENCY_DEFAULT
 
     def _save_frequency_setting(self, key: str) -> None:
+        self._save_setting("frequency", key)
+
+    def _load_identity_setting(self) -> str:
+        return self._valid_identity_id(str(self._load_settings().get("identity") or "auto"))
+
+    def _save_identity_setting(self, identity_id: str) -> None:
+        self._save_setting("identity", self._valid_identity_id(identity_id))
+
+    def _valid_identity_id(self, identity_id: str) -> str:
+        key = identity_id.strip().lower().replace("-", "_").replace(" ", "_")
+        if key == "auto":
+            return key
+        return key if key in self.brain.identities.packs else "auto"
+
+    def _load_settings(self) -> dict[str, object]:
         path = self.project_root / "settings.json"
         try:
             data = json.loads(path.read_text(encoding="utf-8-sig")) if path.exists() else {}
+            return data if isinstance(data, dict) else {}
         except (OSError, json.JSONDecodeError):
-            data = {}
-        data["frequency"] = key
+            return {}
+
+    def _save_setting(self, key: str, value: object) -> None:
+        path = self.project_root / "settings.json"
+        data = self._load_settings()
+        data[key] = value
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
     def _schedule_micro(self) -> None:
@@ -719,7 +763,11 @@ class PaperclipPalApp:
         )
 
     def _context(self, event: str, world: WorldState | None = None) -> dict[str, object]:
-        return (world or self._world_state()).as_context(event)
+        context = (world or self._world_state()).as_context(event)
+        identity_id = self._identity_var.get()
+        if identity_id and identity_id != "auto":
+            context["identity_id"] = identity_id
+        return context
 
     def _poll_brain(self) -> None:
         try:
@@ -849,6 +897,13 @@ class PaperclipPalApp:
 
     def _show_last_animation_debug(self) -> None:
         self.show_bubble(self._last_animation_debug, milliseconds=6800, kind="thought")
+
+    def _show_identity_debug(self) -> None:
+        context = self._context("manual")
+        pack = self.brain.identities.select("manual", context)
+        mode = self._identity_var.get()
+        prefix = f"mode: {mode}\nselected: {pack.display_name}\n"
+        self.show_bubble(prefix + pack.prompt_brief(), milliseconds=7600, kind="thought")
 
     def _apply_reaction(self, reaction: Reaction) -> None:
         self._cancel_performance_phrase()
