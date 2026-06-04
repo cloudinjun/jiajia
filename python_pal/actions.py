@@ -22,12 +22,19 @@ ACTION_LABELS: dict[str, str] = {
     "hide": "Hide",
     "patrol": "Patrol",
     "celebrate": "Celebrate",
+    "twist_scoot": "Twist scoot",
+    "mini_hop_shift": "Mini hop shift",
+    "relocate_hop": "Relocate hop",
+    "roast_and_scoot": "Roast and scoot",
+    "retreat_to_corner": "Retreat to corner",
+    "drop_in": "Drop in",
 }
 
 ACTION_MENU_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Mood", ("happy_bounce", "dance", "celebrate", "smug_sway", "sulk", "hide")),
     ("State", ("thinking_tilt", "sleepy_sag", "flop", "stretch", "scan", "patrol")),
     ("Reactive", ("wiggle", "blink", "peek", "jump", "twirl", "shake", "startled_pop", "nod")),
+    ("Movement", ("twist_scoot", "mini_hop_shift", "relocate_hop", "roast_and_scoot", "retreat_to_corner", "drop_in")),
 )
 
 ACTION_DESCRIPTIONS: dict[str, str] = {
@@ -54,6 +61,17 @@ ACTION_DESCRIPTIONS: dict[str, str] = {
     "patrol": "左右巡逻，适合等待、监控 Codex 或假装忙。",
     "celebrate": "更夸张的小庆祝，适合完成任务或状态变好。",
 }
+
+ACTION_DESCRIPTIONS.update(
+    {
+        "twist_scoot": "Small twist plus 10-20px scoot; frequent tiny reposition with attitude.",
+        "mini_hop_shift": "Small hop shift of 20-50px with squash, arc, and rebound.",
+        "relocate_hop": "Medium hop relocation with anticipation, landing squash, and rebound.",
+        "roast_and_scoot": "Scoot away after a roast, then snap into fake innocence.",
+        "retreat_to_corner": "Retreat toward a screen corner for quiet or self-restraint mode.",
+        "drop_in": "Drop into the current station from above with a flat landing squash.",
+    }
+)
 
 VISIBLE_ACTIONS: tuple[str, ...] = tuple(ACTION_LABELS)
 MODEL_ACTIONS: tuple[str, ...] = ("idle", "bob", *VISIBLE_ACTIONS)

@@ -46,9 +46,15 @@ nonsense. Use the right-click `Boredom line` menu item to trigger one manually.
 Actions:
 
 The shared action vocabulary lives in `actions.py`. The right-click `Actions`
-menu is grouped into `Mood`, `State`, and `Reactive`, with 20 visible actions.
+menu is grouped into `Mood`, `State`, `Reactive`, and `Movement` actions.
 Large motions use per-frame timing in `body.py`, so each action can have its own
 duration and rhythm.
+
+The `Movement` action group moves the desktop-pet window itself with bounded
+procedural motion: `twist_scoot`, `mini_hop_shift`, `relocate_hop`,
+`roast_and_scoot`, `retreat_to_corner`, and `drop_in`. These motions are
+clamped to screen bounds and should be used with emotional reasons rather than
+as random wandering.
 
 Line bank:
 

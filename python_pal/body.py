@@ -365,6 +365,8 @@ class PaperclipPalApp:
         self._action_offset = (0.0, 0.0)
         self._large_action_after: str | None = None
         self._large_action_running = False
+        self._window_move_after: str | None = None
+        self._window_move_running = False
         self._brain_wait_after: str | None = None
         self._brain_wait_step = 0
         self._bubble_items: list[int] = []
@@ -1007,6 +1009,16 @@ class PaperclipPalApp:
     def _perform_action(self, action: str) -> None:
         if not action or action == "idle":
             return
+        if action in {
+            "twist_scoot",
+            "mini_hop_shift",
+            "relocate_hop",
+            "roast_and_scoot",
+            "retreat_to_corner",
+            "drop_in",
+        }:
+            self._run_window_move_action(action)
+            return
         if action.startswith("micro_"):
             self._perform_micro_action(action)
             return
@@ -1201,6 +1213,7 @@ class PaperclipPalApp:
         step()
 
     def _run_large_action(self, frames: ActionFrames) -> None:
+        self._cancel_window_move()
         self._cancel_large_action()
         self._stop_mouse_follow()
         if self._rebound_after:
@@ -1236,6 +1249,168 @@ class PaperclipPalApp:
             )
 
         step()
+
+    def _run_window_move_action(self, action: str) -> None:
+        if self._dragging:
+            return
+        direction = self._movement_direction()
+        if action == "twist_scoot":
+            dx = direction * random.randint(10, 20)
+            frames: ActionFrames = (
+                (-direction * 4, 0, 0.96, 1.04, 60),
+                (dx, 0, 1.06, 0.94, 130),
+                (dx, 0, 1.0, 1.0, 80),
+            )
+        elif action == "mini_hop_shift":
+            dx = direction * random.randint(24, 48)
+            frames = (
+                (0, 8, 1.14, 0.78, 80),
+                (dx * 0.55, -18, 0.90, 1.16, 95),
+                (dx, 4, 1.07, 0.90, 80),
+                (dx, 0, 1.0, 1.0, 70),
+            )
+        elif action == "relocate_hop":
+            dx = self._relocation_delta(random.randint(90, 150))
+            frames = (
+                (0, 10, 1.18, 0.74, 110),
+                (dx * 0.42, -42, 0.88, 1.22, 130),
+                (dx * 0.78, -34, 0.94, 1.10, 120),
+                (dx, 8, 1.10, 0.86, 95),
+                (dx, 0, 1.0, 1.0, 100),
+            )
+        elif action == "roast_and_scoot":
+            dx = direction * random.randint(12, 18)
+            self._set_brow_pose("innocent")
+            self._set_eye_pose("round")
+            frames = (
+                (-direction * 3, 0, 0.98, 1.04, 70),
+                (dx, 0, 1.05, 0.94, 120),
+                (dx, 0, 1.0, 1.0, 80),
+            )
+        elif action == "retreat_to_corner":
+            dx, dy = self._corner_retreat_delta()
+            frames = (
+                (dx * 0.12, 0, 0.96, 1.04, 90),
+                (dx * 0.42, dy * 0.35, 0.90, 0.96, 130),
+                (dx * 0.72, dy * 0.70, 0.86, 0.92, 130),
+                (dx, dy, 0.92, 0.94, 120),
+                (dx, dy, 1.0, 1.0, 100),
+            )
+        elif action == "drop_in":
+            self._run_drop_in()
+            return
+        else:
+            return
+        self._run_window_move(frames)
+
+    def _run_drop_in(self) -> None:
+        if self._dragging:
+            return
+        self.root.update_idletasks()
+        x = self.root.winfo_x()
+        y = self.root.winfo_y()
+        start_y = max(0, y - 90)
+        self.root.geometry(f"+{x}+{start_y}")
+        self._position_bubble()
+        dy = y - start_y
+        self._run_window_move(
+            (
+                (0, dy * 0.55, 0.92, 1.12, 120),
+                (0, dy + 10, 1.14, 0.78, 95),
+                (0, dy - 4, 0.96, 1.05, 85),
+                (0, dy, 1.0, 1.0, 80),
+            )
+        )
+
+    def _run_window_move(self, frames: ActionFrames) -> None:
+        if not frames:
+            return
+        self._cancel_window_move()
+        self._cancel_large_action()
+        self._stop_mouse_follow()
+        if self._rebound_after:
+            self.root.after_cancel(self._rebound_after)
+            self._rebound_after = None
+        self._reset_pal_geometry()
+        self.root.update_idletasks()
+        start_x = self.root.winfo_x()
+        start_y = self.root.winfo_y()
+        frames = self._clamped_window_frames(frames, start_x, start_y)
+        self._window_move_running = True
+        state = [0.0, 0.0, 1.0, 1.0]
+
+        def step(fi: int = 0, si: int = 0) -> None:
+            if fi >= len(frames):
+                self._finish_window_move()
+                return
+            dx, dy, sx, sy, delay = frames[fi]
+            n = max(1, round(delay / LERP_TICK_MS))
+            if si >= n:
+                state[:] = [dx, dy, sx, sy]
+                step(fi + 1, 0)
+                return
+            t = _ease_out_cubic((si + 1) / n)
+            next_x = state[0] + (dx - state[0]) * t
+            next_y = state[1] + (dy - state[1]) * t
+            self.root.geometry(f"+{round(start_x + next_x)}+{round(start_y + next_y)}")
+            if self._bubble_items:
+                self._position_bubble()
+            self._set_pal_scale(
+                state[2] + (sx - state[2]) * t,
+                state[3] + (sy - state[3]) * t,
+            )
+            self._window_move_after = self.root.after(
+                LERP_TICK_MS, lambda _fi=fi, _si=si: step(_fi, _si + 1),
+            )
+
+        step()
+
+    def _cancel_window_move(self) -> None:
+        if self._window_move_after:
+            self.root.after_cancel(self._window_move_after)
+            self._window_move_after = None
+        if self._window_move_running:
+            self._finish_window_move()
+
+    def _finish_window_move(self) -> None:
+        self._window_move_after = None
+        self._window_move_running = False
+        self._reset_pal_geometry()
+        if self._bubble_items:
+            self._position_bubble()
+
+    def _movement_direction(self) -> int:
+        self.root.update_idletasks()
+        center_x = self.root.winfo_x() + self.width / 2
+        screen_mid = self.root.winfo_screenwidth() / 2
+        if abs(center_x - screen_mid) < 120:
+            return random.choice((-1, 1))
+        return -1 if center_x > screen_mid else 1
+
+    def _relocation_delta(self, distance: int) -> float:
+        return self._movement_direction() * distance
+
+    def _corner_retreat_delta(self) -> tuple[float, float]:
+        self.root.update_idletasks()
+        screen_w = self.root.winfo_screenwidth()
+        screen_h = self.root.winfo_screenheight()
+        current_x = self.root.winfo_x()
+        current_y = self.root.winfo_y()
+        target_x = 18 if current_x < screen_w / 2 else screen_w - self.width - 18
+        target_y = screen_h - self.height - 28
+        return target_x - current_x, target_y - current_y
+
+    def _clamped_window_frames(self, frames: ActionFrames, start_x: int, start_y: int) -> ActionFrames:
+        final_dx, final_dy, _sx, _sy, _delay = frames[-1]
+        max_x = max(0, self.root.winfo_screenwidth() - self.width)
+        max_y = max(0, self.root.winfo_screenheight() - self.height)
+        clamped_final_x = _clamp(start_x + final_dx, 0, max_x)
+        clamped_final_y = _clamp(start_y + final_dy, 0, max_y)
+        allowed_dx = clamped_final_x - start_x
+        allowed_dy = clamped_final_y - start_y
+        ratio_x = allowed_dx / final_dx if final_dx else 1.0
+        ratio_y = allowed_dy / final_dy if final_dy else 1.0
+        return tuple((dx * ratio_x, dy * ratio_y, sx, sy, delay) for dx, dy, sx, sy, delay in frames)
 
     def _cancel_large_action(self) -> None:
         if self._large_action_after:
@@ -1288,7 +1463,7 @@ class PaperclipPalApp:
         self.root.after(self.mood.blink_interval_ms(), self._blink_tick)
 
     def _blink_tick(self) -> None:
-        if not self._dragging and not self._rebound_after and not self._large_action_running:
+        if not self._dragging and not self._rebound_after and not self._large_action_running and not self._window_move_running:
             self._blink()
         self._schedule_blink()
 
@@ -1301,6 +1476,7 @@ class PaperclipPalApp:
             and not self._is_blinking
             and not self._rebound_after
             and not self._large_action_running
+            and not self._window_move_running
             and time.time() >= self._mouse_follow_until
         ):
             if self._should_start_selective_mouse_follow():

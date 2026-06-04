@@ -149,3 +149,49 @@ first_identity_animation_batch:
     - animation: wake_startled
       fallback_action: startled_pop
       fallback_performance: smug_but_caught
+
+movement_animation_rules:
+  - no_plain_linear_translation
+  - every_move_needs_emotional_reason
+  - tiny_scoots_can_be_frequent
+  - medium_relocation_is_occasional
+  - cross_region_travel_is_rare
+  - clamp_to_screen_bounds
+
+first_movement_actions:
+  twist_scoot:
+    tier: tiny
+    distance_px: 10-20
+    frequency: frequent
+    implementation: window_geometry_procedural
+    emotion: mischievous_adjustment
+  mini_hop_shift:
+    tier: tiny
+    distance_px: 20-50
+    frequency: frequent
+    implementation: window_geometry_procedural
+    emotion: light_dodge_or_reposition
+  relocate_hop:
+    tier: medium
+    distance_px: 80-150
+    frequency: occasional
+    implementation: window_geometry_procedural
+    emotion: explicit_reposition
+  roast_and_scoot:
+    tier: personality
+    distance_px: 12-18
+    frequency: occasional
+    implementation: window_geometry_procedural
+    emotion: said_it_then_fled
+  retreat_to_corner:
+    tier: medium
+    distance_px: station_based
+    frequency: rare
+    implementation: window_geometry_procedural
+    emotion: quiet_or_self_restraint
+  drop_in:
+    tier: entrance
+    distance_px: 90_vertical
+    frequency: rare
+    implementation: window_geometry_procedural
+    emotion: entrance_or_wake
