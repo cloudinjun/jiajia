@@ -232,3 +232,29 @@ codex_usage_levels:
   refilled:
     badge: hidden_after_recovery
     behavior: usage_refilled
+
+activity_level_controls:
+  quiet:
+    speech_frequency: minimal
+    animation_frequency: low
+    proactive_detection: off
+    alert_threshold: critical_only
+    allowed_auto_identities: [focus_companion, sleepy_clip]
+  normal:
+    speech_frequency: important_only
+    animation_frequency: normal
+    proactive_detection: conservative
+    alert_threshold: important_changes
+    allowed_auto_identities: [default_pal, agent_supervisor, thermal_technician, usage_accountant]
+  active:
+    speech_frequency: frequent
+    animation_frequency: lively
+    proactive_detection: enabled
+    alert_threshold: early_warning
+    allowed_auto_identities: [task_auditor, critic_clip, bug_coroner, tab_warden]
+  hyper:
+    speech_frequency: intentionally_chatty
+    animation_frequency: very_lively
+    proactive_detection: clippy_style_allowed
+    alert_threshold: personality_mode
+    allowed_auto_identities: [gremlin_clip, task_auditor, critic_clip, tab_warden]

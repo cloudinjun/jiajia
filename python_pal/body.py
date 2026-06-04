@@ -11,6 +11,7 @@ import time
 import tkinter as tk
 import tkinter.font as tkfont
 
+from .activity import ActivityPolicy, policy_for_frequency
 from .actions import ACTION_LABELS, ACTION_MENU_GROUPS
 from .animation_manifest import load_animation_manifest
 from .animation_player import AnimationCallbacks, AnimationPlayer
@@ -723,6 +724,9 @@ class PaperclipPalApp:
     def _quiet_remaining_seconds(self) -> float:
         return max(0.0, self._quiet_until - time.time())
 
+    def _activity_policy(self) -> ActivityPolicy:
+        return policy_for_frequency(self._freq_var.get())
+
     def _load_frequency_setting(self) -> str:
         data = self._load_settings()
         key = str(data.get("frequency") or FREQUENCY_DEFAULT)
@@ -781,21 +785,20 @@ class PaperclipPalApp:
     def _companion_tick(self) -> None:
         self._companion_after = None
         if not self._large_action_running and not self.state.brain_busy and not self._dragging:
+            policy = self._activity_policy()
             if self._auto_reactions_paused():
                 if random.random() < 0.28:
                     self._perform_action(random.choice(("blink", "nod", "micro_soften")))
                 self._schedule_companion()
                 return
-            multiplier = self.mood.frequency_multiplier
-            if random.random() < min(0.86, 0.18 * multiplier):
+            if random.random() < policy.mouse_follow_chance:
                 self._start_mouse_follow(random.randint(850, 1700))
-            if random.random() < min(0.90, 0.20 * multiplier):
+            if random.random() < policy.companion_action_chance:
                 self._perform_action(random.choice(("blink", "peek", "scan", "nod", "wiggle", "thinking_tilt", "smug_sway")))
             if (
-                multiplier >= 4.0
-                and not self._bubble_items
-                and self.state.can_speak(self.mood.ambient_cooldown_seconds())
-                and random.random() < 0.24
+                not self._bubble_items
+                and self.state.can_speak(max(8, round(self.mood.ambient_cooldown_seconds() * policy.cooldown_multiplier)))
+                and random.random() < policy.companion_chatter_chance
             ):
                 self._ask_brain("ambient")
         self._schedule_companion()
@@ -896,11 +899,18 @@ class PaperclipPalApp:
             context["identity_id"] = identity_id
         focus_mode = bool(self._focus_var.get())
         quiet_remaining = self._quiet_remaining_seconds()
+        policy = self._activity_policy()
         context["pal_focus_mode"] = focus_mode
         context["pal_quiet_remaining_seconds"] = round(quiet_remaining, 1)
+        context["activity_tier"] = policy.tier
+        context["activity_alert_threshold"] = policy.alert_threshold
         if focus_mode or quiet_remaining > 0:
             tags = list(context.get("environment_tags") or [])
             tags.append("focus_mode" if focus_mode else "quiet_mode")
+            context["environment_tags"] = sorted(set(str(tag) for tag in tags if str(tag)))
+        else:
+            tags = list(context.get("environment_tags") or [])
+            tags.append(f"activity_{policy.tier}")
             context["environment_tags"] = sorted(set(str(tag) for tag in tags if str(tag)))
         return context
 
@@ -989,7 +999,10 @@ class PaperclipPalApp:
     def _should_announce_codex_usage(self, status: CodexUsageStatus) -> bool:
         if self._auto_reactions_paused():
             return False
-        if status.level in {"unavailable", "normal", "watch"} or status.stale:
+        policy = self._activity_policy()
+        if not policy.allows_usage(status.level, status.usage_remaining_percent):
+            return False
+        if status.level in {"unavailable", "normal"} or status.stale:
             return False
         if self.state.brain_busy or self._bubble_items:
             return False
@@ -999,9 +1012,12 @@ class PaperclipPalApp:
             "reset_soon": 20 * 60,
             "refilled": 30 * 60,
         }.get(status.level, 30 * 60)
+        cooldown = max(8, round(cooldown * policy.cooldown_multiplier))
         is_new_event = bool(status.event_id and status.event_id != self._last_codex_usage_event)
         if is_new_event and self._last_codex_usage_announcement_at <= 0:
             return self.state.can_speak(8)
+        if status.level == "watch":
+            return is_new_event and self.state.can_speak(cooldown)
         if status.level in {"reset_soon", "refilled"}:
             return is_new_event and self.state.can_speak(8)
         if status.level in {"low", "critical"}:
@@ -1017,13 +1033,17 @@ class PaperclipPalApp:
     def _should_announce_codex_status(self, status: CodexStatus) -> bool:
         if self._auto_reactions_paused():
             return False
+        policy = self._activity_policy()
+        if not policy.allows_codex_status(status.status):
+            return False
         if status.status in {"unknown", "idle"} or status.stale:
             return False
         if not status.event_id or status.event_id == self._last_codex_status_event:
             return False
         if self.state.brain_busy or self._bubble_items:
             return False
-        cooldown = 4 if status.status in {"thinking", "reading", "working", "editing", "running", "testing", "reconnecting"} else 8
+        base_cooldown = 4 if status.status in {"thinking", "reading", "working", "editing", "running", "testing", "reconnecting"} else 8
+        cooldown = max(3, round(base_cooldown * policy.cooldown_multiplier))
         return self.state.can_speak(cooldown)
 
     def _poll_claude_status(self) -> None:
@@ -1031,7 +1051,14 @@ class PaperclipPalApp:
         if overview.event_id != self._last_claude_event:
             reaction = self._claude_change_reaction(overview)
             self._last_claude_event = overview.event_id
-            if reaction and not self._auto_reactions_paused() and not self.state.brain_busy and not self._bubble_items:
+            policy = self._activity_policy()
+            if (
+                reaction
+                and not self._auto_reactions_paused()
+                and policy.allows_claude_event(reaction.event)
+                and not self.state.brain_busy
+                and not self._bubble_items
+            ):
                 self._apply_reaction(reaction)
         self.root.after(CLAUDE_STATUS_POLL_MS, self._poll_claude_status)
 
@@ -1048,6 +1075,9 @@ class PaperclipPalApp:
     def _should_announce_hardware_status(self, snapshot: HardwareSnapshot) -> bool:
         if self._auto_reactions_paused():
             return False
+        policy = self._activity_policy()
+        if not policy.allows_hardware_level(snapshot.level):
+            return False
         if snapshot.level in {"normal", "unavailable"}:
             return False
         if self.state.brain_busy or self._bubble_items:
@@ -1058,6 +1088,7 @@ class PaperclipPalApp:
             "overloaded": 60,
             "cooling": 45,
         }.get(snapshot.level, 180)
+        cooldown = max(10, round(cooldown * policy.cooldown_multiplier))
         if snapshot.level in {"hot", "overloaded"}:
             return self.state.can_speak(cooldown) and time.time() - self._last_hardware_announcement_at >= cooldown
         if not snapshot.event_id or snapshot.event_id == self._last_hardware_status_event:
@@ -1169,7 +1200,12 @@ class PaperclipPalApp:
         self._apply_reaction(reaction)
 
     def _show_last_decision_debug(self) -> None:
-        self.show_bubble(self.decision.last_decision.debug_text(), milliseconds=6800, kind="thought")
+        policy = self._activity_policy()
+        prefix = (
+            f"activity: {policy.key} / {policy.tier}\n"
+            f"threshold: {policy.alert_threshold}\n"
+        )
+        self.show_bubble(prefix + self.decision.last_decision.debug_text(), milliseconds=6800, kind="thought")
 
     def _show_last_animation_debug(self) -> None:
         self.show_bubble(self._last_animation_debug, milliseconds=6800, kind="thought")
@@ -1413,7 +1449,13 @@ class PaperclipPalApp:
         self.root.after(delay, self._idle_tick)
 
     def _idle_tick(self) -> None:
-        if not self._auto_reactions_paused() and self.state.can_speak(self.soul.cooldown_seconds):
+        policy = self._activity_policy()
+        idle_cooldown = max(12, round(self.soul.cooldown_seconds * policy.cooldown_multiplier))
+        if (
+            not self._auto_reactions_paused()
+            and policy.ambient_enabled
+            and self.state.can_speak(idle_cooldown)
+        ):
             context = self.ears.sample()
             if context.idle_seconds > 75 and random.random() < 0.70:
                 self._ask_brain("bored")
@@ -1434,12 +1476,19 @@ class PaperclipPalApp:
         if self._auto_reactions_paused():
             self._schedule_ambient()
             return
+        policy = self._activity_policy()
+        if not policy.ambient_enabled:
+            self._schedule_ambient()
+            return
         world = self._world_state()
-        cooldown = min(AMBIENT_COOLDOWN_SECONDS, self.mood.ambient_cooldown_seconds())
+        cooldown = max(
+            10,
+            round(min(AMBIENT_COOLDOWN_SECONDS, self.mood.ambient_cooldown_seconds()) * policy.cooldown_multiplier),
+        )
         decision = self.decision.ambient_decision(
             world,
             cooldown_seconds=cooldown,
-            chance_multiplier=self.mood.ambient_chance_multiplier(),
+            chance_multiplier=self.mood.ambient_chance_multiplier() * policy.proactive_detection,
             bubble_visible=bool(self._bubble_items),
         )
         if decision.should_react:

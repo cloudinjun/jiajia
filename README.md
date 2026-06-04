@@ -53,3 +53,14 @@ The right-click menu includes lightweight Clippy-inspired controls:
 - `Summon / resume`: clears quiet/focus mode and brings 夹夹 back.
 
 Manual status checks still work while quiet or focus mode is active.
+
+## Activity Policy
+
+The `活跃度` menu is a behavior policy, not just a speech-rate slider:
+
+- `安静`: visual state only, with critical automatic alerts.
+- `正常`: important status changes, conservative context detection.
+- `活泼`: earlier warnings, more agent watching, more ambient observations.
+- `多动`: Clippy-style proactive detection and personality chatter are allowed.
+
+The policy controls speech frequency, micro-animation frequency, proactive environment detection, and alert thresholds for Codex, Claude, usage, and hardware signals.
