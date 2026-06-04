@@ -16,10 +16,13 @@ from .brain_ollama import OllamaBrain
 from .mood import MoodEngine, FREQUENCY_PRESETS, FREQUENCY_DEFAULT
 from .claude_status import ClaudeOverview, ClaudeSession, ClaudeStatusMonitor
 from .codex_status import CodexStatus, CodexStatusMonitor
+from .decision import DecisionEngine
 from .ears import Ears
 from .eyes import Eyes
+from .performance import PERFORMANCE_PHRASES, phrase_for_reaction
 from .soul import Soul
 from .state import PalState, Reaction
+from .world import MoodSnapshot, WorldState
 
 
 TRANSPARENT = "#ff00ff"
@@ -290,6 +293,7 @@ class PaperclipPalApp:
         self.eyes = Eyes(model=soul.vision_model)
         self.codex_status = CodexStatusMonitor(project_root / "codex_status.json")
         self.state = PalState()
+        self.decision = DecisionEngine()
         self.queue: queue.Queue[Reaction] = queue.Queue()
         self.root = tk.Tk()
         self.root.title(soul.name)
@@ -360,12 +364,12 @@ class PaperclipPalApp:
         self._brain_thread: threading.Thread | None = None
         self._line_bank_thread: threading.Thread | None = None
         self._vision_thread: threading.Thread | None = None
-        self._last_ambient_signature = ""
         self.claude_monitor = ClaudeStatusMonitor()
         self._last_claude_event = ""
         self._last_claude_alive_pids: set[int] = set()
         self._last_claude_sessions_by_pid: dict[int, ClaudeSession] = {}
         self._recent_claude_status_fragments: list[str] = []
+        self._performance_after: list[str] = []
         self.mood = MoodEngine()
         initial_frequency = self._load_frequency_setting()
         self.mood.set_frequency(initial_frequency)
@@ -489,6 +493,7 @@ class PaperclipPalApp:
         self.menu.add_cascade(label="Actions", menu=action_menu)
         self.menu.add_command(label="Codex status", command=self._show_codex_status)
         self.menu.add_command(label="Claude 状态", command=self._show_claude_status)
+        self.menu.add_command(label="Debug last decision", command=self._show_last_decision_debug)
         freq_menu = tk.Menu(self.menu, tearoff=False)
         for label, _mult in FREQUENCY_PRESETS:
             freq_menu.add_radiobutton(
@@ -658,12 +663,12 @@ class PaperclipPalApp:
         if force or self.state.can_speak(4):
             self._ask_brain("poke")
 
-    def _ask_brain(self, event: str) -> None:
+    def _ask_brain(self, event: str, world: WorldState | None = None) -> None:
         if self.state.brain_busy:
             self._perform_action("thinking_tilt")
             return
         self.state.brain_busy = True
-        context = self._context(event)
+        context = self._context(event, world)
         self._start_brain_wait_animation()
 
         def worker() -> None:
@@ -673,22 +678,23 @@ class PaperclipPalApp:
         self._brain_thread = threading.Thread(target=worker, daemon=True)
         self._brain_thread.start()
 
-    def _context(self, event: str) -> dict[str, object]:
-        ear = self.ears.sample().as_dict()
-        eye = self.eyes.sample().as_dict()
-        codex = self.codex_status.sample().as_dict()
-        environment_tags = sorted(
-            set(_as_str_list(ear.get("behavior_tags"))) | set(_as_str_list(eye.get("screen_tags")))
+    def _world_state(self) -> WorldState:
+        return WorldState(
+            user_activity=self.ears.sample(),
+            screen=self.eyes.sample(),
+            codex=self.codex_status.sample(),
+            claude=self.claude_monitor.sample(),
+            pal=self.state,
+            mood=MoodSnapshot(
+                key=self._freq_var.get(),
+                energy=self.mood.energy,
+                valence=self.mood.valence,
+                frequency_multiplier=self.mood.frequency_multiplier,
+            ),
         )
-        return {
-            "event": event,
-            "mood": self.state.mood,
-            "recent_lines": self.state.recent_lines[-4:],
-            "environment_tags": environment_tags,
-            **ear,
-            **eye,
-            **codex,
-        }
+
+    def _context(self, event: str, world: WorldState | None = None) -> dict[str, object]:
+        return (world or self._world_state()).as_context(event)
 
     def _poll_brain(self) -> None:
         try:
@@ -813,13 +819,60 @@ class PaperclipPalApp:
         reaction = _claude_overview_reaction(overview, self._recent_claude_status_fragments)
         self._apply_reaction(reaction)
 
+    def _show_last_decision_debug(self) -> None:
+        self.show_bubble(self.decision.last_decision.debug_text(), milliseconds=6800, kind="thought")
+
     def _apply_reaction(self, reaction: Reaction) -> None:
+        self._cancel_performance_phrase()
         self.state.mood = reaction.mood
         self.mood.push_mood(reaction.mood)
+        performance = reaction.performance or phrase_for_reaction(reaction.mood, reaction.action, reaction.bubble)
+        if performance and reaction.should_say and reaction.line:
+            self._run_performance_phrase(performance, reaction)
+            return
         self._perform_action(reaction.action)
         if reaction.should_say and reaction.line:
             self.show_bubble(reaction.line, kind=reaction.bubble)
             self.state.remember_line(reaction.line)
+
+    def _run_performance_phrase(self, name: str, reaction: Reaction) -> None:
+        phrase = PERFORMANCE_PHRASES.get(name)
+        if not phrase:
+            self._perform_action(reaction.action)
+            self.show_bubble(reaction.line, kind=reaction.bubble)
+            self.state.remember_line(reaction.line)
+            return
+
+        elapsed = 0
+        for action, delay in phrase.pre_actions:
+            self._schedule_performance_action(action, elapsed)
+            elapsed += max(0, delay)
+
+        line_delay = elapsed + max(0, phrase.line_delay_ms)
+        self._performance_after.append(
+            self.root.after(line_delay, lambda: self._show_reaction_line(reaction))
+        )
+
+        post_elapsed = line_delay + 120
+        for action, delay in phrase.post_actions:
+            post_elapsed += max(0, delay)
+            self._schedule_performance_action(action, post_elapsed)
+
+    def _show_reaction_line(self, reaction: Reaction) -> None:
+        if reaction.should_say and reaction.line:
+            self.show_bubble(reaction.line, kind=reaction.bubble)
+            self.state.remember_line(reaction.line)
+
+    def _schedule_performance_action(self, action: str, delay_ms: int) -> None:
+        self._performance_after.append(self.root.after(delay_ms, lambda: self._perform_action(action)))
+
+    def _cancel_performance_phrase(self) -> None:
+        for after_id in self._performance_after:
+            try:
+                self.root.after_cancel(after_id)
+            except tk.TclError:
+                pass
+        self._performance_after.clear()
 
     def _perform_action(self, action: str) -> None:
         if not action or action == "idle":
@@ -871,46 +924,17 @@ class PaperclipPalApp:
         self.root.after(delay, self._ambient_tick)
 
     def _ambient_tick(self) -> None:
-        context = self._context("ambient")
-        if self._should_ambient_react(context):
-            self._ask_brain("ambient")
-        self._schedule_ambient()
-
-    def _should_ambient_react(self, context: dict[str, object]) -> bool:
+        world = self._world_state()
         cooldown = min(AMBIENT_COOLDOWN_SECONDS, self.mood.ambient_cooldown_seconds())
-        if self._bubble_items or self.state.brain_busy or not self.state.can_speak(cooldown):
-            return False
-        tags = set(_as_str_list(context.get("environment_tags")))
-        if not tags or "privacy_sensitive" in tags or "app_meeting_or_chat" in tags:
-            return False
-        if str(context.get("activity_level") or "") == "away":
-            return False
-        interesting = {
-            "rapid_switching",
-            "idle_staring",
-            "long_focus",
-            "blank_document",
-            "todo_visible",
-            "browser_research",
-            "file_sorting",
-            "deep_work",
-            "app_codex",
-            "app_editor",
-            "app_terminal",
-            "app_file_manager",
-        }
-        matched = sorted(tags & interesting)
-        if not matched:
-            return False
-        signature = f"{context.get('app_category')}|{context.get('active_process')}|{','.join(matched[:3])}"
-        if signature == self._last_ambient_signature:
-            return False
-        chance = 0.55 if {"rapid_switching", "idle_staring", "blank_document", "todo_visible"} & tags else 0.28
-        chance = min(0.88, chance * self.mood.ambient_chance_multiplier())
-        if random.random() > chance:
-            return False
-        self._last_ambient_signature = signature
-        return True
+        decision = self.decision.ambient_decision(
+            world,
+            cooldown_seconds=cooldown,
+            chance_multiplier=self.mood.ambient_chance_multiplier(),
+            bubble_visible=bool(self._bubble_items),
+        )
+        if decision.should_react:
+            self._ask_brain("ambient", world)
+        self._schedule_ambient()
 
     def _animate(self) -> None:
         self._anim_tick += 1
@@ -2017,12 +2041,6 @@ def _oval_center_radius(coords: list[float]) -> tuple[float, float, float]:
 
 def _clamp(value: float, low: float, high: float) -> float:
     return max(low, min(high, value))
-
-
-def _as_str_list(value: object) -> list[str]:
-    if not isinstance(value, list):
-        return []
-    return [str(item) for item in value if str(item).strip()]
 
 
 def _oval_bounds(cx: float, cy: float, rx: float, ry: float | None = None) -> tuple[float, float, float, float]:

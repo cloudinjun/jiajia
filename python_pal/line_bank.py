@@ -26,6 +26,7 @@ class LineEntry:
     mood: str = "smirk"
     action: str = "blink"
     bubble: str = "speech"
+    performance: str = ""
     tags: list[str] = field(default_factory=list)
     source: str = "seed"
     created_at: float = field(default_factory=time.time)
@@ -70,6 +71,7 @@ class LineBank:
             str(entry.get("mood") or "smirk"),
             str(entry.get("action") or "blink"),
             str(entry.get("bubble") or "speech"),
+            str(entry.get("performance") or ""),
         )
 
     def add_reaction(
@@ -89,6 +91,7 @@ class LineBank:
                     "mood": reaction.mood,
                     "action": reaction.action,
                     "bubble": reaction.bubble,
+                    "performance": reaction.performance,
                     "tags": sorted(set([event, *(tags or [])])),
                     "source": source,
                 }
@@ -111,6 +114,7 @@ class LineBank:
                 mood=str(raw.get("mood") or "smirk"),
                 action=str(raw.get("action") or "blink"),
                 bubble=_bubble(str(raw.get("bubble") or "speech")),
+                performance=str(raw.get("performance") or ""),
                 tags=_tags(raw.get("tags")),
                 source=str(source or raw.get("source") or "generated"),
             )

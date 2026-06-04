@@ -11,6 +11,8 @@ class Reaction:
     mood: str = "smirk"
     action: str = "idle"
     bubble: str = "speech"
+    performance: str = ""
+    decision_reason: str = ""
 
 
 @dataclass

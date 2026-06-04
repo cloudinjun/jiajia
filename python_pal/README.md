@@ -64,3 +64,18 @@ records key text or clipboard content. `eyes.py` can low-frequency capture an
 in-memory, downscaled screenshot for the local Ollama vision model and asks only
 for high-level scene tags, not text transcription. Privacy-sensitive chat or
 meeting contexts are tagged so ambient reactions stay quiet by default.
+
+World state and decisions:
+
+`world.py` combines ears, eyes, Codex, Claude, pal state, and mood into one
+sampled `WorldState`. `decision.py` turns that into explainable ambient
+decisions such as task avoidance, stuck idle, deep focus, or coding-agent
+waiting. Use the right-click `Debug last decision` item to see why the pet
+reacted or stayed quiet.
+
+Performance phrases:
+
+`performance.py` defines small action sequences that can wrap a line: glance
+first, speak, then snap back to an innocent pose. Reactions and line-bank
+entries may optionally set `performance`; otherwise the body picks a simple
+phrase from mood, action, and bubble type.

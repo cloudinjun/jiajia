@@ -13,6 +13,7 @@ DECAY_RATE = 0.002
 MOOD_IMPULSE: dict[str, tuple[float, float]] = {
     "idle":       ( 0.00,  0.00),
     "smirk":      ( 0.08,  0.15),
+    "smug":       ( 0.08,  0.16),
     "happy":      ( 0.15,  0.25),
     "thinking":   ( 0.05, -0.02),
     "sleepy":     (-0.20, -0.05),

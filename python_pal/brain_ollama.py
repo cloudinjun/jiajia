@@ -10,6 +10,7 @@ import urllib.request
 
 from .actions import ACTION_PROMPT, ACTION_SCHEMA_VALUE, MODEL_ACTIONS
 from .line_bank import LineBank
+from .performance import PERFORMANCE_PHRASES
 from .soul import Soul
 from .state import Reaction
 
@@ -154,6 +155,8 @@ class OllamaBrain:
             "这些分类只用于内部选择，line 不要用“冷笑话：”“冷知识：”“一本正经胡说八道：”等标签开头。\n"
             "动作可以表达情绪或状态，从下面选择一个最贴切的 action:\n"
             f"{ACTION_PROMPT}\n"
+            "performance 是可选表演短语，用来安排先做一个小动作、再冒泡、再收尾装无辜。"
+            "可选: cold_arrow, snap_innocent, fake_innocent, guilty_after_roast, tiny_comfort；不确定就留空。\n"
             "thought 不要写“我在想”“心里想”，气泡样式会表达这一点。\n"
             "只输出 JSON，不要 Markdown，不要解释。"
         )
@@ -163,8 +166,9 @@ class OllamaBrain:
             "should_say": True,
             "line": "一句短短的中文碎碎念",
             "bubble": "speech|thought",
-            "mood": "idle|smirk|happy|thinking|sleepy|startled|proud|shy|sulky|focused|bored|done",
+            "mood": "idle|smirk|smug|happy|thinking|sleepy|startled|proud|shy|sulky|focused|bored|done|innocent|suspicious|guilty",
             "action": ACTION_SCHEMA_VALUE,
+            "performance": "cold_arrow|snap_innocent|fake_innocent|guilty_after_roast|tiny_comfort|",
         }
         bubble_hint = (
             "poke/manual 事件优先 speech；idle 事件可以 speech 或 thought；"
@@ -205,6 +209,7 @@ class OllamaBrain:
             "bubble": "speech|thought",
             "mood": "smirk|thinking|innocent|suspicious|guilty|sleepy|startled",
             "action": ACTION_SCHEMA_VALUE,
+            "performance": "cold_arrow|snap_innocent|fake_innocent|guilty_after_roast|tiny_comfort|",
             "tags": ["procrastination"],
         }
         return (
@@ -243,6 +248,7 @@ class OllamaBrain:
                     "bubble": self._clean_bubble(raw.get("bubble"), "speech"),
                     "mood": str(raw.get("mood") or "smirk"),
                     "action": self._clean_action(raw.get("action"), "blink"),
+                    "performance": self._clean_performance(raw.get("performance")),
                     "tags": raw.get("tags") if isinstance(raw.get("tags"), list) else [],
                 }
             )
@@ -270,6 +276,7 @@ class OllamaBrain:
             mood=str(data.get("mood") or fallback.mood),
             action=self._clean_action(data.get("action"), fallback.action),
             bubble=self._clean_bubble(data.get("bubble"), fallback.bubble),
+            performance=self._clean_performance(data.get("performance")),
         )
 
     def _clean_action(self, action: object, fallback: str) -> str:
@@ -290,6 +297,10 @@ class OllamaBrain:
         if value in {"speech", "thought"}:
             return value
         return fallback if fallback in {"speech", "thought"} else "speech"
+
+    def _clean_performance(self, performance: object) -> str:
+        value = re.sub(r"[\s-]+", "_", str(performance or "").strip().lower())
+        return value if value in PERFORMANCE_PHRASES else ""
 
     def _clean_line(self, line: str) -> str:
         line = re.sub(r"\s+", " ", line).strip().strip('"')
