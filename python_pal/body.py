@@ -1247,13 +1247,14 @@ class PaperclipPalApp:
             )
         self._bubble_items.append(
             self.bubble_canvas.create_text(
-                BUBBLE_WIDTH / 2,
+                x1 + BUBBLE_PADDING_X,
                 y1 + BUBBLE_PADDING_Y + line_height * line_count / 2,
+                anchor="w",
                 text=wrapped_text,
                 width=text_width,
                 fill="#33293a" if is_thought else "#202932",
                 font=font_spec,
-                justify="center",
+                justify="left",
             )
         )
         if index + 1 < len(pages):
@@ -1892,20 +1893,115 @@ def _wrap_bubble_lines(text: str, max_width: int, font: tkfont.Font) -> list[str
     lines: list[str] = []
     paragraphs = text.strip().splitlines() or [text.strip()]
     for paragraph in paragraphs:
+        paragraph_lines: list[str] = []
         current = ""
-        for char in paragraph:
-            candidate = current + char
-            if not current or font.measure(candidate) <= max_width:
+        for token in _bubble_wrap_tokens(paragraph):
+            if token.isspace():
+                if current and not current.endswith(" "):
+                    current += " "
+                continue
+
+            token = token.lstrip() if not current else token
+            if _is_line_leading_punctuation(token):
+                if current:
+                    if font.measure(current + token) <= max_width or len(current) <= 3:
+                        current += token
+                    else:
+                        steal_count = min(2, len(current) - 3)
+                        paragraph_lines.append(current[:-steal_count].rstrip())
+                        current = current[-steal_count:] + token
+                elif paragraph_lines:
+                    paragraph_lines[-1] += token
+                else:
+                    current = token
+                continue
+            candidate = current + token
+            if not current and font.measure(token) > max_width:
+                pieces = _split_oversized_bubble_token(token, max_width, font)
+                paragraph_lines.extend(pieces[:-1])
+                current = pieces[-1] if pieces else ""
+                continue
+            if not current or font.measure(candidate.rstrip()) <= max_width:
                 current = candidate
                 continue
 
-            lines.append(current.rstrip())
-            current = char.lstrip()
+            paragraph_lines.append(current.rstrip())
+            if font.measure(token) <= max_width:
+                current = token
+            else:
+                pieces = _split_oversized_bubble_token(token, max_width, font)
+                paragraph_lines.extend(pieces[:-1])
+                current = pieces[-1] if pieces else ""
 
         if current:
-            lines.append(current.rstrip())
+            paragraph_lines.append(current.rstrip())
+        lines.extend(_rebalance_short_wrapped_lines(paragraph_lines, max_width, font))
 
     return lines or ["..."]
+
+
+def _bubble_wrap_tokens(text: str) -> list[str]:
+    tokens: list[str] = []
+    ascii_run = ""
+    for char in text:
+        if char.isascii() and not char.isspace():
+            ascii_run += char
+            continue
+        if ascii_run:
+            tokens.append(ascii_run)
+            ascii_run = ""
+        tokens.append(" " if char.isspace() else char)
+    if ascii_run:
+        tokens.append(ascii_run)
+    return tokens
+
+
+def _is_line_leading_punctuation(token: str) -> bool:
+    return bool(token) and token[0] in "，。！？；：、）】》”’.,!?;:)]}"
+
+
+def _split_oversized_bubble_token(token: str, max_width: int, font: tkfont.Font) -> list[str]:
+    pieces: list[str] = []
+    current = ""
+    for char in token:
+        candidate = current + char
+        if not current or font.measure(candidate) <= max_width:
+            current = candidate
+            continue
+        pieces.append(current)
+        current = char
+    if current:
+        pieces.append(current)
+    return pieces
+
+
+def _rebalance_short_wrapped_lines(lines: list[str], max_width: int, font: tkfont.Font) -> list[str]:
+    result = list(lines)
+    for index in range(1, len(result)):
+        current = result[index].strip()
+        previous = result[index - 1].rstrip()
+        if not _is_short_wrapped_line(current) or len(previous) <= 6:
+            continue
+        for steal_count in range(min(5, len(previous) - 4), 0, -1):
+            borrowed = previous[-steal_count:]
+            candidate = borrowed + current
+            remaining = previous[:-steal_count].rstrip()
+            if remaining and font.measure(candidate) <= max_width:
+                result[index - 1] = remaining
+                result[index] = candidate
+                break
+    return result
+
+
+def _is_short_wrapped_line(line: str) -> bool:
+    stripped = line.strip()
+    if not stripped:
+        return False
+    if len(stripped) <= 2:
+        return True
+    if len(stripped) <= 4 and not any(char.isspace() for char in stripped):
+        return True
+    return False
 
 
 def _bubble_page_duration(text: str, requested_ms: int) -> int:
