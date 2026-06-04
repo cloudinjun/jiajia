@@ -1216,7 +1216,6 @@ class PaperclipPalApp:
                 y2,
                 fill="#f7f5fb",
                 outline="#c9c2d7",
-                shadow="#c6bfce",
             )
             self._bubble_items.extend(thought_items)
             self._thought_dot_items = thought_items[-3:]
@@ -1242,7 +1241,6 @@ class PaperclipPalApp:
                     tail=tail,
                     fill="#fdfdfd",
                     outline="#d4dee8",
-                    shadow="#c4ccd4",
                 )
             )
         self._bubble_items.append(
@@ -2087,30 +2085,9 @@ def _speech_bubble(
     tail: tuple[int, int, int, int, int, int],
     fill: str,
     outline: str,
-    shadow: str,
 ) -> list[int]:
-    items = []
     tx1, ty1, tx2, ty2, tx3, ty3 = tail
-    items.append(
-        _rounded_polygon(
-            canvas,
-            x1 + 3,
-            y1 + 4,
-            x2 + 3,
-            y2 + 4,
-            radius,
-            tx1 + 3,
-            ty1 + 4,
-            tx2 + 3,
-            ty2 + 4,
-            tx3 + 3,
-            ty3 + 4,
-            fill=shadow,
-            outline="",
-            stipple="gray50",
-        )
-    )
-    items.append(
+    return [
         _rounded_polygon(
             canvas,
             x1,
@@ -2127,8 +2104,7 @@ def _speech_bubble(
             fill=fill,
             outline=outline,
         )
-    )
-    return items
+    ]
 
 
 def _thought_bubble(
@@ -2139,10 +2115,8 @@ def _thought_bubble(
     y2: int,
     fill: str,
     outline: str,
-    shadow: str,
 ) -> list[int]:
     items = [
-        _rounded_rect(canvas, x1 + 3, y1 + 4, x2 + 3, y2 + 4, 16, fill=shadow, outline="", stipple="gray50"),
         _rounded_rect(canvas, x1, y1, x2, y2, 16, fill=fill, outline=outline),
     ]
     dots = (
