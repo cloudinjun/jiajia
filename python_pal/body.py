@@ -119,7 +119,12 @@ CODEX_USAGE_POLL_MS = 60_000
 CLAUDE_STATUS_POLL_MS = 8000
 HARDWARE_STATUS_POLL_MS = 5000
 LERP_TICK_MS = 18
-VISION_REFRESH_MS = 45_000
+VISION_FIRST_REFRESH_MS = 5 * 60 * 1000
+VISION_REFRESH_MS = 10 * 60 * 1000
+VISION_BUSY_RETRY_MS = 5 * 60 * 1000
+LINE_BANK_FIRST_MAINTENANCE_MS = 15 * 60 * 1000
+LINE_BANK_REFRESH_MS = 6 * 60 * 60 * 1000
+LINE_BANK_BUSY_RETRY_MS = 10 * 60 * 1000
 AMBIENT_MIN_MS = 18_000
 AMBIENT_MAX_MS = 45_000
 AMBIENT_COOLDOWN_SECONDS = 50
@@ -528,8 +533,8 @@ class PaperclipPalApp:
         self._schedule_look()
         self._schedule_idle(first=True)
         self._schedule_ambient(first=True)
-        self.root.after(5000, self._maintain_line_bank)
-        self.root.after(8000, self._refresh_eyes)
+        self.root.after(LINE_BANK_FIRST_MAINTENANCE_MS, self._maintain_line_bank)
+        self.root.after(VISION_FIRST_REFRESH_MS, self._refresh_eyes)
         self.root.after(2000, self._schedule_micro)
         self.root.after(3000, self._schedule_companion)
         self.root.after(650, lambda: self.show_bubble("你看起来很忙。主要是在避免开始。", 5200))
@@ -1385,7 +1390,7 @@ class PaperclipPalApp:
                 and self.state.can_speak(max(8, round(self.mood.ambient_cooldown_seconds() * policy.cooldown_multiplier)))
                 and random.random() < policy.companion_chatter_chance
             ):
-                self._ask_brain("ambient")
+                self._ask_brain("ambient", allow_live=False)
         self._schedule_companion()
 
     def _pick_idle_animation(self, micro: bool = False, low_stimulus: bool = False) -> str:
@@ -1565,7 +1570,7 @@ class PaperclipPalApp:
         if force or self.state.can_speak(4):
             self._ask_brain("poke")
 
-    def _ask_brain(self, event: str, world: WorldState | None = None) -> None:
+    def _ask_brain(self, event: str, world: WorldState | None = None, allow_live: bool = True) -> None:
         if self.state.brain_busy:
             self._perform_action("thinking_tilt")
             return
@@ -1574,7 +1579,7 @@ class PaperclipPalApp:
         self._start_brain_wait_animation()
 
         def worker() -> None:
-            reaction = self.brain.react(event, context)
+            reaction = self.brain.react(event, context, allow_live=allow_live)
             reaction.event = event
             self.queue.put(reaction)
 
@@ -1704,22 +1709,22 @@ class PaperclipPalApp:
 
     def _maintain_line_bank(self) -> None:
         if self._line_bank_thread and self._line_bank_thread.is_alive():
-            self.root.after(60_000, self._maintain_line_bank)
+            self.root.after(LINE_BANK_BUSY_RETRY_MS, self._maintain_line_bank)
             return
 
         def worker() -> None:
             try:
-                self.brain.maintain_line_bank()
+                self.brain.maintain_line_bank(target_count=18)
             except Exception:
                 return
 
         self._line_bank_thread = threading.Thread(target=worker, daemon=True)
         self._line_bank_thread.start()
-        self.root.after(20 * 60 * 1000, self._maintain_line_bank)
+        self.root.after(LINE_BANK_REFRESH_MS, self._maintain_line_bank)
 
     def _refresh_eyes(self) -> None:
         if self._vision_thread and self._vision_thread.is_alive():
-            self.root.after(10_000, self._refresh_eyes)
+            self.root.after(VISION_BUSY_RETRY_MS, self._refresh_eyes)
             return
 
         def worker() -> None:
@@ -2492,9 +2497,9 @@ class PaperclipPalApp:
         ):
             context = self.ears.sample()
             if context.idle_seconds > 75 and random.random() < 0.70:
-                self._ask_brain("bored")
+                self._ask_brain("bored", allow_live=False)
             elif context.idle_seconds > 15 or random.random() < 0.35:
-                self._ask_brain("idle")
+                self._ask_brain("idle", allow_live=False)
         self._schedule_idle()
 
     def _schedule_ambient(self, first: bool = False) -> None:
@@ -2526,7 +2531,7 @@ class PaperclipPalApp:
             bubble_visible=bool(self._bubble_items),
         )
         if decision.should_react:
-            self._ask_brain("ambient", world)
+            self._ask_brain("ambient", world, allow_live=False)
         self._schedule_ambient()
 
     def _animate(self) -> None:

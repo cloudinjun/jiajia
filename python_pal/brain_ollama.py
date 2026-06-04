@@ -25,7 +25,7 @@ class OllamaBrain:
         self.line_bank = LineBank(root / "memory" / "line_bank.json")
         self.line_bank.add_entries(self.identities.seed_entries(), source="identity_seed")
 
-    def react(self, event: str, context: dict[str, object] | None = None) -> Reaction:
+    def react(self, event: str, context: dict[str, object] | None = None, allow_live: bool = True) -> Reaction:
         context = dict(context or {})
         identity = self.identities.select(event, context)
         identity_level = self.identities.level_for(event, context, identity)
@@ -38,6 +38,9 @@ class OllamaBrain:
             cached.decision_reason = f"identity={identity.id}"
             return cached
         fallback = self.fallback_reaction(event, context)
+        if not allow_live:
+            fallback.decision_reason = f"identity={identity.id};live_model=disabled"
+            return fallback
         prompt = self._prompt(event, context)
         payload = {
             "model": self.soul.text_model,
@@ -62,7 +65,7 @@ class OllamaBrain:
         except (OSError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
             return fallback
 
-    def maintain_line_bank(self, target_count: int = 36) -> dict[str, object]:
+    def maintain_line_bank(self, target_count: int = 18) -> dict[str, object]:
         if not self.line_bank.should_refill_library():
             return {"status": "fresh", **self.line_bank.stats()}
         entries = self._generate_line_entries(target_count)
@@ -79,7 +82,7 @@ class OllamaBrain:
             "stream": False,
             "options": {
                 "temperature": 0.92,
-                "num_predict": 1400,
+                "num_predict": 900,
             },
         }
         response = self._post_json("/api/chat", payload, timeout=45)
