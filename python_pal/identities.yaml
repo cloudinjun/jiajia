@@ -111,7 +111,7 @@ identities:
     allowed_moods: [startled, sulky, innocent, thinking]
     core_animations: [warm_idle, fan_shake, meltdown, cooldown_recover, fake_sulk]
     triggers: [hardware_warm, hardware_hot, hardware_overloaded, hardware_cooling, gpu_temp_high, cpu_temp_high, gpu_usage_high, ram_high, vram_high, system_hot, overheated]
-    visual_addons: [thermometer_icon, heat_tint]
+    visual_addons: [thermometer_icon]
     animations:
       idle: warm_idle
       alert: fan_shake

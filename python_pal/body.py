@@ -576,6 +576,7 @@ class PaperclipPalApp:
 
     def _reset_pal_geometry(self) -> None:
         look = self._pupil_look
+        self._clear_decorations()
         self.canvas.delete("pal")
         self._pupil_bounds.clear()
         self._pal_scale = (1.0, 1.0)
@@ -583,6 +584,8 @@ class PaperclipPalApp:
         self._bob_x = 0.0
         self._bob_y = 0.0
         self._draw_pal()
+        if self._active_identity_addons:
+            self._set_decorations(self._active_identity_addons, lifetime="identity")
         self.canvas.tag_raise("decoration")
         self._pupil_look = look
         self._set_pupil_pose(*look, blink_scale=1.0)
@@ -991,9 +994,27 @@ class PaperclipPalApp:
                 self.canvas.create_line(x + 11, y + 4, x + 11, y + 23, fill=color, width=4),
                 self.canvas.create_oval(x + 8, y + 2, x + 14, y + 8, fill="#ffffff", outline=color, width=1),
             ])
-        elif shape == "heat_puffs":
-            for offset, radius in ((0, 4), (10, 5), (21, 4)):
-                items.append(self.canvas.create_oval(x + offset, y - radius, x + offset + radius * 2, y + radius, fill="", outline=color, width=2))
+        elif shape in {"heat_puffs", "heat_wisps"}:
+            for x0, y0, x1, y1, x2, y2 in (
+                (0, 16, 5, 8, 2, 1),
+                (12, 18, 18, 10, 15, 3),
+                (25, 15, 30, 8, 27, 1),
+            ):
+                items.append(
+                    self.canvas.create_line(
+                        x + x0,
+                        y + y0,
+                        x + x1,
+                        y + y1,
+                        x + x2,
+                        y + y2,
+                        smooth=True,
+                        splinesteps=10,
+                        fill=color,
+                        width=2,
+                        capstyle=tk.ROUND,
+                    )
+                )
         elif shape == "ledger":
             items.extend([
                 self.canvas.create_rectangle(x, y, x + 24, y + 28, fill="#f7fbff", outline=color, width=1),
@@ -1014,8 +1035,12 @@ class PaperclipPalApp:
                 self.canvas.create_line(x, y + 24, x + 24, y, fill=color, width=4, capstyle=tk.ROUND),
                 self.canvas.create_polygon(x + 23, y - 1, x + 29, y - 5, x + 27, y + 3, fill=color, outline=color),
             ])
-        elif shape == "annotation_circle":
-            items.append(self.canvas.create_oval(x, y, x + PAL_WIDTH + 18, y + PAL_HEIGHT + 16, fill="", outline=color, width=2))
+        elif shape in {"annotation_circle", "annotation_mark"}:
+            items.extend([
+                self.canvas.create_line(x + 2, y + 24, x + 16, y + 8, x + 27, y + 3, fill=color, width=3, smooth=True, splinesteps=10, capstyle=tk.ROUND),
+                self.canvas.create_line(x + 5, y + 30, x + 27, y + 30, fill=color, width=2, capstyle=tk.ROUND),
+                self.canvas.create_arc(x - 4, y + 7, x + 25, y + 31, start=210, extent=95, outline=color, width=2, style=tk.ARC),
+            ])
         elif shape == "z_mark":
             items.append(self.canvas.create_text(x, y, anchor="nw", text="Z", fill=color, font=("Microsoft YaHei UI", 13, "bold")))
         elif shape == "warning":
@@ -1043,10 +1068,32 @@ class PaperclipPalApp:
                 items.append(self.canvas.create_rectangle(x + index * 9, y + index * 2, x + 18 + index * 9, y + 10 + index * 2, fill="#f7f5ff", outline=color, width=1))
 
         if items:
+            self._apply_actor_transform_to_items(items)
             for item in items:
                 self.canvas.addtag_withtag("decoration", item)
             self._decoration_items.setdefault(lifetime, []).extend(items)
             self.canvas.tag_raise("decoration")
+
+    def _apply_actor_transform_to_items(self, items: list[int]) -> None:
+        sx, sy = self._pal_scale
+        if sx != 1.0 or sy != 1.0:
+            for item in items:
+                self.canvas.scale(item, PAL_CENTER_X, PAL_SCALE_CENTER_Y, sx, sy)
+        dx = self._action_offset[0] + self._bob_x
+        dy = self._action_offset[1] + self._bob_y
+        if dx or dy:
+            for item in items:
+                self.canvas.move(item, dx, dy)
+
+    def _move_actor_items(self, dx: float, dy: float) -> None:
+        if not dx and not dy:
+            return
+        self.canvas.move("pal", dx, dy)
+        self.canvas.move("decoration", dx, dy)
+
+    def _scale_actor_items(self, sx: float, sy: float) -> None:
+        self.canvas.scale("pal", PAL_CENTER_X, PAL_SCALE_CENTER_Y, sx, sy)
+        self.canvas.scale("decoration", PAL_CENTER_X, PAL_SCALE_CENTER_Y, sx, sy)
 
     def _decoration_anchor(self, definition: DecorationDefinition) -> tuple[float, float]:
         anchors = {
@@ -2342,7 +2389,7 @@ class PaperclipPalApp:
         next_y = -breath * self._breath_depth
         sway_amp = 0.45 + self.mood.energy * 0.45 + min(0.9, max(0.0, self.mood.frequency_multiplier - 1.0) * 0.22)
         sway_x = math.sin(self._anim_tick * 0.045) * sway_amp
-        self.canvas.move("pal", sway_x - self._bob_x, next_y - self._bob_y)
+        self._move_actor_items(sway_x - self._bob_x, next_y - self._bob_y)
         self._bob_x = sway_x
         self._bob_y = next_y
         self.root.after(50, self._animate)
@@ -2590,20 +2637,14 @@ class PaperclipPalApp:
 
     def _set_action_offset(self, dx: float, dy: float) -> None:
         previous_x, previous_y = self._action_offset
-        self.canvas.move("pal", dx - previous_x, dy - previous_y)
+        self._move_actor_items(dx - previous_x, dy - previous_y)
         self._action_offset = (dx, dy)
 
     def _set_pal_scale(self, sx: float, sy: float) -> None:
         previous_x, previous_y = self._pal_scale
         if previous_x == 0 or previous_y == 0:
             previous_x, previous_y = 1.0, 1.0
-        self.canvas.scale(
-            "pal",
-            PAL_CENTER_X,
-            PAL_SCALE_CENTER_Y,
-            sx / previous_x,
-            sy / previous_y,
-        )
+        self._scale_actor_items(sx / previous_x, sy / previous_y)
         self._pal_scale = (sx, sy)
 
     def _blink(self) -> None:

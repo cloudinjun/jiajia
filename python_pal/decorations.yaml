@@ -43,7 +43,7 @@ decorations:
     dy: 18
     color: "#d86b6b"
     lifetime: identity
-    shape_type: heat_puffs
+    shape_type: heat_wisps
     pulse: false
 
   heat_puffs:
@@ -52,7 +52,7 @@ decorations:
     dy: 18
     color: "#d86b6b"
     lifetime: temporary
-    shape_type: heat_puffs
+    shape_type: heat_wisps
     pulse: false
 
   tiny_ledger:
@@ -83,12 +83,12 @@ decorations:
     pulse: false
 
   annotation_circle:
-    anchor: around_character
-    dx: 0
-    dy: 0
+    anchor: right_side
+    dx: 12
+    dy: 12
     color: "#d65b4a"
     lifetime: temporary
-    shape_type: annotation_circle
+    shape_type: annotation_mark
     pulse: false
 
   z_symbol:
