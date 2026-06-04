@@ -12,6 +12,8 @@ import tkinter as tk
 import tkinter.font as tkfont
 
 from .actions import ACTION_LABELS, ACTION_MENU_GROUPS
+from .animation_manifest import load_animation_manifest
+from .animation_player import AnimationCallbacks, AnimationPlayer
 from .brain_ollama import OllamaBrain
 from .mood import MoodEngine, FREQUENCY_PRESETS, FREQUENCY_DEFAULT
 from .claude_status import ClaudeOverview, ClaudeSession, ClaudeStatusMonitor
@@ -304,6 +306,7 @@ class PaperclipPalApp:
         self.codex_status = CodexStatusMonitor(project_root / "codex_status.json")
         self.state = PalState()
         self.decision = DecisionEngine()
+        self.animation_player = AnimationPlayer(load_animation_manifest(project_root / "python_pal" / "animations.yaml"))
         self.queue: queue.Queue[Reaction] = queue.Queue()
         self.root = tk.Tk()
         self.root.title(soul.name)
@@ -383,6 +386,7 @@ class PaperclipPalApp:
         self._recent_claude_status_fragments: list[str] = []
         self._performance_after: list[str] = []
         self._expression_after: list[str] = []
+        self._last_animation_debug = "not played yet"
         self.mood = MoodEngine()
         initial_frequency = self._load_frequency_setting()
         self.mood.set_frequency(initial_frequency)
@@ -513,6 +517,7 @@ class PaperclipPalApp:
         self.menu.add_command(label="Codex status", command=self._show_codex_status)
         self.menu.add_command(label="Claude 状态", command=self._show_claude_status)
         self.menu.add_command(label="Debug last decision", command=self._show_last_decision_debug)
+        self.menu.add_command(label="Debug animation", command=self._show_last_animation_debug)
         freq_menu = tk.Menu(self.menu, tearoff=False)
         for label, _mult in FREQUENCY_PRESETS:
             freq_menu.add_radiobutton(
@@ -692,6 +697,7 @@ class PaperclipPalApp:
 
         def worker() -> None:
             reaction = self.brain.react(event, context)
+            reaction.event = event
             self.queue.put(reaction)
 
         self._brain_thread = threading.Thread(target=worker, daemon=True)
@@ -841,27 +847,76 @@ class PaperclipPalApp:
     def _show_last_decision_debug(self) -> None:
         self.show_bubble(self.decision.last_decision.debug_text(), milliseconds=6800, kind="thought")
 
+    def _show_last_animation_debug(self) -> None:
+        self.show_bubble(self._last_animation_debug, milliseconds=6800, kind="thought")
+
     def _apply_reaction(self, reaction: Reaction) -> None:
         self._cancel_performance_phrase()
         self.state.mood = reaction.mood
         self.mood.push_mood(reaction.mood)
-        performance = reaction.performance or phrase_for_reaction(reaction.mood, reaction.action, reaction.bubble)
+        state = self.animation_player.manifest.state_for_reaction(reaction.mood, reaction.action, reaction.bubble)
+        performance = (
+            reaction.performance
+            or self.animation_player.manifest.performance_for_state(state)
+            or phrase_for_reaction(reaction.mood, reaction.action, reaction.bubble)
+        )
         if performance and reaction.should_say and reaction.line:
-            self._run_performance_phrase(performance, reaction)
+            self._run_performance_phrase(performance, reaction, state)
             return
+        self._last_animation_debug = (
+            f"event: {reaction.event or 'unknown'}\n"
+            f"state: {state}\n"
+            "performance: none\n"
+            "source: action\n"
+            "steps: 0\n"
+            f"fallback_action: {reaction.action or 'none'}\n"
+            "fallback_reason: no_performance_or_no_line"
+        )
         self._perform_action(reaction.action)
         if reaction.should_say and reaction.line:
             self.show_bubble(reaction.line, kind=reaction.bubble)
             self.state.remember_line(reaction.line)
 
-    def _run_performance_phrase(self, name: str, reaction: Reaction) -> None:
+    def _run_performance_phrase(self, name: str, reaction: Reaction, state: str = "") -> None:
+        callbacks = AnimationCallbacks(
+            after=lambda delay, callback: self.root.after(delay, callback),
+            action=self._perform_action,
+            bubble=self._show_reaction_line,
+            eyes=self._set_eye_pose,
+            brows=self._set_brow_pose,
+            reset_expression=self._reset_expression_pose,
+            stop_cursor_follow=self._stop_mouse_follow,
+        )
+        after_ids = self.animation_player.play(
+            name,
+            reaction,
+            callbacks,
+            state=state,
+            event=reaction.event,
+        )
+        if after_ids:
+            self._performance_after.extend(after_ids)
+            self._last_animation_debug = self.animation_player.last_debug.text()
+            return
+
         phrase = PERFORMANCE_PHRASES.get(name)
         if not phrase:
-            self._perform_action(reaction.action)
+            self._last_animation_debug = self.animation_player.last_debug.text()
+            fallback_action = self.animation_player.manifest.fallback_action_for_state(state) or reaction.action
+            self._perform_action(fallback_action)
             self.show_bubble(reaction.line, kind=reaction.bubble)
             self.state.remember_line(reaction.line)
             return
 
+        self._last_animation_debug = (
+            f"event: {reaction.event or 'unknown'}\n"
+            f"state: {state or 'unknown'}\n"
+            f"performance: {name}\n"
+            "source: legacy_performance\n"
+            f"steps: {len(phrase.pre_actions) + 1 + len(phrase.post_actions)}\n"
+            f"fallback_action: {reaction.action or 'none'}\n"
+            "fallback_reason: manifest_unavailable"
+        )
         elapsed = 0
         for action, delay in phrase.pre_actions:
             self._schedule_performance_action(action, elapsed)
@@ -957,6 +1012,19 @@ class PaperclipPalApp:
             self._set_pupil_pose(-0.35, -0.25, size_scale=1.02)
         elif action == "micro_soft_reset":
             self._reset_expression_pose()
+
+    def _set_eye_pose(self, pose: str) -> None:
+        poses: dict[str, tuple[float, float, float]] = {
+            "neutral": (0.0, 0.0, 1.0),
+            "side_eye": (-3.1, 0.35, 0.98),
+            "round": (0.0, 0.0, 1.08),
+            "soft": (0.0, 0.0, 0.96),
+            "peek_up": (1.9, -0.75, 0.92),
+            "proud": (-0.35, -0.25, 1.02),
+        }
+        dx, dy, scale = poses.get(pose, poses["neutral"])
+        self._pupil_look = (dx, dy)
+        self._set_pupil_pose(dx, dy, size_scale=scale)
 
     def _set_brow_pose(self, pose: str) -> None:
         poses: dict[str, tuple[tuple[float, float, float], tuple[float, float, float]]] = {
@@ -1691,7 +1759,7 @@ def _codex_status_reaction(
     line = f"{prefix}。{tail}"
     if manual and status.stale:
         line = f"{line} {_pick_status_fragment(_CODEX_STALE_TAILS, recent_fragments)}"
-    return Reaction(True, line, mood, random.choice(actions), _source_bubble_kind("codex", bubble))
+    return Reaction(True, line, mood, random.choice(actions), _source_bubble_kind("codex", bubble), event=f"codex_{status_key}")
 
 
 _CLAUDE_NO_SESSION_LINES = (
@@ -1911,7 +1979,7 @@ def _claude_session_reaction(
     )
     tail_template = _pick_status_fragment(_claude_tail_choices(tails, event_key), recent_fragments)
     tail = _format_claude_status_text(tail_template, session, recent_fragments)
-    return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), _source_bubble_kind("claude", bubble))
+    return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), _source_bubble_kind("claude", bubble), event=f"claude_{event_key}")
 
 
 def _claude_overview_reaction(
@@ -1921,7 +1989,7 @@ def _claude_overview_reaction(
     alive = [s for s in overview.sessions if s.alive]
     if not alive:
         line = _pick_status_fragment(_CLAUDE_NO_SESSION_LINES, recent_fragments)
-        return Reaction(True, line, "sleepy", "blink", "claude_thought")
+        return Reaction(True, line, "sleepy", "blink", "claude_thought", event="claude_no_session")
 
     if len(alive) == 1:
         session = alive[0]
@@ -1956,7 +2024,7 @@ def _claude_overview_reaction(
     )
     tail_template = _pick_status_fragment(tails, recent_fragments)
     tail = _format_claude_status_text(tail_template, focus, recent_fragments)
-    return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), "claude_thought")
+    return Reaction(True, f"{prefix}。{tail}", mood, random.choice(actions), "claude_thought", event="claude_overview")
 
 
 def _claude_compact_summary(sessions: list[ClaudeSession]) -> str:

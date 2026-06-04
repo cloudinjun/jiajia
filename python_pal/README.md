@@ -92,3 +92,13 @@ The current first-class performance phrases are
 `suspicious_observe`, `quiet_companion`, and `tiny_celebrate`. The body also has
 internal `micro_*` actions for eyes, pupils, and brows; these are meant for
 performance phrases, not for the visible action menu.
+
+Animation manifest:
+
+`animations.yaml` is the lightweight animation manifest inspired by state/theme
+mapping systems such as Clawd's, but it uses Paperclip Pal's own procedural Tk
+actions. It maps logical states to performance phrases and defines phrase
+sequences made from `action`, `eyes`, `brows`, `pause_ms`, `bubble: speak`, and
+`reset: expression` steps. `animation_player.py` reads this manifest and falls
+back to the older hard-coded performance table if a phrase is missing, so
+current actions keep working while the animation system becomes configurable.

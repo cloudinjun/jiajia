@@ -13,6 +13,7 @@ class Reaction:
     bubble: str = "speech"
     performance: str = ""
     decision_reason: str = ""
+    event: str = ""
 
 
 @dataclass

@@ -1,0 +1,189 @@
+schema_version: 1
+
+logical_states:
+  idle:
+    performance: ""
+    fallback_action: idle
+    meaning: normal quiet standby
+  suspicious:
+    performance: suspicious_observe
+    fallback_action: thinking_tilt
+    meaning: noticed avoidance or odd context
+  cold_arrow:
+    performance: cold_arrow_then_innocent
+    fallback_action: thinking_tilt
+    meaning: soft roast followed by fake innocence
+  guilty:
+    performance: smug_but_caught
+    fallback_action: blink
+    meaning: caught after being smug
+  comfort:
+    performance: quiet_companion
+    fallback_action: blink
+    meaning: low-pressure companionship
+  sleeping:
+    performance: fake_sulk
+    fallback_action: sleepy_sag
+    meaning: low energy or dramatic collapse
+  waking:
+    performance: quiet_companion
+    fallback_action: startled_pop
+    meaning: returning from low energy
+  poke:
+    performance: smug_but_caught
+    fallback_action: wiggle
+    meaning: touch reaction
+  celebrate:
+    performance: tiny_celebrate
+    fallback_action: happy_bounce
+    meaning: small success celebration
+  error:
+    performance: fake_sulk
+    fallback_action: shake
+    meaning: error or blocked frustration
+
+state_rules:
+  - state: celebrate
+    moods: [happy, proud, done]
+    actions: [happy_bounce, celebrate]
+  - state: sleeping
+    moods: [sleepy, sulky, sulk]
+    actions: [sleepy_sag, sulk, hide, flop]
+  - state: comfort
+    moods: [focused, innocent]
+  - state: suspicious
+    moods: [suspicious]
+    actions: [scan, peek, patrol]
+  - state: guilty
+    moods: [guilty]
+  - state: cold_arrow
+    moods: [smirk, smug]
+    bubble_shapes: [speech]
+
+performance_phrases:
+  cold_arrow_then_innocent:
+    type: procedural
+    fallback_action: thinking_tilt
+    locks_cursor_follow: true
+    sequence:
+      - brows: soft
+        eyes: neutral
+        duration_ms: 180
+      - action: thinking_tilt
+        duration_ms: 700
+      - eyes: side_eye
+        duration_ms: 280
+      - brows: judge
+        duration_ms: 180
+      - pause_ms: 160
+      - bubble: speak
+        duration_ms: 120
+      - brows: innocent
+        eyes: round
+        duration_ms: 80
+      - action: blink
+        duration_ms: 180
+      - action: nod
+        duration_ms: 260
+      - reset: expression
+
+  smug_but_caught:
+    type: procedural
+    fallback_action: blink
+    locks_cursor_follow: true
+    sequence:
+      - action: smug_sway
+        duration_ms: 380
+      - brows: laugh
+        eyes: proud
+        duration_ms: 300
+      - pause_ms: 80
+      - bubble: speak
+        duration_ms: 90
+      - brows: guilty
+        eyes: round
+        duration_ms: 240
+      - brows: innocent
+        eyes: round
+        duration_ms: 180
+      - action: blink
+        duration_ms: 180
+      - reset: expression
+
+  fake_sulk:
+    type: procedural
+    fallback_action: sulk
+    sequence:
+      - action: sulk
+        duration_ms: 460
+      - brows: sulk
+        eyes: peek_up
+        duration_ms: 260
+      - pause_ms: 120
+      - bubble: speak
+        duration_ms: 140
+      - action: sulk
+        duration_ms: 260
+      - reset: expression
+        duration_ms: 220
+      - action: blink
+        duration_ms: 160
+
+  suspicious_observe:
+    type: procedural
+    fallback_action: scan
+    locks_cursor_follow: true
+    sequence:
+      - brows: judge
+        duration_ms: 160
+      - action: scan
+        duration_ms: 650
+      - eyes: side_eye
+        duration_ms: 260
+      - action: thinking_tilt
+        duration_ms: 480
+      - pause_ms: 120
+      - bubble: speak
+        duration_ms: 140
+      - reset: expression
+        duration_ms: 180
+      - action: blink
+        duration_ms: 180
+
+  quiet_companion:
+    type: procedural
+    fallback_action: blink
+    sequence:
+      - brows: soft
+        eyes: soft
+        duration_ms: 160
+      - action: sleepy_sag
+        duration_ms: 380
+      - pause_ms: 80
+      - bubble: speak
+        duration_ms: 140
+      - action: blink
+        duration_ms: 220
+      - action: nod
+        duration_ms: 260
+      - reset: expression
+        duration_ms: 240
+
+  tiny_celebrate:
+    type: procedural
+    fallback_action: happy_bounce
+    sequence:
+      - brows: proud
+        eyes: proud
+        duration_ms: 100
+      - action: happy_bounce
+        duration_ms: 320
+      - pause_ms: 80
+      - bubble: speak
+        duration_ms: 120
+      - brows: innocent
+        eyes: round
+        duration_ms: 120
+      - action: nod
+        duration_ms: 220
+      - reset: expression
