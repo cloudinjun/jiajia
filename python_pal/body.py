@@ -307,6 +307,25 @@ ACTION_FRAMES: dict[str, ActionFrames] = {
     ),
 }
 
+IDENTITY_STATE_CUES: dict[str, dict[str, object]] = {
+    "default_pal": {"mood": "smirk", "action": "blink", "eyes": "round", "brows": "innocent", "hold_ms": 1800},
+    "task_auditor": {"mood": "suspicious", "action": "thinking_tilt", "eyes": "side_eye", "brows": "judge", "hold_ms": 3200},
+    "agent_supervisor": {"mood": "thinking", "action": "scan", "decoration": "status_dot", "eyes": "side_eye", "brows": "judge", "hold_ms": 4200},
+    "thermal_technician": {"mood": "startled", "action": "shake", "decoration": "heat_puffs", "eyes": "round", "brows": "guilty", "hold_ms": 4800},
+    "usage_accountant": {"mood": "focused", "action": "scan", "decoration": "usage_bar", "eyes": "side_eye", "brows": "soft", "hold_ms": 4400},
+    "focus_companion": {"mood": "innocent", "action": "blink", "eyes": "soft", "brows": "soft", "hold_ms": 3600},
+    "sleepy_clip": {"mood": "sleepy", "action": "sleepy_sag", "decoration": "z_symbol", "eyes": "soft", "brows": "sulk", "hold_ms": 6500},
+    "bug_coroner": {"mood": "suspicious", "action": "scan", "decoration": "tiny_warning", "eyes": "side_eye", "brows": "judge", "hold_ms": 4600},
+    "critic_clip": {"mood": "smirk", "action": "thinking_tilt", "decoration": "annotation_circle", "eyes": "side_eye", "brows": "judge", "hold_ms": 3600},
+    "tab_warden": {"mood": "suspicious", "action": "patrol", "decoration": "tab_bar", "eyes": "side_eye", "brows": "judge", "hold_ms": 4400},
+    "gremlin_clip": {"mood": "smug", "action": "smug_sway", "eyes": "side_eye", "brows": "proud", "hold_ms": 3600},
+    "meltdown_clip": {"mood": "sulky", "action": "flop", "decoration": "tiny_warning", "eyes": "peek_up", "brows": "sulk", "hold_ms": 5200},
+}
+
+ACTION_DECORATION_CUES: dict[str, tuple[str, int]] = {
+    "sleepy_sag": ("z_symbol", 4200),
+}
+
 _JITTER_DXY = 0.12
 _JITTER_SCALE = 0.06
 _JITTER_DELAY = 0.10
@@ -447,6 +466,7 @@ class PaperclipPalApp:
         self._active_identity_id = ""
         self._active_identity_addons: tuple[str, ...] = ()
         self._decoration_after: list[str] = []
+        self._delayed_decoration_after: list[str] = []
         self._demo_after: list[str] = []
         self._chat_window: tk.Toplevel | None = None
         self._chat_entry: tk.Entry | None = None
@@ -919,7 +939,37 @@ class PaperclipPalApp:
             self.show_bubble("身份切回 Auto。夹夹会按场景换班。", milliseconds=2600, kind="thought")
             return
         pack = self.brain.identities.get(key)
+        self._play_identity_state_cue(pack.id, pack.default_mood)
         self.show_bubble(f"身份切到 {pack.display_name}。", milliseconds=2600, kind="thought")
+
+    def _play_identity_state_cue(self, identity_id: str, default_mood: str = "idle") -> None:
+        self._cancel_delayed_decoration_cues()
+        cue = IDENTITY_STATE_CUES.get(identity_id, {})
+        mood = str(cue.get("mood") or default_mood or "idle")
+        self.state.mood = mood
+        self.mood.push_mood(mood)
+        self._last_identity_idle_action_at = 0.0
+        action = str(cue.get("action") or "")
+        action_delay = 0
+        if action:
+            self._play_idle_animation(action, source="identity_switch")
+            action_delay = self._animation_duration_ms(action)
+        hold_ms = int(cue.get("hold_ms") or 3200)
+        expression_delay = max(80, action_delay + 40)
+        decoration = str(cue.get("decoration") or "")
+        if decoration:
+            self._queue_temporary_decoration(decoration, hold_ms, delay_ms=expression_delay)
+        eyes = str(cue.get("eyes") or "")
+        brows = str(cue.get("brows") or "")
+        if eyes or brows:
+            def apply_expression() -> None:
+                if brows:
+                    self._set_brow_pose(brows)
+                if eyes:
+                    self._set_eye_pose(eyes)
+                self._schedule_expression_reset(hold_ms)
+
+            self._expression_after.append(self.root.after(expression_delay, apply_expression))
 
     def _current_identity_pack(self, reaction: Reaction | None = None):
         key = self._identity_var.get()
@@ -969,6 +1019,37 @@ class PaperclipPalApp:
             return
         self._draw_decoration(definition, lifetime="temporary")
         self._decoration_after.append(self.root.after(milliseconds, lambda: self._clear_decorations("temporary")))
+
+    def _queue_temporary_decoration(self, decoration_id: str, milliseconds: int = 2600, delay_ms: int = 0) -> None:
+        if delay_ms <= 0:
+            self._show_temporary_decoration(decoration_id, milliseconds)
+            return
+        holder: list[str] = []
+
+        def fire() -> None:
+            if holder and holder[0] in self._delayed_decoration_after:
+                self._delayed_decoration_after.remove(holder[0])
+            if self._large_action_running or self._window_move_running:
+                after_id = self.root.after(80, fire)
+                if holder:
+                    holder[0] = after_id
+                else:
+                    holder.append(after_id)
+                self._delayed_decoration_after.append(after_id)
+                return
+            self._show_temporary_decoration(decoration_id, milliseconds)
+
+        after_id = self.root.after(delay_ms, fire)
+        holder.append(after_id)
+        self._delayed_decoration_after.append(after_id)
+
+    def _cancel_delayed_decoration_cues(self) -> None:
+        for after_id in self._delayed_decoration_after:
+            try:
+                self.root.after_cancel(after_id)
+            except tk.TclError:
+                pass
+        self._delayed_decoration_after.clear()
 
     def _clear_decorations(self, lifetime: str | None = None) -> None:
         lifetimes = (lifetime,) if lifetime else tuple(self._decoration_items)
@@ -1380,7 +1461,32 @@ class PaperclipPalApp:
         else:
             self._perform_action(resolved.action)
         self._remember_idle_animation(played)
+        if source != "identity_switch":
+            self._queue_action_decoration_cue(resolved.action)
         self._last_idle_animation_debug = self._idle_animation_debug_text(name, source, resolved)
+
+    def _queue_action_decoration_cue(self, action: str) -> None:
+        cue = ACTION_DECORATION_CUES.get(action)
+        if not cue:
+            return
+        decoration_id, milliseconds = cue
+        self._queue_temporary_decoration(decoration_id, milliseconds, delay_ms=self._animation_duration_ms(action) + 40)
+
+    def _animation_duration_ms(self, action_or_name: str) -> int:
+        resolved = self.animation_resolver.resolve(action_or_name)
+        action = resolved.action or action_or_name
+        frames = ACTION_FRAMES.get(action)
+        if frames:
+            return sum(frame[-1] for frame in frames)
+        if action == "scan":
+            return 850
+        if action == "wiggle":
+            return 180
+        if action == "blink":
+            return 150
+        if action in MOVE_IDLE_ACTIONS:
+            return 760
+        return 0
 
     def _remember_idle_animation(self, played: str) -> None:
         self._recent_idle_actions.append(played)
