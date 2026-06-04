@@ -15,6 +15,7 @@ class DecorationDefinition:
     dy: float = 0.0
     color: str = "#666666"
     lifetime: str = "identity"
+    role: str = "identity_prop"
     shape_type: str = "status_dot"
     pulse: bool = False
 
@@ -46,6 +47,7 @@ def _parse_definition(name: str, raw: dict[str, Any]) -> DecorationDefinition:
         dy=_float(raw.get("dy")),
         color=str(raw.get("color") or "#666666"),
         lifetime=_key(raw.get("lifetime")) or "identity",
+        role=_key(raw.get("role")) or "identity_prop",
         shape_type=_key(raw.get("shape_type")) or "status_dot",
         pulse=bool(raw.get("pulse", False)),
     )

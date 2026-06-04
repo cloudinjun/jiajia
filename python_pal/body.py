@@ -992,27 +992,48 @@ class PaperclipPalApp:
         color = definition.color
         items: list[int] = []
         shape = definition.shape_type
+        paper = "#fffdfd"
+        main_w = 2.5
+        detail_w = 1.5
+
+        def line(*coords: float, fill: str = color, width: float = main_w, smooth: bool = False) -> int:
+            return self.canvas.create_line(
+                *coords,
+                fill=fill,
+                width=width,
+                smooth=smooth,
+                splinesteps=10,
+                capstyle=tk.ROUND,
+                joinstyle=tk.ROUND,
+            )
+
+        def card(x1: float, y1: float, x2: float, y2: float, radius: float = 7, fill: str = paper, width: float = main_w) -> int:
+            return _rounded_rect(self.canvas, x1, y1, x2, y2, radius, fill=fill, outline=color, width=width)
+
         if shape == "terminal_box":
             items.extend([
-                self.canvas.create_rectangle(x, y, x + 30, y + 20, fill="#f7fbf8", outline=color, width=1),
-                self.canvas.create_text(x + 5, y + 10, anchor="w", text=">", fill=color, font=("Consolas", 8, "bold")),
-                self.canvas.create_line(x + 13, y + 13, x + 24, y + 13, fill=color, width=1),
+                card(x, y + 1, x + 31, y + 23, 7),
+                self.canvas.create_oval(x + 5, y + 7, x + 8, y + 10, fill=color, outline=""),
+                line(x + 11, y + 11, x + 15, y + 14, x + 11, y + 17, width=detail_w, smooth=True),
+                line(x + 18, y + 17, x + 25, y + 17, width=detail_w),
             ])
         elif shape == "status_dot":
-            items.append(self.canvas.create_oval(x, y, x + 10, y + 10, fill=color, outline="#ffffff", width=1))
+            items.append(self.canvas.create_oval(x, y, x + 10, y + 10, fill=color, outline=paper, width=detail_w))
         elif shape == "checklist":
             items.extend([
-                self.canvas.create_rectangle(x, y, x + 23, y + 28, fill="#ffffff", outline=color, width=1),
-                self.canvas.create_line(x + 5, y + 8, x + 8, y + 11, x + 14, y + 5, fill=color, width=2),
-                self.canvas.create_line(x + 5, y + 18, x + 8, y + 21, x + 15, y + 14, fill=color, width=2),
-                self.canvas.create_line(x + 15, y + 9, x + 19, y + 9, fill=color, width=1),
-                self.canvas.create_line(x + 16, y + 19, x + 20, y + 19, fill=color, width=1),
+                card(x + 1, y, x + 25, y + 30, 6),
+                line(x + 6, y + 9, x + 9, y + 12, x + 15, y + 6, width=detail_w, smooth=True),
+                line(x + 6, y + 20, x + 9, y + 23, x + 15, y + 17, width=detail_w, smooth=True),
+                line(x + 16, y + 12, x + 21, y + 11, width=detail_w),
+                line(x + 16, y + 22, x + 20, y + 21, width=detail_w),
             ])
         elif shape == "thermometer":
             items.extend([
-                self.canvas.create_oval(x + 5, y + 20, x + 17, y + 32, fill="#ffffff", outline=color, width=2),
-                self.canvas.create_line(x + 11, y + 4, x + 11, y + 23, fill=color, width=4),
-                self.canvas.create_oval(x + 8, y + 2, x + 14, y + 8, fill="#ffffff", outline=color, width=1),
+                line(x + 12, y + 7, x + 12, y + 25, fill=paper, width=8),
+                line(x + 12, y + 7, x + 12, y + 25, width=main_w),
+                self.canvas.create_oval(x + 5, y + 20, x + 19, y + 34, fill=paper, outline=color, width=main_w),
+                line(x + 12, y + 15, x + 12, y + 26, width=detail_w),
+                self.canvas.create_oval(x + 9, y + 26, x + 15, y + 32, fill=color, outline=""),
             ])
         elif shape in {"heat_puffs", "heat_wisps"}:
             for x0, y0, x1, y1, x2, y2 in (
@@ -1031,61 +1052,67 @@ class PaperclipPalApp:
                         smooth=True,
                         splinesteps=10,
                         fill=color,
-                        width=2,
+                        width=detail_w,
                         capstyle=tk.ROUND,
                     )
                 )
         elif shape == "ledger":
             items.extend([
-                self.canvas.create_rectangle(x, y, x + 24, y + 28, fill="#f7fbff", outline=color, width=1),
-                self.canvas.create_rectangle(x, y, x + 6, y + 28, fill=color, outline=color, width=1),
-                self.canvas.create_line(x + 10, y + 9, x + 20, y + 9, fill=color, width=1),
-                self.canvas.create_line(x + 10, y + 17, x + 18, y + 17, fill=color, width=1),
+                card(x, y + 1, x + 25, y + 29, 6),
+                line(x + 6, y + 7, x + 20, y + 6, width=detail_w),
+                line(x + 7, y + 15, x + 18, y + 14, width=detail_w),
+                line(x + 7, y + 23, x + 15, y + 22, width=detail_w),
+                line(x + 3, y + 4, x + 3, y + 25, width=detail_w),
             ])
         elif shape == "mini_bar":
             percent = self._last_codex_usage_status.usage_remaining_percent
             width = 30
-            fill_width = round(width * max(0.1, min(1.0, (percent or 38) / 100)))
+            fill_width = round((width - 7) * max(0.1, min(1.0, (percent or 38) / 100)))
             items.extend([
-                self.canvas.create_rectangle(x, y, x + width, y + 8, fill="#f7fbff", outline=color, width=1),
-                self.canvas.create_rectangle(x + 2, y + 2, x + fill_width, y + 6, fill=color, outline=""),
+                card(x, y, x + width, y + 9, 5, width=detail_w),
+                line(x + 4, y + 4.5, x + 4 + fill_width, y + 4.5, width=3, fill=color),
             ])
         elif shape == "red_pen":
             items.extend([
-                self.canvas.create_line(x, y + 24, x + 24, y, fill=color, width=4, capstyle=tk.ROUND),
-                self.canvas.create_polygon(x + 23, y - 1, x + 29, y - 5, x + 27, y + 3, fill=color, outline=color),
+                line(x + 1, y + 25, x + 10, y + 15, x + 24, y + 3, width=3, smooth=True),
+                line(x + 19, y + 2, x + 28, y - 4, width=main_w),
+                line(x + 5, y + 28, x + 16, y + 27, width=detail_w),
             ])
         elif shape in {"annotation_circle", "annotation_mark"}:
             items.extend([
-                self.canvas.create_line(x + 2, y + 24, x + 16, y + 8, x + 27, y + 3, fill=color, width=3, smooth=True, splinesteps=10, capstyle=tk.ROUND),
-                self.canvas.create_line(x + 5, y + 30, x + 27, y + 30, fill=color, width=2, capstyle=tk.ROUND),
-                self.canvas.create_arc(x - 4, y + 7, x + 25, y + 31, start=210, extent=95, outline=color, width=2, style=tk.ARC),
+                line(x + 2, y + 24, x + 16, y + 8, x + 27, y + 3, width=3, smooth=True),
+                line(x + 5, y + 30, x + 27, y + 30, width=detail_w),
+                self.canvas.create_arc(x - 4, y + 7, x + 25, y + 31, start=210, extent=95, outline=color, width=detail_w, style=tk.ARC),
             ])
         elif shape == "z_mark":
-            items.append(self.canvas.create_text(x, y, anchor="nw", text="Z", fill=color, font=("Microsoft YaHei UI", 13, "bold")))
+            items.extend([
+                line(x, y + 4, x + 10, y + 3, x + 2, y + 13, x + 13, y + 12, width=detail_w),
+                line(x + 15, y + 1, x + 23, y, x + 17, y + 8, x + 25, y + 8, width=detail_w),
+            ])
         elif shape == "warning":
             items.extend([
-                self.canvas.create_polygon(x + 10, y, x, y + 20, x + 22, y + 20, fill="#fff7f5", outline=color, width=2),
-                self.canvas.create_text(x + 11, y + 13, text="!", fill=color, font=("Microsoft YaHei UI", 9, "bold")),
+                self.canvas.create_oval(x + 3, y + 3, x + 23, y + 23, fill=paper, outline=color, width=main_w),
+                line(x + 13, y + 8, x + 12, y + 15, width=detail_w),
+                self.canvas.create_oval(x + 11, y + 18, x + 14, y + 21, fill=color, outline=""),
             ])
         elif shape == "magnifier":
             items.extend([
-                self.canvas.create_oval(x, y, x + 16, y + 16, fill="", outline=color, width=2),
-                self.canvas.create_line(x + 13, y + 13, x + 23, y + 23, fill=color, width=2, capstyle=tk.ROUND),
+                self.canvas.create_oval(x, y, x + 17, y + 17, fill="", outline=color, width=main_w),
+                line(x + 13, y + 14, x + 23, y + 24, width=main_w),
             ])
         elif shape == "stamp":
             items.extend([
-                self.canvas.create_rectangle(x, y + 12, x + 26, y + 24, fill="#fff7f5", outline=color, width=2),
-                self.canvas.create_line(x + 8, y + 12, x + 12, y, x + 17, y, x + 20, y + 12, fill=color, width=2),
+                card(x, y + 13, x + 27, y + 25, 4, fill="#fff7f5"),
+                line(x + 8, y + 13, x + 12, y + 2, x + 17, y + 2, x + 21, y + 13, width=detail_w, smooth=True),
             ])
         elif shape == "lock":
             items.extend([
-                self.canvas.create_arc(x + 5, y, x + 21, y + 18, start=0, extent=180, outline=color, width=2, style=tk.ARC),
-                self.canvas.create_rectangle(x + 3, y + 10, x + 23, y + 25, fill="#f7f5ff", outline=color, width=1),
+                self.canvas.create_arc(x + 5, y, x + 21, y + 18, start=0, extent=180, outline=color, width=main_w, style=tk.ARC),
+                card(x + 3, y + 10, x + 24, y + 26, 5, fill="#f9f6ff"),
             ])
         elif shape == "tab_bar":
             for index in range(3):
-                items.append(self.canvas.create_rectangle(x + index * 9, y + index * 2, x + 18 + index * 9, y + 10 + index * 2, fill="#f7f5ff", outline=color, width=1))
+                items.append(card(x + index * 8, y + index * 2, x + 18 + index * 8, y + 11 + index * 2, 4, fill="#f9f6ff", width=detail_w))
 
         if items:
             self._apply_actor_transform_to_items(items)

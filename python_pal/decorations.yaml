@@ -7,6 +7,7 @@ decorations:
     dy: 10
     color: "#10a37f"
     lifetime: identity
+    role: identity_prop
     shape_type: terminal_box
     pulse: false
 
@@ -15,7 +16,8 @@ decorations:
     dx: 42
     dy: 8
     color: "#f0b429"
-    lifetime: identity
+    lifetime: state
+    role: state_mark
     shape_type: status_dot
     pulse: true
 
@@ -25,6 +27,7 @@ decorations:
     dy: -18
     color: "#42a96b"
     lifetime: identity
+    role: identity_prop
     shape_type: checklist
     pulse: false
 
@@ -34,6 +37,7 @@ decorations:
     dy: 26
     color: "#d86b6b"
     lifetime: identity
+    role: identity_prop
     shape_type: thermometer
     pulse: false
 
@@ -42,7 +46,8 @@ decorations:
     dx: 6
     dy: 18
     color: "#d86b6b"
-    lifetime: identity
+    lifetime: state
+    role: state_mark
     shape_type: heat_wisps
     pulse: false
 
@@ -52,6 +57,7 @@ decorations:
     dy: 18
     color: "#d86b6b"
     lifetime: temporary
+    role: state_mark
     shape_type: heat_wisps
     pulse: false
 
@@ -61,6 +67,7 @@ decorations:
     dy: -14
     color: "#4f7ecf"
     lifetime: identity
+    role: identity_prop
     shape_type: ledger
     pulse: false
 
@@ -70,6 +77,7 @@ decorations:
     dy: 18
     color: "#4f7ecf"
     lifetime: state
+    role: state_mark
     shape_type: mini_bar
     pulse: false
 
@@ -79,6 +87,7 @@ decorations:
     dy: 18
     color: "#d65b4a"
     lifetime: identity
+    role: identity_prop
     shape_type: red_pen
     pulse: false
 
@@ -88,6 +97,7 @@ decorations:
     dy: 12
     color: "#d65b4a"
     lifetime: temporary
+    role: performance_accent
     shape_type: annotation_mark
     pulse: false
 
@@ -97,6 +107,7 @@ decorations:
     dy: 2
     color: "#8a8a8a"
     lifetime: state
+    role: state_mark
     shape_type: z_mark
     pulse: false
 
@@ -105,7 +116,8 @@ decorations:
     dx: -4
     dy: 8
     color: "#d65b4a"
-    lifetime: identity
+    lifetime: temporary
+    role: state_mark
     shape_type: warning
     pulse: true
 
@@ -115,6 +127,7 @@ decorations:
     dy: -12
     color: "#5f6d7a"
     lifetime: identity
+    role: identity_prop
     shape_type: magnifier
     pulse: false
 
@@ -123,7 +136,8 @@ decorations:
     dx: 14
     dy: 30
     color: "#d65b4a"
-    lifetime: identity
+    lifetime: temporary
+    role: performance_accent
     shape_type: stamp
     pulse: false
 
@@ -133,6 +147,7 @@ decorations:
     dy: 18
     color: "#6f62b8"
     lifetime: identity
+    role: identity_prop
     shape_type: lock
     pulse: false
 
@@ -141,6 +156,7 @@ decorations:
     dx: 4
     dy: 8
     color: "#6f62b8"
-    lifetime: identity
+    lifetime: temporary
+    role: state_mark
     shape_type: tab_bar
     pulse: false

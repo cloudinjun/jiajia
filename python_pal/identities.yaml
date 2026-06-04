@@ -83,7 +83,7 @@ identities:
     allowed_moods: [thinking, suspicious, done, startled, guilty]
     core_animations: [agent_listening, agent_running, agent_stuck, agent_error, agent_done_smug]
     triggers: [app_codex, codex_thinking, codex_reading, codex_working, codex_editing, codex_running, codex_testing, codex_waiting_user, codex_done, codex_error, codex_blocked, claude_active]
-    visual_addons: [tiny_terminal, status_dot]
+    visual_addons: [tiny_terminal]
     animations:
       idle: agent_listen
       alert: agent_stuck_stare
@@ -137,7 +137,7 @@ identities:
     fallback_action: scan
     preferred_performance: suspicious_observe
     triggers: [usage_low, usage_critical, usage_reset_wait, codex_usage_watch, codex_usage_low, codex_usage_critical, codex_usage_reset_soon, codex_usage_refilled, battery_low, reset_clock]
-    visual_addons: [tiny_ledger, usage_bar]
+    visual_addons: [tiny_ledger]
     animations:
       idle: usage_bar_peek
       warning: low_budget_sag
@@ -204,7 +204,7 @@ identities:
     fallback_action: scan
     preferred_performance: suspicious_observe
     triggers: [codex_error, codex_blocked, error, blocked, test_failed, crash, exception]
-    visual_addons: [tiny_magnifier, stamp]
+    visual_addons: [tiny_magnifier]
     animations:
       idle: inspect_corpse
       alert: error_autopsy
@@ -228,7 +228,7 @@ identities:
     allowed_moods: [smirk, smug, suspicious, guilty]
     core_animations: [roast_charge, cold_arrow_heavy, red_pen_circle, smug_but_caught, apology_fake]
     triggers: [design_review, deck_review, app_figma, app_powerpoint, visual_design, layout]
-    visual_addons: [red_pen, annotation_circle]
+    visual_addons: [red_pen]
     animations:
       idle: layout_side_eye
       alert: red_pen_circle
@@ -248,7 +248,7 @@ identities:
     fallback_action: patrol
     preferred_performance: suspicious_observe
     triggers: [rapid_switching, browser_research, many_tabs, many_windows, window_clutter]
-    visual_addons: [tiny_lock, tab_bar]
+    visual_addons: [tiny_lock]
     animations:
       idle: window_patrol
       alert: block_tab
@@ -289,7 +289,7 @@ identities:
     fallback_action: flop
     preferred_performance: fake_sulk
     triggers: [critical, usage_critical, gpu_temp_critical, codex_error, overheated, repeated_poke]
-    visual_addons: [tiny_warning]
+    visual_addons: []
     animations:
       idle: low_power_idle
       critical: meltdown

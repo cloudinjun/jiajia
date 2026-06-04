@@ -290,13 +290,18 @@ event_log:
 decoration_layer:
   manifest: python_pal/decorations.yaml
   renderer: body.DecorationLayer_flat_canvas_shapes
-  purpose: identity_and_temporary_role_props_not_system_badges
-  constraints: [pure_flat_vector, no_gradients, no_shadows, no_mouth, no_hands, no_feet]
+  style_guide: python_pal/assets/decorations/NATIVE_STYLE.md
+  purpose: native_doodle_identity_props_state_marks_and_performance_accents
+  constraints: [pure_flat_vector, no_gradients, no_shadows, no_mouth, no_hands, no_feet, round_caps, low_detail]
+  imported_icons: semantic_reference_only_not_runtime_final_style
   identity_examples:
-    agent_supervisor: [tiny_terminal, status_dot]
-    thermal_technician: [thermometer_icon, heat_tint]
-    usage_accountant: [tiny_ledger, usage_bar]
-    critic_clip: [red_pen, annotation_circle]
+    agent_supervisor: [tiny_terminal]
+    thermal_technician: [thermometer_icon]
+    usage_accountant: [tiny_ledger]
+    critic_clip: [red_pen]
+  temporary_examples:
+    state_mark: [status_dot, heat_puffs, usage_bar, z_symbol, tiny_warning]
+    performance_accent: [annotation_circle, stamp]
 
 animation_resolver:
   module: python_pal/animation_resolver.py
