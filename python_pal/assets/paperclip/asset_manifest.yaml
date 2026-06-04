@@ -1,0 +1,115 @@
+schema_version: 1
+
+style_rules:
+  rendering: pure_flat_vector
+  colors:
+    body_wire: "#AEAEAE"
+    eye_white: "#ECECEC"
+    pupil_and_brow: "#402A32"
+    bubble: "#FFFFFF"
+    optional_shadow: "#E9E9E9"
+  constraints:
+    - no_mouth
+    - no_hands
+    - no_feet
+    - no_gradients
+    - no_texture
+    - no_complex_shadow
+    - keep_main_silhouette
+
+layers:
+  - id: body_wire
+    role: main paperclip silhouette
+  - id: left_eye_white
+    role: left eye white
+  - id: right_eye_white
+    role: right eye white
+  - id: left_pupil
+    role: left pupil
+  - id: right_pupil
+    role: right pupil
+  - id: left_brow
+    role: left eyebrow
+  - id: right_brow
+    role: right eyebrow
+  - id: optional_flat_shadow
+    role: disabled by default
+
+base_character_assets:
+  idle_front:
+    source: paperclip-pal-refined.svg
+    status: current_reference
+  idle_3q_left:
+    source: procedural_flip_or_skew
+    status: planned
+  idle_3q_right:
+    source: procedural_flip_or_skew
+    status: planned
+  compact_idle:
+    source: scale_idle_front
+    status: planned
+  sleep_flat:
+    source: procedural_flop_shape
+    status: planned
+  hidden_peek:
+    source: crop_or_translate_idle_front
+    status: planned
+  icon_head:
+    source: eyes_brows_upper_body_crop
+    status: planned
+
+expression_states:
+  innocent:
+    eyes: round
+    brows: innocent
+    body: upright
+  suspicious:
+    eyes: side_eye
+    brows: judge
+    body: thinking_tilt
+  smug:
+    eyes: proud
+    brows: proud
+    body: smug_sway
+  guilty:
+    eyes: round
+    brows: guilty
+    body: snap_upright
+  fake_sulk:
+    eyes: peek_up
+    brows: sulk
+    body: sulk
+  holding_laugh:
+    eyes: proud
+    brows: laugh
+    body: tiny_shake
+  startled:
+    eyes: round
+    brows: guilty
+    body: startled_pop
+  sleepy:
+    eyes: soft
+    brows: soft
+    body: sleepy_sag
+
+first_batch_animations:
+  idle_breathe:
+    type: procedural
+    current_implementation: body._animate
+    priority: 1
+  blink:
+    type: procedural
+    current_implementation: body._blink
+    priority: 1
+  side_eye:
+    type: procedural
+    current_implementation: animation_player eyes=side_eye
+    priority: 1
+  cold_arrow_then_innocent:
+    type: performance_phrase
+    current_implementation: animations.yaml
+    priority: 1
+  fake_sulk:
+    type: performance_phrase
+    current_implementation: animations.yaml
+    priority: 1

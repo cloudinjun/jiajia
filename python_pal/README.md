@@ -113,3 +113,16 @@ receives only the selected pack's short `identity_brief`, and the line bank is
 seeded with pack-specific lines so identities can work without increasing live
 model pressure. Use the right-click `Identity` menu to keep Auto mode or force a
 specific pack, and `Debug identity` to see what Auto selected.
+
+Character asset system:
+
+The flat character reference lives at
+`assets/paperclip/paperclip-pal-refined.svg`. It is split into stable layer IDs:
+`body_wire`, `left_eye_white`, `right_eye_white`, `left_pupil`, `right_pupil`,
+`left_brow`, and `right_brow`. `assets/paperclip/asset_manifest.yaml` records
+the pure-flat visual rules and the first asset batch. Do not add a mouth, hands,
+feet, gradients, texture, or complex shadows; the character should stay a simple
+paperclip whose expression comes from eyes, brows, timing, squash/stretch, and
+after-reactions. The first animation batch is intentionally small:
+`idle_breathe`, `blink`, `side_eye`, `cold_arrow_then_innocent`, and
+`fake_sulk`.

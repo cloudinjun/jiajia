@@ -1,5 +1,26 @@
 schema_version: 1
 
+first_batch:
+  - idle_breathe
+  - blink
+  - side_eye
+  - cold_arrow_then_innocent
+  - fake_sulk
+
+procedural_assets:
+  idle_breathe:
+    implementation: body._animate
+    layers: [body_wire]
+    note: continuous low-amplitude bob; no separate frame asset
+  blink:
+    implementation: body._blink
+    layers: [left_pupil, right_pupil]
+    note: squash pupils vertically, then restore
+  side_eye:
+    implementation: animation_player eyes=side_eye
+    layers: [left_pupil, right_pupil]
+    note: pupil offset used inside performance phrases
+
 logical_states:
   idle:
     performance: ""
