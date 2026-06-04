@@ -284,6 +284,16 @@ event_log:
   privacy_boundary: state_events_only_no_keystrokes_no_clipboard_no_screen_text
   digest_menu: Morning digest
 
+local_chat:
+  menu: Talk to 夹夹
+  brain: python_pal.chat.PalChatBrain
+  session_memory: last_12_turns
+  command_router:
+    local_before_llm: [codex_status, claude_status, hardware_status, codex_usage, activity_mode, focus_mode, quiet_30m]
+  privacy_boundary: status_summaries_only_no_clipboard_no_keystrokes_no_raw_screen_text
+  waiting_animation: thinking_tilt_with_thought_dots
+  reply_pipeline: Reaction_mood_action_bubble_performance
+
 scripted_demo:
   menu: Scripted demo
   cli: python -m python_pal.main --demo

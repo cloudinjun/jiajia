@@ -16,6 +16,7 @@ from .actions import ACTION_LABELS, ACTION_MENU_GROUPS
 from .animation_manifest import load_animation_manifest
 from .animation_player import AnimationCallbacks, AnimationPlayer
 from .brain_ollama import OllamaBrain
+from .chat import ChatSession, PalChatBrain, build_chat_context, detect_chat_command, local_status_reaction
 from .mood import MoodEngine, FREQUENCY_PRESETS, FREQUENCY_DEFAULT
 from .claude_status import ClaudeOverview, ClaudeSession, ClaudeStatusMonitor
 from .codex_status import CodexStatus, CodexStatusMonitor
@@ -336,6 +337,8 @@ class PaperclipPalApp:
         self.soul = soul
         self.project_root = project_root
         self.brain = OllamaBrain(soul, project_root=project_root)
+        self.chat_brain = PalChatBrain(soul)
+        self.chat_session = ChatSession()
         self.ears = Ears()
         self.eyes = Eyes(model=soul.vision_model)
         self.codex_status = CodexStatusMonitor(project_root / "codex_status.json")
@@ -418,6 +421,10 @@ class PaperclipPalApp:
         self._status_badge_after: str | None = None
         self._status_badge_phase = 0
         self._demo_after: list[str] = []
+        self._chat_window: tk.Toplevel | None = None
+        self._chat_entry: tk.Entry | None = None
+        self._chat_thread: threading.Thread | None = None
+        self._last_chat_context_debug = ""
         self._last_codex_status_event = ""
         self._last_codex_status: CodexStatus = CodexStatus()
         self._logged_codex_status_event = ""
@@ -564,6 +571,7 @@ class PaperclipPalApp:
     def _install_menu(self) -> None:
         self.menu = tk.Menu(self.root, tearoff=False)
         self.menu.add_command(label="Say something", command=lambda: self._ask_brain("manual"))
+        self.menu.add_command(label="Talk to 夹夹", command=self._open_chat_input)
         self.menu.add_command(label="Boredom line", command=lambda: self._ask_brain("bored"))
         self.menu.add_command(label="Poke", command=lambda: self._poke(force=True))
         action_menu = tk.Menu(self.menu, tearoff=False)
@@ -606,6 +614,7 @@ class PaperclipPalApp:
         self.menu.add_command(label="Morning digest", command=self._show_morning_digest)
         self.menu.add_command(label="Scripted demo", command=self._run_scripted_demo)
         self.menu.add_command(label="Debug last decision", command=self._show_last_decision_debug)
+        self.menu.add_command(label="Last chat context", command=self._show_last_chat_context)
         self.menu.add_command(label="Debug animation", command=self._show_last_animation_debug)
         self.menu.add_command(label="Debug identity", command=self._show_identity_debug)
         freq_menu = tk.Menu(self.menu, tearoff=False)
@@ -626,6 +635,182 @@ class PaperclipPalApp:
 
     def _show_context_menu(self, event: tk.Event) -> None:
         self.menu.tk_popup(event.x_root, event.y_root)
+
+    def _open_chat_input(self) -> None:
+        if self._chat_window and self._chat_window.winfo_exists():
+            self._chat_window.lift()
+            if self._chat_entry:
+                self._chat_entry.focus_set()
+            return
+
+        self._perform_action("thinking_tilt")
+        self._start_mouse_follow(1100, force=True)
+        window = tk.Toplevel(self.root)
+        self._chat_window = window
+        window.overrideredirect(True)
+        window.attributes("-topmost", True)
+        window.configure(bg="#d4dee8")
+        window.bind("<Escape>", lambda _event: self._close_chat_input())
+        window.protocol("WM_DELETE_WINDOW", self._close_chat_input)
+
+        shell = tk.Frame(window, bg="#d4dee8", padx=1, pady=1)
+        shell.pack(fill="both", expand=True)
+        inner = tk.Frame(shell, bg="#fdfdfd", padx=9, pady=8)
+        inner.pack(fill="both", expand=True)
+        entry = tk.Entry(
+            inner,
+            width=34,
+            relief="flat",
+            bd=0,
+            bg="#fdfdfd",
+            fg="#202932",
+            insertbackground="#202932",
+            font=("Microsoft YaHei UI", 10),
+        )
+        entry.pack(fill="x")
+        entry.bind("<Return>", self._submit_chat_from_entry)
+        self._chat_entry = entry
+        self._position_chat_input()
+        self._hide_window_from_taskbar(window)
+        window.deiconify()
+        window.lift()
+        entry.focus_set()
+
+    def _position_chat_input(self) -> None:
+        if not self._chat_window:
+            return
+        self.root.update_idletasks()
+        width = 286
+        height = 38
+        screen_w = self.root.winfo_screenwidth()
+        screen_h = self.root.winfo_screenheight()
+        x = self.root.winfo_x() + PAL_CENTER_X - width / 2
+        y = self.root.winfo_y() + PAL_PAD_Y + PAL_HEIGHT + 12
+        x = min(max(8, x), max(8, screen_w - width - 8))
+        if y + height > screen_h - 8:
+            y = self.root.winfo_y() + PAL_PAD_Y - height - 10
+        y = min(max(8, y), max(8, screen_h - height - 8))
+        self._chat_window.geometry(f"{width}x{height}+{round(x)}+{round(y)}")
+
+    def _submit_chat_from_entry(self, _event: tk.Event | None = None) -> None:
+        if not self._chat_entry:
+            return
+        message = self._chat_entry.get().strip()
+        self._close_chat_input()
+        self._handle_chat_message(message)
+
+    def _close_chat_input(self) -> None:
+        if self._chat_window:
+            try:
+                self._chat_window.destroy()
+            except tk.TclError:
+                pass
+        self._chat_window = None
+        self._chat_entry = None
+
+    def _handle_chat_message(self, message: str) -> None:
+        message = " ".join(message.split())
+        if not message:
+            return
+        self.chat_session.add("user", message)
+        context = self._build_chat_context()
+        command = detect_chat_command(message)
+        if self._handle_chat_command(command, context):
+            return
+        if self.state.brain_busy:
+            self.show_bubble("我还在想上一句。一个小文具同时多线程，听起来就很危险。", milliseconds=4200, kind="thought")
+            self._perform_action("thinking_tilt")
+            return
+
+        self.state.brain_busy = True
+        self.show_bubble("……", milliseconds=14_000, kind="thought")
+        self._perform_action("thinking_tilt")
+        self._start_brain_wait_animation()
+        history = self.chat_session.history()
+
+        def worker() -> None:
+            reaction = self.chat_brain.respond(message, context, history)
+            reaction.event = reaction.event or "chat"
+            if reaction.line:
+                self.chat_session.add("assistant", reaction.line)
+            self.queue.put(reaction)
+
+        self._chat_thread = threading.Thread(target=worker, daemon=True)
+        self._chat_thread.start()
+
+    def _handle_chat_command(self, command: str, context: dict[str, object]) -> bool:
+        if not command:
+            return False
+        if command == "quiet_30m":
+            self._quiet_for(30 * 60)
+            self.chat_session.add("assistant", "好，我折起来 30 分钟。")
+            return True
+        if command == "focus_on":
+            if not self._focus_var.get():
+                self._focus_var.set(True)
+                self._toggle_focus_mode()
+                self.chat_session.add("assistant", "专注模式开启。")
+                return True
+            reaction = Reaction(True, "已经在专注模式了。夹夹正在低存在感地盯着。", "focused", "blink", "thought", "quiet_companion", event="chat_focus_on")
+            self.chat_session.add("assistant", reaction.line)
+            self._apply_reaction(reaction)
+            return True
+        if command == "focus_off":
+            if self._focus_var.get():
+                self._focus_var.set(False)
+                self._toggle_focus_mode()
+                self.chat_session.add("assistant", "专注模式关闭。")
+                return True
+            reaction = Reaction(True, "专注模式本来就没开。夹夹只是看起来很克制。", "innocent", "blink", "thought", "quiet_companion", event="chat_focus_off")
+            self.chat_session.add("assistant", reaction.line)
+            self._apply_reaction(reaction)
+            return True
+        if command.startswith("frequency_"):
+            label = {
+                "frequency_quiet": "安静",
+                "frequency_normal": "正常",
+                "frequency_active": "活泼",
+                "frequency_hyper": "多动",
+            }[command]
+            self._set_frequency(label)
+            reaction = Reaction(
+                True,
+                f"活跃度切到 {label}。存在感已重新校准，听起来很正规。",
+                "smirk" if label in {"活泼", "多动"} else "innocent",
+                "happy_bounce" if label == "多动" else "blink",
+                "thought",
+                "tiny_celebrate" if label == "多动" else "quiet_companion",
+                event=f"chat_{command}",
+            )
+            self.chat_session.add("assistant", reaction.line)
+            self._apply_reaction(reaction)
+            return True
+        if command == "morning_digest":
+            line = self.event_log.digest(mark_read=False)
+            reaction = Reaction(True, line, "thinking", "scan", "speech", "suspicious_observe", event="chat_morning_digest")
+            self.chat_session.add("assistant", reaction.line)
+            self._apply_reaction(reaction)
+            return True
+
+        reaction = local_status_reaction(command, context)
+        if reaction:
+            self.chat_session.add("assistant", reaction.line)
+            self._apply_reaction(reaction)
+            return True
+        return False
+
+    def _build_chat_context(self) -> dict[str, object]:
+        world = self._world_state()
+        policy = self._activity_policy()
+        context = build_chat_context(
+            world,
+            activity_mode=self._freq_var.get(),
+            activity_tier=policy.tier,
+            focus_mode=bool(self._focus_var.get()),
+            quiet_remaining_seconds=self._quiet_remaining_seconds(),
+        )
+        self._last_chat_context_debug = json.dumps(context, ensure_ascii=False, indent=2)
+        return context
 
     def _poll_global_mouse(self) -> None:
         if self._user32 is None:
@@ -875,6 +1060,8 @@ class PaperclipPalApp:
             self.root.geometry(f"+{x}+{y}")
             if self._bubble_items:
                 self._position_bubble()
+            if self._chat_window:
+                self._position_chat_input()
             self._look_at_pointer_now()
 
     def _finish_drag(self) -> None:
@@ -1458,6 +1645,12 @@ class PaperclipPalApp:
         prefix = f"mode: {mode}\nselected: {pack.display_name}\n"
         self.show_bubble(prefix + pack.prompt_brief(), milliseconds=7600, kind="thought")
 
+    def _show_last_chat_context(self) -> None:
+        text = self._last_chat_context_debug
+        if not text:
+            text = json.dumps(self._build_chat_context(), ensure_ascii=False, indent=2)
+        self.show_bubble(text, milliseconds=10_000, kind="thought")
+
     def _log_event(
         self,
         source: str,
@@ -1943,6 +2136,8 @@ class PaperclipPalApp:
             self.root.geometry(f"+{round(start_x + next_x)}+{round(start_y + next_y)}")
             if self._bubble_items:
                 self._position_bubble()
+            if self._chat_window:
+                self._position_chat_input()
             self._set_pal_scale(
                 state[2] + (sx - state[2]) * t,
                 state[3] + (sy - state[3]) * t,
@@ -1966,6 +2161,8 @@ class PaperclipPalApp:
         self._reset_pal_geometry()
         if self._bubble_items:
             self._position_bubble()
+        if self._chat_window:
+            self._position_chat_input()
 
     def _movement_direction(self) -> int:
         self.root.update_idletasks()

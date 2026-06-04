@@ -54,6 +54,18 @@ The right-click menu includes lightweight Clippy-inspired controls:
 
 Manual status checks still work while quiet or focus mode is active.
 
+## Local Chat
+
+Right-click `Talk to 夹夹` to open a tiny local chat input near the pal. Press Enter to send or Esc to close.
+
+Chat replies use the existing `Reaction` pipeline, so a reply can still pick a mood, action, bubble color, and performance phrase. Simple state commands are handled locally before Ollama is called:
+
+- `Codex status`, `Claude status`, `hardware status`, and `Codex usage`
+- `安静`, `正常`, `活泼`, `多动`
+- `进入专注模式`, `退出专注模式`, and `闭嘴半小时`
+
+Chat context is intentionally low-privacy: agent status summaries, hardware metrics, Codex usage, activity mode, app category, and recent pal lines. It does not include clipboard text, keystroke text, raw screen text, or full screenshot contents.
+
 ## Activity Policy
 
 The `活跃度` menu is a behavior policy, not just a speech-rate slider:
