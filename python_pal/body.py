@@ -342,6 +342,14 @@ def _jitter_frames(frames: ActionFrames) -> ActionFrames:
     return tuple(result)
 
 
+def _geometry_position(x: float, y: float) -> str:
+    return f"+{round(x)}+{round(y)}"
+
+
+def _geometry_with_size(width: float, height: float, x: float, y: float) -> str:
+    return f"{round(width)}x{round(height)}{_geometry_position(x, y)}"
+
+
 class PaperclipPalApp:
     def __init__(self, soul: Soul, project_root: Path) -> None:
         self.soul = soul
@@ -515,7 +523,20 @@ class PaperclipPalApp:
         screen_h = self.root.winfo_screenheight()
         x = max(40, round(screen_w - PAL_PAD_X - PAL_WIDTH - 84))
         y = max(40, round(screen_h - PAL_PAD_Y - PAL_HEIGHT - 84))
-        self.root.geometry(f"{self.width}x{self.height}+{x}+{y}")
+        self.root.geometry(_geometry_with_size(self.width, self.height, x, y))
+
+    def _desktop_bounds(self) -> tuple[int, int, int, int]:
+        if self._user32 and self.root.tk.call("tk", "windowingsystem") == "win32":
+            try:
+                left = int(self._user32.GetSystemMetrics(76))
+                top = int(self._user32.GetSystemMetrics(77))
+                width = int(self._user32.GetSystemMetrics(78))
+                height = int(self._user32.GetSystemMetrics(79))
+                if width > 0 and height > 0:
+                    return (left, top, left + width, top + height)
+            except Exception:
+                pass
+        return (0, 0, self.root.winfo_screenwidth(), self.root.winfo_screenheight())
 
     def _hide_from_taskbar(self) -> None:
         if self.root.tk.call("tk", "windowingsystem") != "win32":
@@ -712,15 +733,14 @@ class PaperclipPalApp:
         self.root.update_idletasks()
         width = 286
         height = 38
-        screen_w = self.root.winfo_screenwidth()
-        screen_h = self.root.winfo_screenheight()
+        left, top, right, bottom = self._desktop_bounds()
         x = self.root.winfo_x() + PAL_CENTER_X - width / 2
         y = self.root.winfo_y() + PAL_PAD_Y + PAL_HEIGHT + 12
-        x = min(max(8, x), max(8, screen_w - width - 8))
-        if y + height > screen_h - 8:
+        x = min(max(left + 8, x), max(left + 8, right - width - 8))
+        if y + height > bottom - 8:
             y = self.root.winfo_y() + PAL_PAD_Y - height - 10
-        y = min(max(8, y), max(8, screen_h - height - 8))
-        self._chat_window.geometry(f"{width}x{height}+{round(x)}+{round(y)}")
+        y = min(max(top + 8, y), max(top + 8, bottom - height - 8))
+        self._chat_window.geometry(_geometry_with_size(width, height, x, y))
 
     def _submit_chat_from_entry(self, _event: tk.Event | None = None) -> None:
         if not self._chat_entry:
@@ -1388,7 +1408,7 @@ class PaperclipPalApp:
         if self._dragging:
             x = self._drag_origin[0] + dx
             y = self._drag_origin[1] + dy
-            self.root.geometry(f"+{x}+{y}")
+            self.root.geometry(_geometry_position(x, y))
             if self._bubble_items:
                 self._position_bubble()
             if self._chat_window:
@@ -2516,8 +2536,9 @@ class PaperclipPalApp:
         self.root.update_idletasks()
         x = self.root.winfo_x()
         y = self.root.winfo_y()
-        start_y = max(0, y - 90)
-        self.root.geometry(f"+{x}+{start_y}")
+        _left, top, _right, _bottom = self._desktop_bounds()
+        start_y = max(top, y - 90)
+        self.root.geometry(_geometry_position(x, start_y))
         self._position_bubble()
         dy = y - start_y
         self._run_window_move(
@@ -2559,7 +2580,7 @@ class PaperclipPalApp:
             t = _ease_out_cubic((si + 1) / n)
             next_x = state[0] + (dx - state[0]) * t
             next_y = state[1] + (dy - state[1]) * t
-            self.root.geometry(f"+{round(start_x + next_x)}+{round(start_y + next_y)}")
+            self.root.geometry(_geometry_position(start_x + next_x, start_y + next_y))
             if self._bubble_items:
                 self._position_bubble()
             if self._chat_window:
@@ -2593,7 +2614,8 @@ class PaperclipPalApp:
     def _movement_direction(self) -> int:
         self.root.update_idletasks()
         center_x = self.root.winfo_x() + self.width / 2
-        screen_mid = self.root.winfo_screenwidth() / 2
+        left, _top, right, _bottom = self._desktop_bounds()
+        screen_mid = (left + right) / 2
         if abs(center_x - screen_mid) < 120:
             return random.choice((-1, 1))
         return -1 if center_x > screen_mid else 1
@@ -2603,20 +2625,20 @@ class PaperclipPalApp:
 
     def _corner_retreat_delta(self) -> tuple[float, float]:
         self.root.update_idletasks()
-        screen_w = self.root.winfo_screenwidth()
-        screen_h = self.root.winfo_screenheight()
+        left, _top, right, bottom = self._desktop_bounds()
         current_x = self.root.winfo_x()
         current_y = self.root.winfo_y()
-        target_x = 18 if current_x < screen_w / 2 else screen_w - self.width - 18
-        target_y = screen_h - self.height - 28
+        target_x = left + 18 if current_x < (left + right) / 2 else right - self.width - 18
+        target_y = bottom - self.height - 28
         return target_x - current_x, target_y - current_y
 
     def _clamped_window_frames(self, frames: ActionFrames, start_x: int, start_y: int) -> ActionFrames:
         final_dx, final_dy, _sx, _sy, _delay = frames[-1]
-        max_x = max(0, self.root.winfo_screenwidth() - self.width)
-        max_y = max(0, self.root.winfo_screenheight() - self.height)
-        clamped_final_x = _clamp(start_x + final_dx, 0, max_x)
-        clamped_final_y = _clamp(start_y + final_dy, 0, max_y)
+        left, top, right, bottom = self._desktop_bounds()
+        max_x = max(left, right - self.width)
+        max_y = max(top, bottom - self.height)
+        clamped_final_x = _clamp(start_x + final_dx, left, max_x)
+        clamped_final_y = _clamp(start_y + final_dy, top, max_y)
         allowed_dx = clamped_final_x - start_x
         allowed_dy = clamped_final_y - start_y
         ratio_x = allowed_dx / final_dx if final_dx else 1.0
@@ -2937,14 +2959,14 @@ class PaperclipPalApp:
         width = bubble_width
         if width is None:
             width = int(float(self.bubble_canvas.cget("width")))
-        screen_w = self.root.winfo_screenwidth()
-        screen_h = self.root.winfo_screenheight()
+        left, top, right, bottom = self._desktop_bounds()
         x = self.root.winfo_x() + PAL_CENTER_X - width / 2
         y = self.root.winfo_y() + PAL_PAD_Y - height - BUBBLE_GAP
-        x = min(max(8, x), max(8, screen_w - width - 8))
-        if y < 8:
-            y = min(screen_h - height - 8, self.root.winfo_y() + PAL_PAD_Y + PAL_HEIGHT + BUBBLE_GAP)
-        self.bubble_root.geometry(f"{width}x{height}+{round(x)}+{round(y)}")
+        x = min(max(left + 8, x), max(left + 8, right - width - 8))
+        if y < top + 8:
+            y = min(bottom - height - 8, self.root.winfo_y() + PAL_PAD_Y + PAL_HEIGHT + BUBBLE_GAP)
+        y = min(max(top + 8, y), max(top + 8, bottom - height - 8))
+        self.bubble_root.geometry(_geometry_with_size(width, height, x, y))
 
     def _clear_bubble(self, cancel_after: bool = True) -> None:
         if cancel_after and self._bubble_after:
