@@ -1637,7 +1637,7 @@ _CLAUDE_SPINNER_TAILS = (
 
 _CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
     "started": (
-        ("{label} 在 {project} 开工了", "{label}@{project} 出现了", "新的 {label} 会话进了 {project}"),
+        ("{label} 在 {project} 开工了", "{label} 出现在 {project}", "新的 {label} 会话进了 {project}"),
         "smirk",
         ("scan", "peek", "nod"),
         "thought",
@@ -1650,7 +1650,7 @@ _CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
         ),
     ),
     "ended": (
-        ("{label}@{project} 收工了", "{label} 离开了 {project}", "一个 Claude 会话从 {project} 退场了"),
+        ("{label} 在 {project} 收工了", "{label} 离开了 {project}", "一个 Claude 会话从 {project} 退场了"),
         "thinking",
         ("blink", "nod", "hide"),
         "thought",
@@ -1663,7 +1663,7 @@ _CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
         ),
     ),
     "editing": (
-        ("{label}@{project} 正在改代码", "Claude 在 {project} 动文件了", "{label} 手里现在有改动"),
+        ("{label} 在 {project} 改代码", "Claude 在 {project} 动文件了", "{label} 手里现在有改动"),
         "focused",
         ("patrol", "scan", "wiggle"),
         "thought",
@@ -1676,7 +1676,7 @@ _CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
         ),
     ),
     "running": (
-        ("{label}@{project} 正在跑命令", "Claude 把 {project} 交给终端了", "{label} 在 {project} 执行东西"),
+        ("{label} 在 {project} 跑命令", "Claude 把 {project} 交给终端了", "{label} 在 {project} 执行东西"),
         "thinking",
         ("scan", "thinking_tilt", "peek"),
         "thought",
@@ -1689,7 +1689,7 @@ _CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
         ),
     ),
     "reading": (
-        ("{label}@{project} 正在读文件", "Claude 在 {project} 翻材料", "{label} 开始补上下文"),
+        ("{label} 在 {project} 读文件", "Claude 在 {project} 翻材料", "{label} 开始补上下文"),
         "thinking",
         ("scan", "thinking_tilt", "nod"),
         "thought",
@@ -1702,7 +1702,7 @@ _CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
         ),
     ),
     "searching": (
-        ("{label}@{project} 正在搜索", "Claude 在 {project} 到处找线索", "{label} 开始翻箱倒柜"),
+        ("{label} 在 {project} 搜索", "Claude 在 {project} 到处找线索", "{label} 开始翻箱倒柜"),
         "suspicious",
         ("scan", "peek", "thinking_tilt"),
         "thought",
@@ -1715,7 +1715,7 @@ _CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
         ),
     ),
     "thinking": (
-        ("{label}@{project} 正在思考", "Claude 在 {project} 脑内排队", "{label} 暂时进入沉思"),
+        ("{label} 在 {project} 思考", "Claude 在 {project} 脑内排队", "{label} 暂时进入沉思"),
         "thinking",
         ("thinking_tilt", "nod", "blink"),
         "thought",
@@ -1728,7 +1728,7 @@ _CLAUDE_STATUS_PROFILES: dict[str, ClaudeStatusProfile] = {
         ),
     ),
     "idle": (
-        ("{label}@{project} 现在安静了", "Claude 在 {project} 发呆中", "{label} 暂时没有明显动作"),
+        ("{label} 在 {project} 安静了", "Claude 在 {project} 发呆中", "{label} 暂时没有明显动作"),
         "sleepy",
         ("blink", "hide", "flop"),
         "thought",
@@ -1799,7 +1799,7 @@ def _claude_overview_reaction(
     if active:
         prefixes = (
             "Claude 有 {count} 个会话：{summary}",
-            "现在有 {count} 个 Claude 会话在场，最忙的是 {focus_label}@{focus_project}",
+            "现在有 {count} 个 Claude 会话在场，最忙的是 {focus_project} 里的 {focus_label}",
             "Claude 场面有点热闹：{summary}",
         )
         tails = _CLAUDE_OVERVIEW_TAILS + _CLAUDE_SPINNER_TAILS
@@ -1827,7 +1827,7 @@ def _claude_overview_reaction(
 
 def _claude_compact_summary(sessions: list[ClaudeSession]) -> str:
     ordered = sorted(sessions, key=lambda s: (_claude_change_priority(s.activity), s.project, s.pid))
-    parts = [f"{s.label()}@{s.project} {s.activity_zh()}" for s in ordered[:3]]
+    parts = [f"{s.label()} 在 {s.project} {s.activity_zh()}" for s in ordered[:3]]
     if len(ordered) > 3:
         parts.append(f"另有 {len(ordered) - 3} 个")
     return " / ".join(parts)

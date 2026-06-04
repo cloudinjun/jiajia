@@ -72,7 +72,7 @@ class ClaudeOverview:
             return "没有发现活跃的 Claude 会话。"
         parts = []
         for s in alive:
-            parts.append(f"{s.label()}@{s.project}: {s.activity_zh()}")
+            parts.append(f"{s.label()} 在 {s.project} {s.activity_zh()}")
         return " / ".join(parts)
 
 
