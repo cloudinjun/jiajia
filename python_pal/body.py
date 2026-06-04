@@ -6,6 +6,7 @@ import json
 import math
 import queue
 import random
+import re
 import threading
 import time
 import tkinter as tk
@@ -13,10 +14,12 @@ import tkinter.font as tkfont
 
 from .activity import ActivityPolicy, policy_for_frequency
 from .actions import ACTION_LABELS, ACTION_MENU_GROUPS
+from .animation_resolver import AnimationResolver, ResolvedAnimation
 from .animation_manifest import load_animation_manifest
 from .animation_player import AnimationCallbacks, AnimationPlayer
 from .brain_ollama import OllamaBrain
 from .chat import ChatSession, PalChatBrain, build_chat_context, detect_chat_command, local_status_reaction
+from .decorations import DecorationDefinition, load_decoration_manifest
 from .mood import MoodEngine, FREQUENCY_PRESETS, FREQUENCY_DEFAULT
 from .claude_status import ClaudeOverview, ClaudeSession, ClaudeStatusMonitor
 from .codex_status import CodexStatus, CodexStatusMonitor
@@ -120,6 +123,12 @@ VISION_REFRESH_MS = 45_000
 AMBIENT_MIN_MS = 18_000
 AMBIENT_MAX_MS = 45_000
 AMBIENT_COOLDOWN_SECONDS = 50
+LOW_STIMULUS_IDLE_ACTIONS = ("blink", "peek", "nod", "micro_soften")
+COMMON_IDLE_ACTIONS = ("blink", "peek", "scan", "thinking_tilt", "nod", "wiggle")
+MID_IDLE_ACTIONS = ("stretch", "sleepy_sag", "smug_sway", "patrol", "mini_hop_shift")
+RARE_IDLE_ACTIONS = ("twirl", "flop", "hide", "dance", "relocate_hop")
+LARGE_IDLE_ACTIONS = {"jump", "flop", "dance", "twirl", "stretch", "sleepy_sag", "sulk", "hide", "celebrate"}
+MOVE_IDLE_ACTIONS = {"twist_scoot", "mini_hop_shift", "relocate_hop", "roast_and_scoot", "retreat_to_corner", "drop_in"}
 BODY_START = (124.0, 267.226)
 BODY_CURVES = (
     ((124.0, 267.226), (113.008, 384.271), (158.0, 407.226)),
@@ -349,6 +358,8 @@ class PaperclipPalApp:
         self.state = PalState()
         self.decision = DecisionEngine()
         self.animation_player = AnimationPlayer(load_animation_manifest(project_root / "python_pal" / "animations.yaml"))
+        self.animation_resolver = AnimationResolver(set(self.animation_player.manifest.performances))
+        self.decorations = load_decoration_manifest(project_root / "python_pal" / "decorations.yaml")
         self.queue: queue.Queue[Reaction] = queue.Queue()
         self.root = tk.Tk()
         self.root.title(soul.name)
@@ -424,6 +435,10 @@ class PaperclipPalApp:
         self._status_badge_items: list[int] = []
         self._status_badge_after: str | None = None
         self._status_badge_phase = 0
+        self._decoration_items: dict[str, list[int]] = {"identity": [], "state": [], "temporary": []}
+        self._active_identity_id = ""
+        self._active_identity_addons: tuple[str, ...] = ()
+        self._decoration_after: list[str] = []
         self._demo_after: list[str] = []
         self._chat_window: tk.Toplevel | None = None
         self._chat_entry: tk.Entry | None = None
@@ -454,6 +469,11 @@ class PaperclipPalApp:
         self._performance_after: list[str] = []
         self._expression_after: list[str] = []
         self._last_animation_debug = "not played yet"
+        self._last_idle_animation_debug = "idle animation not selected yet"
+        self._recent_idle_actions: list[str] = []
+        self._last_large_idle_action_at = 0.0
+        self._last_move_idle_action_at = 0.0
+        self._last_identity_idle_action_at = 0.0
         self.mood = MoodEngine()
         initial_frequency = self._load_frequency_setting()
         self.mood.set_frequency(initial_frequency)
@@ -466,6 +486,7 @@ class PaperclipPalApp:
         self._place_initially()
         self._hide_from_taskbar()
         self._draw_pal()
+        self._refresh_identity_decorations()
         self._bind_events()
         self._install_menu()
         self.root.after(50, self._animate)
@@ -562,6 +583,7 @@ class PaperclipPalApp:
         self._bob_x = 0.0
         self._bob_y = 0.0
         self._draw_pal()
+        self.canvas.tag_raise("decoration")
         self._pupil_look = look
         self._set_pupil_pose(*look, blink_scale=1.0)
         self._apply_hardware_tint()
@@ -868,10 +890,175 @@ class PaperclipPalApp:
         self._identity_var.set(key)
         self._save_identity_setting(key)
         if key == "auto":
+            self._active_identity_id = ""
+        self._refresh_identity_decorations()
+        if key == "auto":
             self.show_bubble("身份切回 Auto。夹夹会按场景换班。", milliseconds=2600, kind="thought")
             return
         pack = self.brain.identities.get(key)
         self.show_bubble(f"身份切到 {pack.display_name}。", milliseconds=2600, kind="thought")
+
+    def _current_identity_pack(self, reaction: Reaction | None = None):
+        key = self._identity_var.get()
+        if key and key != "auto":
+            return self.brain.identities.get(key)
+        if reaction is None and self._active_identity_id:
+            return self.brain.identities.get(self._active_identity_id)
+        return self.brain.identities.get(self._identity_id_for_reaction(reaction))
+
+    def _identity_id_for_reaction(self, reaction: Reaction | None = None) -> str:
+        if reaction and reaction.decision_reason:
+            match = re.search(r"\bidentity=([a-z0-9_]+)", reaction.decision_reason)
+            if match:
+                return match.group(1)
+        if self._focus_var.get() or self._quiet_remaining_seconds() > 0:
+            return "focus_companion"
+        if reaction:
+            event = (reaction.event or "").lower()
+            bubble = (reaction.bubble or "").lower()
+            if event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_"):
+                return "thermal_technician"
+            if event.startswith(("codex_usage", "chat_usage", "demo_usage")) or bubble.startswith("usage_"):
+                return "usage_accountant"
+            if event.startswith(("codex_", "claude_", "chat_codex", "chat_claude", "demo_codex")) or bubble.startswith(("codex_", "claude_")):
+                return "agent_supervisor"
+            if reaction.mood in {"sleepy", "sulky"}:
+                return "sleepy_clip"
+        return "default_pal"
+
+    def _refresh_identity_decorations(self, reaction: Reaction | None = None) -> None:
+        pack = self._current_identity_pack(reaction)
+        self._active_identity_id = pack.id
+        addons = tuple(addon for addon in pack.visual_addons if self.decorations.get(addon))
+        self._active_identity_addons = addons
+        self._set_decorations(addons, lifetime="identity")
+
+    def _set_decorations(self, decoration_ids: tuple[str, ...] | list[str], lifetime: str = "identity") -> None:
+        self._clear_decorations(lifetime)
+        for decoration_id in decoration_ids:
+            definition = self.decorations.get(decoration_id)
+            if definition:
+                self._draw_decoration(definition, lifetime=lifetime)
+
+    def _show_temporary_decoration(self, decoration_id: str, milliseconds: int = 2600) -> None:
+        definition = self.decorations.get(decoration_id)
+        if not definition:
+            return
+        self._draw_decoration(definition, lifetime="temporary")
+        self._decoration_after.append(self.root.after(milliseconds, lambda: self._clear_decorations("temporary")))
+
+    def _clear_decorations(self, lifetime: str | None = None) -> None:
+        lifetimes = (lifetime,) if lifetime else tuple(self._decoration_items)
+        for key in lifetimes:
+            for item in self._decoration_items.get(key, []):
+                try:
+                    self.canvas.delete(item)
+                except tk.TclError:
+                    pass
+            self._decoration_items[key] = []
+        if lifetime is None or lifetime == "temporary":
+            for after_id in self._decoration_after:
+                try:
+                    self.root.after_cancel(after_id)
+                except tk.TclError:
+                    pass
+            self._decoration_after.clear()
+
+    def _draw_decoration(self, definition: DecorationDefinition, lifetime: str = "identity") -> None:
+        x, y = self._decoration_anchor(definition)
+        color = definition.color
+        items: list[int] = []
+        shape = definition.shape_type
+        if shape == "terminal_box":
+            items.extend([
+                self.canvas.create_rectangle(x, y, x + 30, y + 20, fill="#f7fbf8", outline=color, width=1),
+                self.canvas.create_text(x + 5, y + 10, anchor="w", text=">", fill=color, font=("Consolas", 8, "bold")),
+                self.canvas.create_line(x + 13, y + 13, x + 24, y + 13, fill=color, width=1),
+            ])
+        elif shape == "status_dot":
+            items.append(self.canvas.create_oval(x, y, x + 10, y + 10, fill=color, outline="#ffffff", width=1))
+        elif shape == "checklist":
+            items.extend([
+                self.canvas.create_rectangle(x, y, x + 23, y + 28, fill="#ffffff", outline=color, width=1),
+                self.canvas.create_line(x + 5, y + 8, x + 8, y + 11, x + 14, y + 5, fill=color, width=2),
+                self.canvas.create_line(x + 5, y + 18, x + 8, y + 21, x + 15, y + 14, fill=color, width=2),
+                self.canvas.create_line(x + 15, y + 9, x + 19, y + 9, fill=color, width=1),
+                self.canvas.create_line(x + 16, y + 19, x + 20, y + 19, fill=color, width=1),
+            ])
+        elif shape == "thermometer":
+            items.extend([
+                self.canvas.create_oval(x + 5, y + 20, x + 17, y + 32, fill="#ffffff", outline=color, width=2),
+                self.canvas.create_line(x + 11, y + 4, x + 11, y + 23, fill=color, width=4),
+                self.canvas.create_oval(x + 8, y + 2, x + 14, y + 8, fill="#ffffff", outline=color, width=1),
+            ])
+        elif shape == "heat_puffs":
+            for offset, radius in ((0, 4), (10, 5), (21, 4)):
+                items.append(self.canvas.create_oval(x + offset, y - radius, x + offset + radius * 2, y + radius, fill="", outline=color, width=2))
+        elif shape == "ledger":
+            items.extend([
+                self.canvas.create_rectangle(x, y, x + 24, y + 28, fill="#f7fbff", outline=color, width=1),
+                self.canvas.create_rectangle(x, y, x + 6, y + 28, fill=color, outline=color, width=1),
+                self.canvas.create_line(x + 10, y + 9, x + 20, y + 9, fill=color, width=1),
+                self.canvas.create_line(x + 10, y + 17, x + 18, y + 17, fill=color, width=1),
+            ])
+        elif shape == "mini_bar":
+            percent = self._last_codex_usage_status.usage_remaining_percent
+            width = 30
+            fill_width = round(width * max(0.1, min(1.0, (percent or 38) / 100)))
+            items.extend([
+                self.canvas.create_rectangle(x, y, x + width, y + 8, fill="#f7fbff", outline=color, width=1),
+                self.canvas.create_rectangle(x + 2, y + 2, x + fill_width, y + 6, fill=color, outline=""),
+            ])
+        elif shape == "red_pen":
+            items.extend([
+                self.canvas.create_line(x, y + 24, x + 24, y, fill=color, width=4, capstyle=tk.ROUND),
+                self.canvas.create_polygon(x + 23, y - 1, x + 29, y - 5, x + 27, y + 3, fill=color, outline=color),
+            ])
+        elif shape == "annotation_circle":
+            items.append(self.canvas.create_oval(x, y, x + PAL_WIDTH + 18, y + PAL_HEIGHT + 16, fill="", outline=color, width=2))
+        elif shape == "z_mark":
+            items.append(self.canvas.create_text(x, y, anchor="nw", text="Z", fill=color, font=("Microsoft YaHei UI", 13, "bold")))
+        elif shape == "warning":
+            items.extend([
+                self.canvas.create_polygon(x + 10, y, x, y + 20, x + 22, y + 20, fill="#fff7f5", outline=color, width=2),
+                self.canvas.create_text(x + 11, y + 13, text="!", fill=color, font=("Microsoft YaHei UI", 9, "bold")),
+            ])
+        elif shape == "magnifier":
+            items.extend([
+                self.canvas.create_oval(x, y, x + 16, y + 16, fill="", outline=color, width=2),
+                self.canvas.create_line(x + 13, y + 13, x + 23, y + 23, fill=color, width=2, capstyle=tk.ROUND),
+            ])
+        elif shape == "stamp":
+            items.extend([
+                self.canvas.create_rectangle(x, y + 12, x + 26, y + 24, fill="#fff7f5", outline=color, width=2),
+                self.canvas.create_line(x + 8, y + 12, x + 12, y, x + 17, y, x + 20, y + 12, fill=color, width=2),
+            ])
+        elif shape == "lock":
+            items.extend([
+                self.canvas.create_arc(x + 5, y, x + 21, y + 18, start=0, extent=180, outline=color, width=2, style=tk.ARC),
+                self.canvas.create_rectangle(x + 3, y + 10, x + 23, y + 25, fill="#f7f5ff", outline=color, width=1),
+            ])
+        elif shape == "tab_bar":
+            for index in range(3):
+                items.append(self.canvas.create_rectangle(x + index * 9, y + index * 2, x + 18 + index * 9, y + 10 + index * 2, fill="#f7f5ff", outline=color, width=1))
+
+        if items:
+            for item in items:
+                self.canvas.addtag_withtag("decoration", item)
+            self._decoration_items.setdefault(lifetime, []).extend(items)
+            self.canvas.tag_raise("decoration")
+
+    def _decoration_anchor(self, definition: DecorationDefinition) -> tuple[float, float]:
+        anchors = {
+            "upper_left": (PAL_PAD_X + PAL_WIDTH * 0.04, PAL_PAD_Y + PAL_HEIGHT * 0.08),
+            "upper_right": (PAL_PAD_X + PAL_WIDTH * 0.68, PAL_PAD_Y + PAL_HEIGHT * 0.05),
+            "above_head": (PAL_PAD_X + PAL_WIDTH * 0.34, PAL_PAD_Y - 12),
+            "lower_left": (PAL_PAD_X + PAL_WIDTH * 0.06, PAL_PAD_Y + PAL_HEIGHT * 0.74),
+            "right_side": (PAL_PAD_X + PAL_WIDTH * 0.78, PAL_PAD_Y + PAL_HEIGHT * 0.38),
+            "around_character": (PAL_PAD_X - 10, PAL_PAD_Y - 6),
+        }
+        x, y = anchors.get(definition.anchor, anchors["upper_right"])
+        return x + definition.dx, y + definition.dy
 
     def _quiet_for(self, seconds: int) -> None:
         self._quiet_until = time.time() + max(1, seconds)
@@ -994,12 +1181,12 @@ class PaperclipPalApp:
         if not self._large_action_running and not self.state.brain_busy and not self._dragging:
             if self._auto_reactions_paused():
                 if random.random() < 0.18:
-                    self._perform_action(random.choice(("blink", "nod")))
+                    self._play_idle_animation(self._pick_idle_animation(micro=True, low_stimulus=True), source="micro_quiet")
                 self._schedule_micro()
                 return
-            action = self.mood.pick_micro_behavior()
+            action = self._pick_idle_animation(micro=True)
             if action:
-                self._perform_action(action)
+                self._play_idle_animation(action, source="micro")
         self._schedule_micro()
 
     def _schedule_companion(self) -> None:
@@ -1011,13 +1198,13 @@ class PaperclipPalApp:
             policy = self._activity_policy()
             if self._auto_reactions_paused():
                 if random.random() < 0.28:
-                    self._perform_action(random.choice(("blink", "nod", "micro_soften")))
+                    self._play_idle_animation(self._pick_idle_animation(low_stimulus=True), source="companion_quiet")
                 self._schedule_companion()
                 return
             if random.random() < policy.mouse_follow_chance:
                 self._start_mouse_follow(random.randint(850, 1700))
             if random.random() < policy.companion_action_chance:
-                self._perform_action(random.choice(("blink", "peek", "scan", "nod", "wiggle", "thinking_tilt", "smug_sway")))
+                self._play_idle_animation(self._pick_idle_animation(), source="companion")
             if (
                 not self._bubble_items
                 and self.state.can_speak(max(8, round(self.mood.ambient_cooldown_seconds() * policy.cooldown_multiplier)))
@@ -1025,6 +1212,100 @@ class PaperclipPalApp:
             ):
                 self._ask_brain("ambient")
         self._schedule_companion()
+
+    def _pick_idle_animation(self, micro: bool = False, low_stimulus: bool = False) -> str:
+        if low_stimulus:
+            return random.choice(LOW_STIMULUS_IDLE_ACTIONS)
+
+        now = time.time()
+        pack = self._current_identity_pack()
+        candidates: list[tuple[str, float, str]] = []
+        identity_idle = pack.animations.get("idle", "")
+        if identity_idle and not micro:
+            weight = 4.0 if now - self._last_identity_idle_action_at > 45 else 1.2
+            candidates.append((identity_idle, weight, "identity_idle"))
+        for action in pack.core_animations:
+            candidates.append((action, 2.2 if not micro else 1.2, "identity_core"))
+
+        mood_action = self.mood.pick_micro_behavior()
+        if mood_action:
+            candidates.append((mood_action, 2.4, "mood"))
+        candidates.extend((action, 1.5, "common") for action in COMMON_IDLE_ACTIONS)
+
+        policy = self._activity_policy()
+        if not micro or policy.tier in {"active", "hyper"}:
+            candidates.extend((action, 0.9, "mid") for action in MID_IDLE_ACTIONS)
+        if not micro and policy.tier in {"active", "hyper"}:
+            candidates.extend((action, 0.28 if policy.tier == "active" else 0.46, "rare") for action in RARE_IDLE_ACTIONS)
+
+        usable: list[tuple[str, float, str, ResolvedAnimation]] = []
+        for name, weight, source in candidates:
+            resolved = self.animation_resolver.resolve(name)
+            if not self._idle_animation_allowed(resolved, micro=micro):
+                continue
+            if resolved.requested in self._recent_idle_actions[-5:] or resolved.action in self._recent_idle_actions[-5:]:
+                weight *= 0.35
+            if resolved.requested in self._recent_idle_actions[-2:] or resolved.action in self._recent_idle_actions[-2:]:
+                weight *= 0.18
+            if weight > 0.05:
+                usable.append((name, weight, source, resolved))
+
+        if not usable:
+            return random.choice(LOW_STIMULUS_IDLE_ACTIONS)
+        names, weights, sources, resolved_items = zip(*usable)
+        choice_index = random.choices(range(len(names)), weights=weights, k=1)[0]
+        chosen = names[choice_index]
+        resolved = resolved_items[choice_index]
+        self._last_idle_animation_debug = self._idle_animation_debug_text(chosen, sources[choice_index], resolved)
+        if sources[choice_index].startswith("identity"):
+            self._last_identity_idle_action_at = time.time()
+        return chosen
+
+    def _idle_animation_allowed(self, resolved: ResolvedAnimation, micro: bool = False) -> bool:
+        name = resolved.performance or resolved.action
+        if not name or name == "idle":
+            return True
+        now = time.time()
+        if name in LARGE_IDLE_ACTIONS and now - self._last_large_idle_action_at < (35 if micro else 60):
+            return False
+        if name in MOVE_IDLE_ACTIONS and now - self._last_move_idle_action_at < 180:
+            return False
+        if self._recent_idle_actions and self._recent_idle_actions[-1] == name:
+            return False
+        return True
+
+    def _play_idle_animation(self, name: str, source: str = "idle") -> None:
+        resolved = self.animation_resolver.resolve(name)
+        played = resolved.performance or resolved.action
+        if not played or played == "idle":
+            self._last_idle_animation_debug = self._idle_animation_debug_text(name, source, resolved)
+            return
+        if resolved.kind == "performance" and resolved.performance:
+            reaction = Reaction(False, "", self.state.mood or "idle", resolved.action or "blink", "thought", resolved.performance, event=f"idle_{source}")
+            self._run_performance_phrase(resolved.performance, reaction, state="idle")
+        else:
+            self._perform_action(resolved.action)
+        self._remember_idle_animation(played)
+        self._last_idle_animation_debug = self._idle_animation_debug_text(name, source, resolved)
+
+    def _remember_idle_animation(self, played: str) -> None:
+        self._recent_idle_actions.append(played)
+        self._recent_idle_actions = self._recent_idle_actions[-8:]
+        if played in LARGE_IDLE_ACTIONS:
+            self._last_large_idle_action_at = time.time()
+        if played in MOVE_IDLE_ACTIONS:
+            self._last_move_idle_action_at = time.time()
+
+    def _idle_animation_debug_text(self, requested: str, source: str, resolved: ResolvedAnimation) -> str:
+        return (
+            f"current_identity: {self._active_identity_id or 'default_pal'}\n"
+            f"visual_addons: {', '.join(self._active_identity_addons) or 'none'}\n"
+            f"selected_idle_animation: {requested}\n"
+            f"resolver_result: kind={resolved.kind}, action={resolved.action}, performance={resolved.performance or 'none'}\n"
+            f"fallback_reason: {resolved.fallback_reason or 'none'}\n"
+            f"source: {source}\n"
+            f"recent_idle_actions: {', '.join(self._recent_idle_actions[-8:]) or 'none'}"
+        )
 
     def _show_codex_status(self) -> None:
         status = self.codex_status.sample()
@@ -1704,7 +1985,8 @@ class PaperclipPalApp:
         self.show_bubble(prefix + self.decision.last_decision.debug_text(), milliseconds=6800, kind="thought")
 
     def _show_last_animation_debug(self) -> None:
-        self.show_bubble(self._last_animation_debug, milliseconds=6800, kind="thought")
+        text = f"{self._last_animation_debug}\n\nidle scheduler:\n{self._last_idle_animation_debug}"
+        self.show_bubble(text, milliseconds=9000, kind="thought")
 
     def _show_identity_debug(self) -> None:
         context = self._context("manual")
@@ -1736,6 +2018,8 @@ class PaperclipPalApp:
         self._cancel_performance_phrase()
         self.state.mood = reaction.mood
         self.mood.push_mood(reaction.mood)
+        self._refresh_identity_decorations(reaction)
+        self._maybe_show_reaction_decoration(reaction)
         self._maybe_flash_hardware_tint(reaction)
         self._refresh_status_badges()
         state = self.animation_player.manifest.state_for_reaction(reaction.mood, reaction.action, reaction.bubble)
@@ -1767,6 +2051,20 @@ class PaperclipPalApp:
         if reaction.should_say and reaction.line:
             self.show_bubble(reaction.line, kind=reaction.bubble)
             self.state.remember_line(reaction.line)
+
+    def _maybe_show_reaction_decoration(self, reaction: Reaction) -> None:
+        event = (reaction.event or "").lower()
+        bubble = (reaction.bubble or "").lower()
+        if event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_"):
+            self._show_temporary_decoration("heat_puffs", 4200)
+        if event.startswith(("codex_usage", "chat_usage", "demo_usage")) or bubble.startswith("usage_"):
+            self._show_temporary_decoration("usage_bar", 4200)
+        if reaction.performance in {"cold_arrow_then_innocent", "roast_and_scoot"} or reaction.mood in {"smirk", "smug"}:
+            self._show_temporary_decoration("annotation_circle", 2600)
+        if reaction.mood in {"sleepy", "sulky"}:
+            self._show_temporary_decoration("z_symbol", 3200)
+        if any(key in event for key in ("error", "blocked", "critical", "overloaded")):
+            self._show_temporary_decoration("tiny_warning", 4200)
 
     def _maybe_flash_hardware_tint(self, reaction: Reaction) -> None:
         event = (reaction.event or "").lower()

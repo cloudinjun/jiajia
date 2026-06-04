@@ -97,3 +97,11 @@ Command-line demo:
 ```powershell
 python -m python_pal.main --demo
 ```
+
+## Identity Decorations And Idle Variety
+
+Identity packs can now render small flat-vector decorations from `python_pal/decorations.yaml`. These are separate from status badges: badges report system state, while decorations express role/personality, such as a tiny terminal for Agent Supervisor, a thermometer for Thermal Technician, a ledger for Usage Accountant, or a red pen for Critic Clip.
+
+`python_pal/animation_resolver.py` maps conceptual identity animation names, such as `agent_running` or `sleep_loop`, to current playable actions or performance phrases. This lets YAML names work today while leaving room for richer assets later.
+
+Idle animation selection is identity-aware and keeps a short recent-action history so the pal does not loop the same few actions. Quiet/focus modes restrict idle motion to low-stimulus actions.

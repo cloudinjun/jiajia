@@ -287,6 +287,36 @@ event_log:
   privacy_boundary: state_events_only_no_keystrokes_no_clipboard_no_screen_text
   digest_menu: Morning digest
 
+decoration_layer:
+  manifest: python_pal/decorations.yaml
+  renderer: body.DecorationLayer_flat_canvas_shapes
+  purpose: identity_and_temporary_role_props_not_system_badges
+  constraints: [pure_flat_vector, no_gradients, no_shadows, no_mouth, no_hands, no_feet]
+  identity_examples:
+    agent_supervisor: [tiny_terminal, status_dot]
+    thermal_technician: [thermometer_icon, heat_tint]
+    usage_accountant: [tiny_ledger, usage_bar]
+    critic_clip: [red_pen, annotation_circle]
+
+animation_resolver:
+  module: python_pal/animation_resolver.py
+  purpose: map_concept_animation_names_to_current_actions_or_performances
+  examples:
+    audit_scan: scan
+    agent_running: patrol
+    agent_done_smug: tiny_celebrate
+    sleep_loop: sleepy_sag
+    boop_escape: roast_and_scoot
+
+idle_variety_scheduler:
+  recent_action_memory: 8
+  identity_aware: true
+  uses_identity_idle_animation: true
+  uses_identity_core_animations: true
+  quiet_focus_policy: low_stimulus_only
+  large_action_cooldown_seconds: 60
+  movement_action_cooldown_seconds: 180
+
 local_chat:
   menu: Talk to 夹夹
   brain: python_pal.chat.PalChatBrain
