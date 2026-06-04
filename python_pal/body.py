@@ -429,6 +429,8 @@ class PaperclipPalApp:
         self.mood.set_frequency(initial_frequency)
         self._freq_var = tk.StringVar(value=initial_frequency)
         self._identity_var = tk.StringVar(value=self._load_identity_setting())
+        self._focus_var = tk.BooleanVar(value=False)
+        self._quiet_until = 0.0
         self._micro_after: str | None = None
         self._companion_after: str | None = None
         self._place_initially()
@@ -588,6 +590,10 @@ class PaperclipPalApp:
             )
         self.menu.add_cascade(label="活跃度", menu=freq_menu)
         self.menu.add_separator()
+        self.menu.add_command(label="Quiet 30 min", command=lambda: self._quiet_for(30 * 60))
+        self.menu.add_checkbutton(label="Focus mode", variable=self._focus_var, command=self._toggle_focus_mode)
+        self.menu.add_command(label="Summon / resume", command=self._resume_auto_reactions)
+        self.menu.add_separator()
         self.menu.add_command(label="Quit", command=self.root.destroy)
 
     def _show_context_menu(self, event: tk.Event) -> None:
@@ -651,6 +657,72 @@ class PaperclipPalApp:
         pack = self.brain.identities.get(key)
         self.show_bubble(f"身份切到 {pack.display_name}。", milliseconds=2600, kind="thought")
 
+    def _quiet_for(self, seconds: int) -> None:
+        self._quiet_until = time.time() + max(1, seconds)
+        self._focus_var.set(False)
+        self._clear_bubble()
+        self._apply_reaction(
+            Reaction(
+                True,
+                "好，我折起来 30 分钟。不是生气，是办公用品开始自我管理。",
+                "sulky",
+                "retreat_to_corner",
+                "thought",
+                "fake_sulk",
+                event="quiet_mode",
+            )
+        )
+
+    def _toggle_focus_mode(self) -> None:
+        self._quiet_until = 0.0
+        self._clear_bubble()
+        if self._focus_var.get():
+            self._apply_reaction(
+                Reaction(
+                    True,
+                    "专注模式。夹夹退到角落，只保留眼睛和一点点审判。",
+                    "innocent",
+                    "retreat_to_corner",
+                    "thought",
+                    "quiet_companion",
+                    event="focus_mode",
+                )
+            )
+            return
+        self._apply_reaction(
+            Reaction(
+                True,
+                "我回来了。暂时不是弹窗，是文具复职。",
+                "smirk",
+                "drop_in",
+                "thought",
+                "tiny_celebrate",
+                event="focus_mode_off",
+            )
+        )
+
+    def _resume_auto_reactions(self) -> None:
+        self._quiet_until = 0.0
+        self._focus_var.set(False)
+        self._clear_bubble()
+        self._apply_reaction(
+            Reaction(
+                True,
+                "收到，自动碎碎念恢复。夹夹会先假装克制三秒。",
+                "smirk",
+                "happy_bounce",
+                "thought",
+                "quiet_companion",
+                event="resume_auto_reactions",
+            )
+        )
+
+    def _auto_reactions_paused(self) -> bool:
+        return self._focus_var.get() or time.time() < self._quiet_until
+
+    def _quiet_remaining_seconds(self) -> float:
+        return max(0.0, self._quiet_until - time.time())
+
     def _load_frequency_setting(self) -> str:
         data = self._load_settings()
         key = str(data.get("frequency") or FREQUENCY_DEFAULT)
@@ -693,6 +765,11 @@ class PaperclipPalApp:
     def _micro_tick(self) -> None:
         self._micro_after = None
         if not self._large_action_running and not self.state.brain_busy and not self._dragging:
+            if self._auto_reactions_paused():
+                if random.random() < 0.18:
+                    self._perform_action(random.choice(("blink", "nod")))
+                self._schedule_micro()
+                return
             action = self.mood.pick_micro_behavior()
             if action:
                 self._perform_action(action)
@@ -704,6 +781,11 @@ class PaperclipPalApp:
     def _companion_tick(self) -> None:
         self._companion_after = None
         if not self._large_action_running and not self.state.brain_busy and not self._dragging:
+            if self._auto_reactions_paused():
+                if random.random() < 0.28:
+                    self._perform_action(random.choice(("blink", "nod", "micro_soften")))
+                self._schedule_companion()
+                return
             multiplier = self.mood.frequency_multiplier
             if random.random() < min(0.86, 0.18 * multiplier):
                 self._start_mouse_follow(random.randint(850, 1700))
@@ -812,6 +894,14 @@ class PaperclipPalApp:
         identity_id = self._identity_var.get()
         if identity_id and identity_id != "auto":
             context["identity_id"] = identity_id
+        focus_mode = bool(self._focus_var.get())
+        quiet_remaining = self._quiet_remaining_seconds()
+        context["pal_focus_mode"] = focus_mode
+        context["pal_quiet_remaining_seconds"] = round(quiet_remaining, 1)
+        if focus_mode or quiet_remaining > 0:
+            tags = list(context.get("environment_tags") or [])
+            tags.append("focus_mode" if focus_mode else "quiet_mode")
+            context["environment_tags"] = sorted(set(str(tag) for tag in tags if str(tag)))
         return context
 
     def _poll_brain(self) -> None:
@@ -897,6 +987,8 @@ class PaperclipPalApp:
         self.root.after(CODEX_USAGE_POLL_MS, self._poll_codex_usage)
 
     def _should_announce_codex_usage(self, status: CodexUsageStatus) -> bool:
+        if self._auto_reactions_paused():
+            return False
         if status.level in {"unavailable", "normal", "watch"} or status.stale:
             return False
         if self.state.brain_busy or self._bubble_items:
@@ -923,6 +1015,8 @@ class PaperclipPalApp:
         self._apply_reaction(_codex_usage_reaction(status, manual=True))
 
     def _should_announce_codex_status(self, status: CodexStatus) -> bool:
+        if self._auto_reactions_paused():
+            return False
         if status.status in {"unknown", "idle"} or status.stale:
             return False
         if not status.event_id or status.event_id == self._last_codex_status_event:
@@ -937,7 +1031,7 @@ class PaperclipPalApp:
         if overview.event_id != self._last_claude_event:
             reaction = self._claude_change_reaction(overview)
             self._last_claude_event = overview.event_id
-            if reaction and not self.state.brain_busy and not self._bubble_items:
+            if reaction and not self._auto_reactions_paused() and not self.state.brain_busy and not self._bubble_items:
                 self._apply_reaction(reaction)
         self.root.after(CLAUDE_STATUS_POLL_MS, self._poll_claude_status)
 
@@ -952,6 +1046,8 @@ class PaperclipPalApp:
         self.root.after(HARDWARE_STATUS_POLL_MS, self._poll_hardware_status)
 
     def _should_announce_hardware_status(self, snapshot: HardwareSnapshot) -> bool:
+        if self._auto_reactions_paused():
+            return False
         if snapshot.level in {"normal", "unavailable"}:
             return False
         if self.state.brain_busy or self._bubble_items:
@@ -1317,7 +1413,7 @@ class PaperclipPalApp:
         self.root.after(delay, self._idle_tick)
 
     def _idle_tick(self) -> None:
-        if self.state.can_speak(self.soul.cooldown_seconds):
+        if not self._auto_reactions_paused() and self.state.can_speak(self.soul.cooldown_seconds):
             context = self.ears.sample()
             if context.idle_seconds > 75 and random.random() < 0.70:
                 self._ask_brain("bored")
@@ -1335,6 +1431,9 @@ class PaperclipPalApp:
         self.root.after(delay, self._ambient_tick)
 
     def _ambient_tick(self) -> None:
+        if self._auto_reactions_paused():
+            self._schedule_ambient()
+            return
         world = self._world_state()
         cooldown = min(AMBIENT_COOLDOWN_SECONDS, self.mood.ambient_cooldown_seconds())
         decision = self.decision.ambient_decision(

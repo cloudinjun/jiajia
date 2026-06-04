@@ -43,3 +43,13 @@ Expected JSON shape:
 ```
 
 Low quota alerts are cooled down: under 30% at most every 30 minutes, under 10% at most every 10 minutes.
+
+## Assistant Controls
+
+The right-click menu includes lightweight Clippy-inspired controls:
+
+- `Quiet 30 min`: pauses automatic chatter and status alerts, then retreats with a sulky animation.
+- `Focus mode`: keeps only tiny low-presence motions while suppressing automatic bubbles.
+- `Summon / resume`: clears quiet/focus mode and brings 夹夹 back.
+
+Manual status checks still work while quiet or focus mode is active.

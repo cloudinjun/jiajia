@@ -162,7 +162,7 @@ identities:
     preferred_performance: quiet_companion
     allowed_moods: [innocent, focused, sleepy]
     core_animations: [quiet_breathe, slow_blink, look_away_respectfully, tiny_support_bob]
-    triggers: [long_focus, deep_work, comfort_mode, privacy_sensitive]
+    triggers: [long_focus, deep_work, comfort_mode, privacy_sensitive, focus_mode, quiet_mode, user_dismissed]
     visual_addons: []
     animations:
       idle: quiet_companion
