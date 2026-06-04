@@ -410,6 +410,9 @@ class PaperclipPalApp:
         self._window_move_running = False
         self._brain_wait_after: str | None = None
         self._brain_wait_step = 0
+        self._chat_wait_after: str | None = None
+        self._chat_wait_step = 0
+        self._chat_wait_started_at = 0.0
         self._bubble_items: list[int] = []
         self._bubble_after: str | None = None
         self._thought_dot_items: list[int] = []
@@ -723,9 +726,7 @@ class PaperclipPalApp:
             return
 
         self.state.brain_busy = True
-        self.show_bubble("……", milliseconds=14_000, kind="thought")
-        self._perform_action("thinking_tilt")
-        self._start_brain_wait_animation()
+        self._start_chat_wait_feedback()
         history = self.chat_session.history()
 
         def worker() -> None:
@@ -1142,6 +1143,7 @@ class PaperclipPalApp:
                 reaction = self.queue.get_nowait()
                 self.state.brain_busy = False
                 self._stop_brain_wait_animation()
+                self._stop_chat_wait_feedback()
                 self._apply_reaction(reaction)
         except queue.Empty:
             pass
@@ -1156,6 +1158,54 @@ class PaperclipPalApp:
         if self._brain_wait_after:
             self.root.after_cancel(self._brain_wait_after)
             self._brain_wait_after = None
+
+    def _start_chat_wait_feedback(self) -> None:
+        self._stop_chat_wait_feedback(clear_bubble=False)
+        self._chat_wait_step = 0
+        self._chat_wait_started_at = time.time()
+        self._chat_wait_tick()
+
+    def _stop_chat_wait_feedback(self, clear_bubble: bool = False) -> None:
+        if self._chat_wait_after:
+            try:
+                self.root.after_cancel(self._chat_wait_after)
+            except tk.TclError:
+                pass
+            self._chat_wait_after = None
+        self._chat_wait_step = 0
+        self._chat_wait_started_at = 0.0
+        if clear_bubble:
+            self._clear_bubble()
+
+    def _chat_wait_tick(self) -> None:
+        self._chat_wait_after = None
+        if not self.state.brain_busy:
+            return
+        elapsed = time.time() - self._chat_wait_started_at if self._chat_wait_started_at else 0.0
+        early_steps = (
+            ("收到。夹夹把这句话夹住了。", "blink", "thought", 1250),
+            ("正在折一份低隐私状态小纸条。", "scan", "thought", 1500),
+            ("正在叫醒 Ollama。本地模型起床有仪式感。", "thinking_tilt", "thought", 1750),
+            ("模型在想。夹夹先用眉毛维持连接。", "smug_sway", "thought", 1850),
+            ("正在等它吐出一句像样的话。要求不高，像样就行。", "patrol", "thought", 2100),
+        )
+        long_wait_steps = (
+            ("还在等。本地脑子正在慢慢把风格拧紧。", "sleepy_sag", "thought", 2300),
+            ("它还没回。夹夹没有失联，只是在旁边审判延迟。", "scan", "thought", 2400),
+            ("再慢一点，我就要怀疑它在给词语排队。", "thinking_tilt", "thought", 2500),
+        )
+        if self._chat_wait_step < len(early_steps):
+            line, action, bubble, delay = early_steps[self._chat_wait_step]
+        else:
+            index = (self._chat_wait_step - len(early_steps)) % len(long_wait_steps)
+            line, action, bubble, delay = long_wait_steps[index]
+            if elapsed >= 18:
+                line = f"{line} 已经 {round(elapsed)} 秒了，仪式感略多。"
+        if not self._dragging:
+            self._perform_action(action)
+        self.show_bubble(line, milliseconds=max(2400, delay + 900), kind=bubble)
+        self._chat_wait_step += 1
+        self._chat_wait_after = self.root.after(delay, self._chat_wait_tick)
 
     def _brain_wait_tick(self) -> None:
         self._brain_wait_after = None

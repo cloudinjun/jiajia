@@ -66,6 +66,8 @@ Chat replies use the existing `Reaction` pipeline, so a reply can still pick a m
 
 Chat context is intentionally low-privacy: agent status summaries, hardware metrics, Codex usage, activity mode, app category, and recent pal lines. It does not include clipboard text, keystroke text, raw screen text, or full screenshot contents.
 
+While waiting for a local LLM reply, the pal cycles through visible wait stages instead of showing only dots: message received, low-privacy context folded, Ollama waking, model thinking, and long-wait fallback lines.
+
 ## Activity Policy
 
 The `活跃度` menu is a behavior policy, not just a speech-rate slider:

@@ -291,7 +291,8 @@ local_chat:
   command_router:
     local_before_llm: [codex_status, claude_status, hardware_status, codex_usage, activity_mode, focus_mode, quiet_30m]
   privacy_boundary: status_summaries_only_no_clipboard_no_keystrokes_no_raw_screen_text
-  waiting_animation: thinking_tilt_with_thought_dots
+  waiting_animation: staged_feedback_loop
+  waiting_stages: [message_received, context_folded, ollama_waking, model_thinking, reply_waiting, long_wait]
   reply_pipeline: Reaction_mood_action_bubble_performance
 
 scripted_demo:
