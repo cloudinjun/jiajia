@@ -17,6 +17,7 @@ LEVEL_RANK = {
     "unavailable": -1,
     "normal": 0,
     "cooling": 0,
+    "busy": 0,
     "warm": 1,
     "hot": 2,
     "overloaded": 3,
@@ -110,12 +111,15 @@ class HardwareStatusMonitor:
         overloaded_count = sum(level == "overloaded" for level in samples)
         hot_count = sum(LEVEL_RANK[level] >= LEVEL_RANK["hot"] for level in samples)
         warm_count = sum(LEVEL_RANK[level] >= LEVEL_RANK["warm"] for level in samples)
+        busy_count = sum(level == "busy" for level in samples)
         if overloaded_count >= 4:
             return "overloaded"
         if hot_count >= 3:
             return "hot"
         if warm_count >= 2:
             return "warm"
+        if busy_count >= 2:
+            return "busy"
         return "normal"
 
 
@@ -242,17 +246,21 @@ def _raw_level(snapshot: HardwareSnapshot) -> str:
     gpu_temp = snapshot.gpu_temp_c or 0.0
     vram = snapshot.vram_percent or 0.0
 
-    if (gpu >= 95 and (vram >= 85 or gpu_temp >= 78)) or vram >= 95 or ram >= 94:
+    if (gpu_temp >= 82 and gpu >= 90) or cpu_temp >= 90:
         return "overloaded"
-    if gpu_temp >= 80 or cpu_temp >= 86 or gpu >= 95 or cpu >= 92 or ram >= 90:
+    if gpu_temp >= 80 or cpu_temp >= 86:
         return "hot"
-    if gpu_temp >= 70 or cpu_temp >= 78 or gpu >= 80 or cpu >= 85 or ram >= 85:
+    if gpu_temp >= 70 or cpu_temp >= 78:
         return "warm"
+    if gpu >= 90 or vram >= 90 or ram >= 90 or cpu >= 90:
+        return "busy"
     return "normal"
 
 
 def _hardware_tags(snapshot: HardwareSnapshot, level: str) -> tuple[str, ...]:
     tags = {f"hardware_{level}"}
+    if level == "busy":
+        tags.add("system_busy")
     if level in {"hot", "overloaded"}:
         tags.add("system_hot")
     if level == "overloaded":

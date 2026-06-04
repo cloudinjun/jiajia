@@ -96,6 +96,7 @@ STATUS_BADGES: dict[str, tuple[str, str, str]] = {
 HARDWARE_TINTS = {
     "normal": WIRE,
     "unavailable": WIRE,
+    "busy": "#aeb6c5",
     "cooling": "#b8b8b8",
     "warm": "#caa0a0",
     "hot": "#d86b6b",
@@ -440,6 +441,7 @@ class PaperclipPalApp:
         self._logged_hardware_status_event = ""
         self._last_hardware_announcement_at = 0.0
         self._hardware_tint_level = "normal"
+        self._hardware_tint_after: str | None = None
         self._recent_codex_status_fragments: list[str] = []
         self._brain_thread: threading.Thread | None = None
         self._line_bank_thread: threading.Thread | None = None
@@ -1362,7 +1364,6 @@ class PaperclipPalApp:
     def _poll_hardware_status(self) -> None:
         snapshot = self.hardware_status.sample()
         self._last_hardware_status = snapshot
-        self._set_hardware_tint(snapshot.level)
         self._refresh_status_badges()
         if self._should_log_hardware_status(snapshot):
             self._logged_hardware_status_event = snapshot.event_id
@@ -1404,12 +1405,29 @@ class PaperclipPalApp:
     def _show_hardware_status(self) -> None:
         snapshot = self.hardware_status.sample()
         self._last_hardware_status = snapshot
-        self._set_hardware_tint(snapshot.level)
         self._apply_reaction(_hardware_status_reaction(snapshot, manual=True))
 
     def _set_hardware_tint(self, level: str) -> None:
+        if self._hardware_tint_after:
+            try:
+                self.root.after_cancel(self._hardware_tint_after)
+            except tk.TclError:
+                pass
+            self._hardware_tint_after = None
         self._hardware_tint_level = level
         self._apply_hardware_tint()
+
+    def _flash_hardware_tint(self, level: str, milliseconds: int = 9000) -> None:
+        self._set_hardware_tint(level)
+        if level in {"normal", "unavailable"}:
+            return
+        self._hardware_tint_after = self.root.after(milliseconds, self._clear_hardware_tint)
+
+    def _clear_hardware_tint(self) -> None:
+        self._hardware_tint_after = None
+        self._hardware_tint_level = "normal"
+        self._apply_hardware_tint()
+        self._refresh_status_badges()
 
     def _apply_hardware_tint(self) -> None:
         fill = HARDWARE_TINTS.get(self._hardware_tint_level, WIRE)
@@ -1533,7 +1551,7 @@ class PaperclipPalApp:
             badges.append("codex_waiting")
         if self._last_codex_status.status in {"error", "blocked", "disconnected"}:
             badges.append("error")
-        if self._last_hardware_status.level in {"hot", "overloaded"}:
+        if self._hardware_tint_after and self._hardware_tint_level in {"hot", "overloaded"}:
             badges.append("hardware_hot")
         if self._last_codex_usage_status.level in {"low", "critical", "reset_soon"}:
             badges.append("usage_low")
@@ -1718,6 +1736,7 @@ class PaperclipPalApp:
         self._cancel_performance_phrase()
         self.state.mood = reaction.mood
         self.mood.push_mood(reaction.mood)
+        self._maybe_flash_hardware_tint(reaction)
         self._refresh_status_badges()
         state = self.animation_player.manifest.state_for_reaction(reaction.mood, reaction.action, reaction.bubble)
         performance = (
@@ -1748,6 +1767,18 @@ class PaperclipPalApp:
         if reaction.should_say and reaction.line:
             self.show_bubble(reaction.line, kind=reaction.bubble)
             self.state.remember_line(reaction.line)
+
+    def _maybe_flash_hardware_tint(self, reaction: Reaction) -> None:
+        event = (reaction.event or "").lower()
+        bubble = (reaction.bubble or "").lower()
+        if not (event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_")):
+            return
+        level = self._last_hardware_status.level
+        if event.startswith("demo_hardware_"):
+            level = event.removeprefix("demo_hardware_").split("_", 1)[0]
+        elif event.startswith("hardware_"):
+            level = event.removeprefix("hardware_").split("_", 1)[0]
+        self._flash_hardware_tint(level, milliseconds=11_000)
 
     def _run_performance_phrase(self, name: str, reaction: Reaction, state: str = "") -> None:
         callbacks = AnimationCallbacks(
@@ -2776,6 +2807,16 @@ def _hardware_status_reaction(snapshot: HardwareSnapshot, manual: bool = False) 
         )
 
     choices = {
+        "busy": (
+            (
+                f"{summary}。它很忙，但温度还没开始表演红温文学。",
+                f"{summary}。显存被占得很满，不过这更像忙，不像熟。",
+                f"{summary}。电脑在工作，夹夹先不把它渲染成烤箱。",
+            ),
+            "thinking",
+            ("scan", "patrol", "thinking_tilt"),
+            "suspicious_observe",
+        ),
         "warm": (
             (
                 f"{summary}。有点热，夹夹先微微变红，不报警。",
@@ -2818,7 +2859,7 @@ def _hardware_status_reaction(snapshot: HardwareSnapshot, manual: bool = False) 
         ),
     }
     lines, mood, actions, performance = choices.get(level, choices["warm"])
-    bubble = "hardware_speech" if manual and level in {"hot", "overloaded"} else "hardware_thought"
+    bubble = "hardware_speech" if manual and level in {"busy", "hot", "overloaded"} else "hardware_thought"
     return Reaction(
         True,
         random.choice(lines),

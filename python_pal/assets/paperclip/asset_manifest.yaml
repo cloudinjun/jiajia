@@ -200,18 +200,21 @@ hardware_status_levels:
   normal:
     body_tint: "#AEAEAE"
     behavior: no_alert
+  busy:
+    body_tint: "#AEB6C5"
+    behavior: temporary_manual_or_reminder_tint_no_red_alert
   warm:
     body_tint: "#CAA0A0"
-    behavior: subtle_pink_tint
+    behavior: temporary_subtle_pink_tint_on_reminder
   hot:
     body_tint: "#D86B6B"
-    behavior: short_shake_or_fake_sulk
+    behavior: temporary_red_tint_plus_short_shake_or_fake_sulk
   overloaded:
     body_tint: "#BD4343"
-    behavior: deeper_red_plus_flop
+    behavior: temporary_deeper_red_plus_flop
   cooling:
     body_tint: "#B8B8B8"
-    behavior: one_recovery_line_then_normal
+    behavior: temporary_recovery_line_then_normal
 
 codex_usage_levels:
   normal:

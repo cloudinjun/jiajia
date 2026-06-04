@@ -399,6 +399,9 @@ def _hardware_status_reaction(context: dict[str, object]) -> Reaction:
     if level == "normal":
         line = f"{summary or '硬件状态正常'}。暂时不熟，夹夹保持办公用品形态。"
         return Reaction(True, line, "innocent", "blink", "hardware_speech", "quiet_companion", event="chat_hardware_status")
+    if level == "busy":
+        line = f"{summary}。它很忙，但温度不高。夹夹先不装作电脑熟了。"
+        return Reaction(True, line, "thinking", "scan", "hardware_speech", "suspicious_observe", event="chat_hardware_status")
     line = f"{summary}。等级是 {level}，它不是热情，是物理意义上的努力。"
     mood = "startled" if level in {"warm", "hot"} else "sulky"
     action = "shake" if level in {"hot", "overloaded"} else "scan"

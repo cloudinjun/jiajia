@@ -19,6 +19,8 @@ It reads:
 
 It does not read clipboard text, keystrokes, chat content, or screen text. Alerts use rolling samples and cooldowns so short spikes do not trigger noisy bubbles.
 
+High GPU/VRAM/RAM use without high temperature is treated as `busy`, not red-hot. Hardware tint is temporary: it appears during hardware reminders or manual hardware checks, then returns to the normal gray body.
+
 ## Codex Usage
 
 夹夹 reads Codex quota from a local bridge file, `codex_usage_status.json`. It does not scrape the Codex or ChatGPT settings UI.
