@@ -208,3 +208,127 @@ performance_phrases:
       - action: nod
         duration_ms: 220
       - reset: expression
+
+  roast_and_scoot:
+    type: procedural
+    fallback_action: roast_and_scoot
+    sequence:
+      - action: thinking_tilt
+        duration_ms: 340
+      - brows: judge
+        eyes: side_eye
+        duration_ms: 240
+      - bubble: speak
+        duration_ms: 120
+      - action: roast_and_scoot
+        duration_ms: 420
+      - brows: innocent
+        eyes: round
+        duration_ms: 160
+      - reset: expression
+
+  agent_stuck_stare:
+    type: procedural
+    fallback_action: scan
+    sequence:
+      - action: scan
+        duration_ms: 500
+      - brows: judge
+        eyes: side_eye
+        duration_ms: 300
+      - pause_ms: 180
+      - bubble: speak
+        duration_ms: 130
+      - action: thinking_tilt
+        duration_ms: 360
+      - reset: expression
+
+  hardware_hot_sag:
+    type: procedural
+    fallback_action: shake
+    sequence:
+      - action: shake
+        duration_ms: 360
+      - brows: guilty
+        eyes: round
+        duration_ms: 160
+      - action: sulk
+        duration_ms: 420
+      - bubble: speak
+        duration_ms: 130
+      - reset: expression
+
+  usage_low_sag:
+    type: procedural
+    fallback_action: sulk
+    sequence:
+      - action: sleepy_sag
+        duration_ms: 420
+      - brows: sulk
+        eyes: peek_up
+        duration_ms: 220
+      - bubble: speak
+        duration_ms: 120
+      - action: blink
+        duration_ms: 180
+      - reset: expression
+
+  sleep_loop:
+    type: procedural
+    fallback_action: sleepy_sag
+    sequence:
+      - brows: soft
+        eyes: soft
+        duration_ms: 140
+      - action: sleepy_sag
+        duration_ms: 700
+      - action: blink
+        duration_ms: 260
+      - pause_ms: 220
+      - reset: expression
+
+  wake_startled:
+    type: procedural
+    fallback_action: startled_pop
+    sequence:
+      - action: startled_pop
+        duration_ms: 420
+      - brows: guilty
+        eyes: round
+        duration_ms: 180
+      - action: blink
+        duration_ms: 180
+      - bubble: speak
+        duration_ms: 120
+      - brows: innocent
+        eyes: round
+        duration_ms: 140
+      - reset: expression
+
+  retreat_to_corner:
+    type: procedural
+    fallback_action: retreat_to_corner
+    sequence:
+      - brows: sulk
+        eyes: peek_up
+        duration_ms: 160
+      - action: retreat_to_corner
+        duration_ms: 900
+      - bubble: speak
+        duration_ms: 120
+      - reset: expression
+
+  drop_in:
+    type: procedural
+    fallback_action: drop_in
+    sequence:
+      - action: drop_in
+        duration_ms: 900
+      - brows: innocent
+        eyes: round
+        duration_ms: 160
+      - bubble: speak
+        duration_ms: 120
+      - action: nod
+        duration_ms: 220
+      - reset: expression

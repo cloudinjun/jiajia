@@ -258,3 +258,33 @@ activity_level_controls:
     proactive_detection: clippy_style_allowed
     alert_threshold: personality_mode
     allowed_auto_identities: [gremlin_clip, task_auditor, critic_clip, tab_warden]
+
+status_badges:
+  codex_waiting:
+    visual: yellow_circle_C
+    trigger: codex_status.waiting_user
+  hardware_hot:
+    visual: red_circle_degree
+    trigger: hardware.hot_or_overloaded
+  usage_low:
+    visual: orange_circle_percent
+    trigger: codex_usage.low_or_critical
+  focus_mode:
+    visual: slate_circle_F
+    trigger: focus_or_quiet_mode
+  error:
+    visual: red_triangle_exclamation
+    trigger: codex_error_or_blocked
+  sleeping:
+    visual: gray_circle_Z
+    trigger: sleepy_or_sulky_mood
+
+event_log:
+  path: memory/event_log.jsonl
+  privacy_boundary: state_events_only_no_keystrokes_no_clipboard_no_screen_text
+  digest_menu: Morning digest
+
+scripted_demo:
+  menu: Scripted demo
+  cli: python -m python_pal.main --demo
+  events: [codex_running, codex_waiting_user, gpu_98, usage_8, focus_mode, poke_3, cooling_down, codex_done]

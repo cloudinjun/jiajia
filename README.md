@@ -64,3 +64,20 @@ The `活跃度` menu is a behavior policy, not just a speech-rate slider:
 - `多动`: Clippy-style proactive detection and personality chatter are allowed.
 
 The policy controls speech frequency, micro-animation frequency, proactive environment detection, and alert thresholds for Codex, Claude, usage, and hardware signals.
+
+## Event Log And Demo
+
+Low-privacy events are appended to `memory/event_log.jsonl`. The log records source, event, level, summary, and the pal reaction, but not keystrokes, clipboard text, chat content, or screen text.
+
+Right-click tools:
+
+- `Last events`: shows the most recent event records.
+- `Morning digest`: summarizes events since the previous digest.
+- `Animation Preview`: plays manifest-defined performance phrases.
+- `Scripted demo`: simulates Codex, usage, hardware, focus, poke, cooling, and done states.
+
+Command-line demo:
+
+```powershell
+python -m python_pal.main --demo
+```

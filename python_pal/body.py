@@ -22,6 +22,7 @@ from .codex_status import CodexStatus, CodexStatusMonitor
 from .codex_usage import CodexUsageMonitor, CodexUsageStatus, format_reset_in
 from .decision import DecisionEngine
 from .ears import Ears
+from .event_log import EventLog
 from .eyes import Eyes
 from .hardware_status import HardwareSnapshot, HardwareStatusMonitor
 from .performance import PERFORMANCE_PHRASES, phrase_for_reaction
@@ -82,6 +83,14 @@ CODEX_USAGE_COLORS = {
     "reset_soon": "#10a37f",
     "refilled": "#10a37f",
     "unavailable": "#a8a8a8",
+}
+STATUS_BADGES: dict[str, tuple[str, str, str]] = {
+    "codex_waiting": ("C", "#f0b429", "circle"),
+    "hardware_hot": ("°", "#d86b6b", "circle"),
+    "usage_low": ("%", "#e4a03b", "circle"),
+    "focus_mode": ("F", "#7c8db5", "circle"),
+    "error": ("!", "#d65b4a", "triangle"),
+    "sleeping": ("Z", "#a8a8a8", "circle"),
 }
 HARDWARE_TINTS = {
     "normal": WIRE,
@@ -332,6 +341,7 @@ class PaperclipPalApp:
         self.codex_status = CodexStatusMonitor(project_root / "codex_status.json")
         self.codex_usage = CodexUsageMonitor(project_root / "codex_usage_status.json")
         self.hardware_status = HardwareStatusMonitor()
+        self.event_log = EventLog(project_root / "memory" / "event_log.jsonl")
         self.state = PalState()
         self.decision = DecisionEngine()
         self.animation_player = AnimationPlayer(load_animation_manifest(project_root / "python_pal" / "animations.yaml"))
@@ -404,13 +414,20 @@ class PaperclipPalApp:
         self._thought_dot_phase = 0
         self._thought_dot_after: str | None = None
         self._usage_badge_items: list[int] = []
+        self._status_badge_items: list[int] = []
+        self._status_badge_after: str | None = None
+        self._status_badge_phase = 0
+        self._demo_after: list[str] = []
         self._last_codex_status_event = ""
         self._last_codex_status: CodexStatus = CodexStatus()
+        self._logged_codex_status_event = ""
         self._last_codex_usage_event = ""
         self._last_codex_usage_status: CodexUsageStatus = CodexUsageStatus()
+        self._logged_codex_usage_event = ""
         self._last_codex_usage_announcement_at = 0.0
         self._last_hardware_status_event = ""
         self._last_hardware_status: HardwareSnapshot = HardwareSnapshot()
+        self._logged_hardware_status_event = ""
         self._last_hardware_announcement_at = 0.0
         self._hardware_tint_level = "normal"
         self._recent_codex_status_fragments: list[str] = []
@@ -559,6 +576,13 @@ class PaperclipPalApp:
                 )
             action_menu.add_cascade(label=group_label, menu=group_menu)
         self.menu.add_cascade(label="Actions", menu=action_menu)
+        preview_menu = tk.Menu(self.menu, tearoff=False)
+        for performance_id in sorted(self.animation_player.manifest.performances):
+            preview_menu.add_command(
+                label=performance_id,
+                command=lambda performance_id=performance_id: self._preview_performance(performance_id),
+            )
+        self.menu.add_cascade(label="Animation Preview", menu=preview_menu)
         identity_menu = tk.Menu(self.menu, tearoff=False)
         identity_menu.add_radiobutton(
             label="Auto",
@@ -578,6 +602,9 @@ class PaperclipPalApp:
         self.menu.add_command(label="Codex usage", command=self._show_codex_usage)
         self.menu.add_command(label="Claude 状态", command=self._show_claude_status)
         self.menu.add_command(label="Hardware status", command=self._show_hardware_status)
+        self.menu.add_command(label="Last events", command=self._show_last_events)
+        self.menu.add_command(label="Morning digest", command=self._show_morning_digest)
+        self.menu.add_command(label="Scripted demo", command=self._run_scripted_demo)
         self.menu.add_command(label="Debug last decision", command=self._show_last_decision_debug)
         self.menu.add_command(label="Debug animation", command=self._show_last_animation_debug)
         self.menu.add_command(label="Debug identity", command=self._show_identity_debug)
@@ -662,6 +689,8 @@ class PaperclipPalApp:
         self._quiet_until = time.time() + max(1, seconds)
         self._focus_var.set(False)
         self._clear_bubble()
+        self._log_event("user_mode", "quiet", "notice", "Quiet 30 min enabled")
+        self._refresh_status_badges()
         self._apply_reaction(
             Reaction(
                 True,
@@ -678,6 +707,8 @@ class PaperclipPalApp:
         self._quiet_until = 0.0
         self._clear_bubble()
         if self._focus_var.get():
+            self._log_event("user_mode", "focus_on", "notice", "Focus mode enabled")
+            self._refresh_status_badges()
             self._apply_reaction(
                 Reaction(
                     True,
@@ -690,6 +721,8 @@ class PaperclipPalApp:
                 )
             )
             return
+        self._log_event("user_mode", "focus_off", "notice", "Focus mode disabled")
+        self._refresh_status_badges()
         self._apply_reaction(
             Reaction(
                 True,
@@ -706,6 +739,8 @@ class PaperclipPalApp:
         self._quiet_until = 0.0
         self._focus_var.set(False)
         self._clear_bubble()
+        self._log_event("user_mode", "resume", "notice", "Automatic reactions resumed")
+        self._refresh_status_badges()
         self._apply_reaction(
             Reaction(
                 True,
@@ -980,21 +1015,44 @@ class PaperclipPalApp:
     def _poll_codex_status(self) -> None:
         status = self.codex_status.sample()
         self._last_codex_status = status
+        self._refresh_status_badges()
+        if self._should_log_codex_status(status):
+            self._logged_codex_status_event = status.event_id
+            self._log_event(
+                "codex_status",
+                status.status,
+                _codex_event_level(status.status),
+                status.summary or f"Codex {status.status}",
+            )
         if self._should_announce_codex_status(status):
             reaction = _codex_status_reaction(status, self._recent_codex_status_fragments)
             self._last_codex_status_event = status.event_id
             self._apply_reaction(reaction)
         self.root.after(CODEX_STATUS_POLL_MS, self._poll_codex_status)
 
+    def _should_log_codex_status(self, status: CodexStatus) -> bool:
+        if status.status in {"unknown", "idle"} or status.stale:
+            return False
+        return bool(status.event_id and status.event_id != self._logged_codex_status_event)
+
     def _poll_codex_usage(self) -> None:
         status = self.codex_usage.sample()
         self._last_codex_usage_status = status
         self._set_codex_usage_badge(status)
+        self._refresh_status_badges()
+        if self._should_log_codex_usage(status):
+            self._logged_codex_usage_event = status.event_id
+            self._log_event("codex_usage", status.level, _usage_event_level(status.level), status.summary_line)
         if self._should_announce_codex_usage(status):
             self._last_codex_usage_event = status.event_id
             self._last_codex_usage_announcement_at = time.time()
             self._apply_reaction(_codex_usage_reaction(status))
         self.root.after(CODEX_USAGE_POLL_MS, self._poll_codex_usage)
+
+    def _should_log_codex_usage(self, status: CodexUsageStatus) -> bool:
+        if status.level in {"unavailable", "normal"} or status.stale:
+            return False
+        return bool(status.event_id and status.event_id != self._logged_codex_usage_event)
 
     def _should_announce_codex_usage(self, status: CodexUsageStatus) -> bool:
         if self._auto_reactions_paused():
@@ -1051,6 +1109,8 @@ class PaperclipPalApp:
         if overview.event_id != self._last_claude_event:
             reaction = self._claude_change_reaction(overview)
             self._last_claude_event = overview.event_id
+            if reaction:
+                self._log_event("claude_status", reaction.event or "changed", _reaction_event_level(reaction), reaction.line)
             policy = self._activity_policy()
             if (
                 reaction
@@ -1066,11 +1126,20 @@ class PaperclipPalApp:
         snapshot = self.hardware_status.sample()
         self._last_hardware_status = snapshot
         self._set_hardware_tint(snapshot.level)
+        self._refresh_status_badges()
+        if self._should_log_hardware_status(snapshot):
+            self._logged_hardware_status_event = snapshot.event_id
+            self._log_event("hardware", snapshot.level, _hardware_event_level(snapshot.level), snapshot.summary_line)
         if self._should_announce_hardware_status(snapshot):
             self._last_hardware_status_event = snapshot.event_id
             self._last_hardware_announcement_at = time.time()
             self._apply_reaction(_hardware_status_reaction(snapshot))
         self.root.after(HARDWARE_STATUS_POLL_MS, self._poll_hardware_status)
+
+    def _should_log_hardware_status(self, snapshot: HardwareSnapshot) -> bool:
+        if snapshot.level in {"normal", "unavailable"}:
+            return False
+        return bool(snapshot.event_id and snapshot.event_id != self._logged_hardware_status_event)
 
     def _should_announce_hardware_status(self, snapshot: HardwareSnapshot) -> bool:
         if self._auto_reactions_paused():
@@ -1167,6 +1236,83 @@ class PaperclipPalApp:
                 pass
         self._usage_badge_items.clear()
 
+    def _refresh_status_badges(self) -> None:
+        badge_ids = self._status_badge_ids()
+        if self._status_badge_after:
+            try:
+                self.root.after_cancel(self._status_badge_after)
+            except tk.TclError:
+                pass
+            self._status_badge_after = None
+        self.canvas.delete("status_badge")
+        self._status_badge_items.clear()
+        if not badge_ids:
+            return
+        start_x = self.width - 14
+        y = 18
+        for index, badge_id in enumerate(badge_ids[:6]):
+            label, fill, shape = STATUS_BADGES[badge_id]
+            cx = start_x - index * 21
+            if shape == "triangle":
+                item = self.canvas.create_polygon(
+                    cx,
+                    y - 8,
+                    cx - 9,
+                    y + 8,
+                    cx + 9,
+                    y + 8,
+                    fill=fill,
+                    outline="#ffffff",
+                    width=1,
+                    tags=("status_badge", "status_badge_shape"),
+                )
+            else:
+                item = self.canvas.create_oval(
+                    cx - 8,
+                    y - 8,
+                    cx + 8,
+                    y + 8,
+                    fill=fill,
+                    outline="#ffffff",
+                    width=1,
+                    tags=("status_badge", "status_badge_shape"),
+                )
+            text = self.canvas.create_text(
+                cx,
+                y,
+                text=label,
+                fill="#ffffff",
+                font=("Microsoft YaHei UI", 7, "bold"),
+                tags=("status_badge",),
+            )
+            self._status_badge_items.extend([item, text])
+        self._pulse_status_badges()
+
+    def _status_badge_ids(self) -> list[str]:
+        badges: list[str] = []
+        if self._focus_var.get() or self._quiet_remaining_seconds() > 0:
+            badges.append("focus_mode")
+        if self._last_codex_status.status == "waiting_user":
+            badges.append("codex_waiting")
+        if self._last_codex_status.status in {"error", "blocked", "disconnected"}:
+            badges.append("error")
+        if self._last_hardware_status.level in {"hot", "overloaded"}:
+            badges.append("hardware_hot")
+        if self._last_codex_usage_status.level in {"low", "critical", "reset_soon"}:
+            badges.append("usage_low")
+        if self.state.mood in {"sleepy", "sulky"}:
+            badges.append("sleeping")
+        return badges
+
+    def _pulse_status_badges(self) -> None:
+        if not self._status_badge_items:
+            self._status_badge_after = None
+            return
+        self._status_badge_phase += 1
+        width = 2 if self._status_badge_phase % 2 else 1
+        self.canvas.itemconfigure("status_badge_shape", width=width)
+        self._status_badge_after = self.root.after(650, self._pulse_status_badges)
+
     def _claude_change_reaction(self, overview: ClaudeOverview) -> Reaction | None:
         current_sessions = {s.pid: s for s in overview.sessions if s.alive}
         current_pids = set(current_sessions)
@@ -1199,6 +1345,101 @@ class PaperclipPalApp:
         reaction = _claude_overview_reaction(overview, self._recent_claude_status_fragments)
         self._apply_reaction(reaction)
 
+    def _show_last_events(self) -> None:
+        events = self.event_log.last(12)
+        if not events:
+            self.show_bubble("事件日志还是空的。夹夹暂时没有黑匣子，只有眉毛。", milliseconds=5200, kind="thought")
+            return
+        text = "最近事件：\n" + "\n".join(f"- {event.short_line()}" for event in events)
+        self.show_bubble(text, milliseconds=9000, kind="thought")
+
+    def _show_morning_digest(self) -> None:
+        self.show_bubble(self.event_log.digest(mark_read=True), milliseconds=11000, kind="speech")
+
+    def _run_scripted_demo(self) -> None:
+        self._cancel_scripted_demo()
+        self._log_event("demo", "started", "notice", "Scripted demo started")
+        self._apply_reaction(
+            Reaction(True, "演示开始。夹夹开始装作自己是测试工程师。", "smirk", "drop_in", "speech", "drop_in", event="demo_started")
+        )
+        steps = (
+            (900, lambda: self._demo_codex("running", "Codex running demo", "Codex 开始跑命令。终端负责紧张，夹夹负责围观。", "thinking", "scan", "agent_stuck_stare")),
+            (3300, lambda: self._demo_codex("waiting_user", "Waiting for user", "Codex 在等你确认。它等得像一块电子石头。", "suspicious", "thinking_tilt", "agent_stuck_stare")),
+            (5700, lambda: self._demo_hardware("overloaded", "GPU 98% / 82C / VRAM 91%", "GPU 98%。我替你熟了一会儿。", "startled", "shake", "hardware_hot_sag")),
+            (8100, lambda: self._demo_usage("critical", 8, "reset in 20 minutes", "Codex 只剩 8%。现在每个大活都要过会计。", "sulky", "sulk", "usage_low_sag")),
+            (10500, self._demo_focus_on),
+            (12800, self._demo_pokes),
+            (15400, lambda: self._demo_hardware("cooling", "GPU cooling down", "温度下来了。夹夹恢复成办公用品。", "innocent", "nod", "quiet_companion")),
+            (18000, lambda: self._demo_codex("done", "Demo finished", "Codex 说它做完了。听起来像好消息，暂时。", "done", "happy_bounce", "tiny_celebrate")),
+        )
+        for delay, callback in steps:
+            self._demo_after.append(self.root.after(delay, callback))
+
+    def _cancel_scripted_demo(self) -> None:
+        for after_id in self._demo_after:
+            try:
+                self.root.after_cancel(after_id)
+            except tk.TclError:
+                pass
+        self._demo_after.clear()
+
+    def _demo_codex(self, status: str, summary: str, line: str, mood: str, action: str, performance: str) -> None:
+        self._last_codex_status = CodexStatus(status=status, summary=summary, source="demo", event_id=f"demo_codex_{status}_{time.time()}")
+        self._refresh_status_badges()
+        self._log_event("demo_codex", status, _codex_event_level(status), summary)
+        self._apply_reaction(Reaction(True, line, mood, action, "codex_thought", performance, event=f"demo_codex_{status}"))
+
+    def _demo_hardware(self, level: str, summary: str, line: str, mood: str, action: str, performance: str) -> None:
+        self._last_hardware_status = HardwareSnapshot(level=level, summary_line=summary, event_id=f"demo_hardware_{level}_{time.time()}")
+        self._set_hardware_tint(level)
+        self._refresh_status_badges()
+        self._log_event("demo_hardware", level, _hardware_event_level(level), summary)
+        self._apply_reaction(Reaction(True, line, mood, action, "hardware_thought", performance, event=f"demo_hardware_{level}"))
+
+    def _demo_usage(self, level: str, percent: float, summary: str, line: str, mood: str, action: str, performance: str) -> None:
+        self._last_codex_usage_status = CodexUsageStatus(
+            usage_remaining_percent=percent,
+            level=level,
+            summary_line=summary,
+            event_id=f"demo_usage_{level}_{time.time()}",
+        )
+        self._set_codex_usage_badge(self._last_codex_usage_status)
+        self._refresh_status_badges()
+        self._log_event("demo_usage", level, _usage_event_level(level), summary)
+        self._apply_reaction(Reaction(True, line, mood, action, "usage_speech", performance, event=f"demo_usage_{level}"))
+
+    def _demo_focus_on(self) -> None:
+        self._focus_var.set(True)
+        self._quiet_until = 0.0
+        self._refresh_status_badges()
+        self._log_event("demo_user_mode", "focus_on", "notice", "Demo focus mode")
+        self._apply_reaction(
+            Reaction(True, "用户进入专注模式。夹夹退到角落，保留一点点眼神。", "innocent", "retreat_to_corner", "thought", "retreat_to_corner", event="demo_focus_on")
+        )
+
+    def _demo_pokes(self) -> None:
+        self._focus_var.set(False)
+        self._refresh_status_badges()
+        self._log_event("demo_user", "poke_3", "notice", "User pokes pal three times")
+        self._perform_action("wiggle")
+        self._apply_reaction(
+            Reaction(True, "你连续戳我三下。任务也能这样被推进就好了。", "smug", "roast_and_scoot", "speech", "roast_and_scoot", event="demo_poke_3")
+        )
+
+    def _preview_performance(self, performance_id: str) -> None:
+        definition = self.animation_player.manifest.performance(performance_id)
+        fallback = definition.fallback_action if definition else "blink"
+        reaction = Reaction(
+            True,
+            f"预览 {performance_id}。如果不好看，先怪占位系统。",
+            "thinking",
+            fallback,
+            "thought",
+            performance_id,
+            event=f"preview_{performance_id}",
+        )
+        self._apply_reaction(reaction)
+
     def _show_last_decision_debug(self) -> None:
         policy = self._activity_policy()
         prefix = (
@@ -1217,15 +1458,36 @@ class PaperclipPalApp:
         prefix = f"mode: {mode}\nselected: {pack.display_name}\n"
         self.show_bubble(prefix + pack.prompt_brief(), milliseconds=7600, kind="thought")
 
+    def _log_event(
+        self,
+        source: str,
+        event: str,
+        level: str = "notice",
+        summary: str = "",
+        pal_reaction: str = "",
+    ) -> None:
+        try:
+            self.event_log.append(source, event, level, summary, pal_reaction)
+        except Exception:
+            return
+
     def _apply_reaction(self, reaction: Reaction) -> None:
         self._cancel_performance_phrase()
         self.state.mood = reaction.mood
         self.mood.push_mood(reaction.mood)
+        self._refresh_status_badges()
         state = self.animation_player.manifest.state_for_reaction(reaction.mood, reaction.action, reaction.bubble)
         performance = (
             reaction.performance
             or self.animation_player.manifest.performance_for_state(state)
             or phrase_for_reaction(reaction.mood, reaction.action, reaction.bubble)
+        )
+        self._log_event(
+            "pal",
+            reaction.event or "reaction",
+            _reaction_event_level(reaction),
+            reaction.line,
+            performance or reaction.action,
         )
         if performance and reaction.should_say and reaction.line:
             self._run_performance_phrase(performance, reaction, state)
@@ -2109,6 +2371,39 @@ def _scale_coords(coords: list[float]) -> list[float]:
 
 CodexStatusProfile = tuple[tuple[str, ...], str, tuple[str, ...], str, tuple[str, ...]]
 ClaudeStatusProfile = tuple[tuple[str, ...], str, tuple[str, ...], str, tuple[str, ...]]
+
+
+def _codex_event_level(status: str) -> str:
+    if status in {"error", "blocked", "disconnected"}:
+        return "error"
+    if status in {"waiting_user", "reconnecting"}:
+        return "warning"
+    return "notice"
+
+
+def _usage_event_level(level: str) -> str:
+    if level == "critical":
+        return "critical"
+    if level in {"low", "reset_soon"}:
+        return "warning"
+    return "notice"
+
+
+def _hardware_event_level(level: str) -> str:
+    if level == "overloaded":
+        return "critical"
+    if level == "hot":
+        return "warning"
+    return "notice"
+
+
+def _reaction_event_level(reaction: Reaction) -> str:
+    event = (reaction.event or "").lower()
+    if reaction.mood in {"sulky", "startled"} or any(key in event for key in ("error", "blocked", "critical", "overloaded")):
+        return "warning"
+    if reaction.mood in {"done", "happy", "proud"} or any(key in event for key in ("done", "refilled", "cooling")):
+        return "notice"
+    return "notice"
 
 
 def _codex_usage_reaction(status: CodexUsageStatus, manual: bool = False) -> Reaction:
