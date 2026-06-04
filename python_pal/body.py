@@ -44,6 +44,7 @@ PAL_SCALE_CENTER_Y = PAL_PAD_Y + PAL_HEIGHT * 0.55
 PAL_LOOK_CENTER_X = PAL_PAD_X + PAL_WIDTH * 0.48
 PAL_LOOK_CENTER_Y = PAL_PAD_Y + PAL_HEIGHT * 0.32
 BUBBLE_WIDTH = 260
+BUBBLE_MIN_WIDTH = 150
 BUBBLE_MIN_HEIGHT = 72
 BUBBLE_MAX_LINES = 5
 BUBBLE_PADDING_X = 14
@@ -1320,22 +1321,23 @@ class PaperclipPalApp:
         is_thought, fill, outline, text_fill = _bubble_style(kind)
         font_spec = THOUGHT_FONT if is_thought else BUBBLE_FONT
         font = tkfont.Font(family=font_spec[0], size=font_spec[1], slant=font_spec[2] if len(font_spec) > 2 else "roman")
-        text_width = BUBBLE_WIDTH - BUBBLE_PADDING_X * 2
         wrapped_text = pages[index]
         line_count = max(1, wrapped_text.count("\n") + 1)
         line_height = font.metrics("linespace")
         tail_space = 30 if is_thought else 18
+        bubble_width = _bubble_page_width(wrapped_text, font)
+        text_width = bubble_width - BUBBLE_PADDING_X * 2
         bubble_height = max(
             BUBBLE_MIN_HEIGHT,
             BUBBLE_PADDING_Y * 2 + line_height * line_count + tail_space,
         )
-        self.bubble_canvas.configure(width=BUBBLE_WIDTH, height=bubble_height)
-        self._position_bubble(bubble_height)
+        self.bubble_canvas.configure(width=bubble_width, height=bubble_height)
+        self._position_bubble(bubble_height, bubble_width)
         self.bubble_root.deiconify()
         self.bubble_root.lift()
 
         x1, y1 = 4, 4
-        x2 = BUBBLE_WIDTH - 4
+        x2 = bubble_width - 4
         y2 = bubble_height - tail_space
         if is_thought:
             thought_items = _thought_bubble(
@@ -1353,11 +1355,11 @@ class PaperclipPalApp:
             self._start_thought_dots()
         else:
             tail = (
-                BUBBLE_WIDTH / 2 - 12,
+                bubble_width / 2 - 12,
                 y2,
-                BUBBLE_WIDTH / 2 + 12,
+                bubble_width / 2 + 12,
                 y2,
-                BUBBLE_WIDTH / 2,
+                bubble_width / 2,
                 bubble_height - 5,
             )
             self._bubble_items.extend(
@@ -1423,19 +1425,22 @@ class PaperclipPalApp:
             )
         self._thought_dot_after = self.root.after(95, self._animate_thought_dots)
 
-    def _position_bubble(self, bubble_height: int | None = None) -> None:
+    def _position_bubble(self, bubble_height: int | None = None, bubble_width: int | None = None) -> None:
         self.root.update_idletasks()
         height = bubble_height
         if height is None:
             height = int(float(self.bubble_canvas.cget("height")))
+        width = bubble_width
+        if width is None:
+            width = int(float(self.bubble_canvas.cget("width")))
         screen_w = self.root.winfo_screenwidth()
         screen_h = self.root.winfo_screenheight()
-        x = self.root.winfo_x() + PAL_CENTER_X - BUBBLE_WIDTH / 2
+        x = self.root.winfo_x() + PAL_CENTER_X - width / 2
         y = self.root.winfo_y() + PAL_PAD_Y - height - BUBBLE_GAP
-        x = min(max(8, x), max(8, screen_w - BUBBLE_WIDTH - 8))
+        x = min(max(8, x), max(8, screen_w - width - 8))
         if y < 8:
             y = min(screen_h - height - 8, self.root.winfo_y() + PAL_PAD_Y + PAL_HEIGHT + BUBBLE_GAP)
-        self.bubble_root.geometry(f"{BUBBLE_WIDTH}x{height}+{round(x)}+{round(y)}")
+        self.bubble_root.geometry(f"{width}x{height}+{round(x)}+{round(y)}")
 
     def _clear_bubble(self, cancel_after: bool = True) -> None:
         if cancel_after and self._bubble_after:
@@ -2028,6 +2033,12 @@ def _paginate_bubble_text(text: str, max_width: int, font: tkfont.Font) -> list[
     ] or ["..."]
 
 
+def _bubble_page_width(text: str, font: tkfont.Font) -> int:
+    widest = max((font.measure(line) for line in text.splitlines() if line), default=0)
+    natural_width = widest + BUBBLE_PADDING_X * 2 + 12
+    return max(BUBBLE_MIN_WIDTH, min(BUBBLE_WIDTH, math.ceil(natural_width)))
+
+
 def _wrap_bubble_lines(text: str, max_width: int, font: tkfont.Font) -> list[str]:
     lines: list[str] = []
     paragraphs = text.strip().splitlines() or [text.strip()]
@@ -2116,6 +2127,7 @@ def _split_oversized_bubble_token(token: str, max_width: int, font: tkfont.Font)
 
 def _rebalance_short_wrapped_lines(lines: list[str], max_width: int, font: tkfont.Font) -> list[str]:
     result = list(lines)
+    min_previous_width = max_width * 0.74
     for index in range(1, len(result)):
         current = result[index].strip()
         previous = result[index - 1].rstrip()
@@ -2125,7 +2137,7 @@ def _rebalance_short_wrapped_lines(lines: list[str], max_width: int, font: tkfon
             borrowed = previous[-steal_count:]
             candidate = borrowed + current
             remaining = previous[:-steal_count].rstrip()
-            if remaining and font.measure(candidate) <= max_width:
+            if remaining and font.measure(remaining) >= min_previous_width and font.measure(candidate) <= max_width:
                 result[index - 1] = remaining
                 result[index] = candidate
                 break
@@ -2265,10 +2277,11 @@ def _thought_bubble(
     items = [
         _rounded_rect(canvas, x1, y1, x2, y2, 16, fill=fill, outline=outline),
     ]
+    center_x = (x1 + x2) / 2
     dots = (
-        (BUBBLE_WIDTH / 2 + 8, y2 + 8, 5),
-        (BUBBLE_WIDTH / 2 + 1, y2 + 18, 3.5),
-        (BUBBLE_WIDTH / 2 - 5, y2 + 25, 2.2),
+        (center_x + 8, y2 + 8, 5),
+        (center_x + 1, y2 + 18, 3.5),
+        (center_x - 5, y2 + 25, 2.2),
     )
     for cx, cy, radius in dots:
         items.append(canvas.create_oval(cx - radius, cy - radius, cx + radius, cy + radius, fill=fill, outline=outline))
