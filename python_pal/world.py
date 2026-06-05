@@ -10,6 +10,7 @@ from .codex_usage import CodexUsageStatus
 from .ears import EarContext
 from .eyes import ScreenContext
 from .hardware_status import HardwareSnapshot
+from .openai_billing import OpenAIBillingStatus
 from .state import PalState
 
 
@@ -37,6 +38,7 @@ class WorldState:
     codex_usage: CodexUsageStatus
     claude: ClaudeOverview
     claude_usage: ClaudeUsageStatus
+    openai_billing: OpenAIBillingStatus
     hardware: HardwareSnapshot
     pal: PalState
     mood: MoodSnapshot
@@ -57,6 +59,7 @@ class WorldState:
         elif self.claude.total_alive:
             tags.add("claude_idle")
         tags.update(self.claude_usage.tags)
+        tags.update(self.openai_billing.tags)
         tags.update(self.hardware.tags)
         return sorted(tags)
 
@@ -71,6 +74,7 @@ class WorldState:
             **self.codex.as_dict(),
             **self.codex_usage.as_dict(),
             **self.claude_usage.as_dict(),
+            **self.openai_billing.as_dict(),
             **self.hardware.as_dict(),
             "claude_total_alive": self.claude.total_alive,
             "claude_active_count": self.claude.active_count,

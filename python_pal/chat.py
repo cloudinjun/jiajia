@@ -107,7 +107,7 @@ class PalChatBrain:
             "你正在和用户短聊，不是通用客服，也不替用户操作电脑。\n"
             "回答要短，通常 1-3 句。可以乖巧、无害、轻微毒舌，但只戳行为，不评价人格。\n"
             "如果用户表达累、焦虑、难过、不舒服、崩溃，进入 comfort mode：不毒舌，短句，降低存在感。\n"
-            "你可以引用给定的低隐私桌面状态：Codex、Claude、硬件、Codex usage、Claude usage、活跃度、最近自己说过的话。\n"
+            "你可以引用给定的低隐私桌面状态：Codex、Claude、硬件、Codex usage、Claude usage、OpenAI API billing、活跃度、最近自己说过的话。\n"
             "不要声称看到了上下文里没有的数据。状态未知就直接说未知，带一点夹夹味。\n"
             "输出 JSON，不要 Markdown，不要解释。"
         )
@@ -220,6 +220,7 @@ def build_chat_context(
     hardware = world.hardware
     claude = world.claude
     claude_usage = world.claude_usage
+    openai_billing = world.openai_billing
     return {
         "activity": {
             "mode": activity_mode or world.mood.key,
@@ -264,6 +265,15 @@ def build_chat_context(
             "recent_5h_total_tokens": claude_usage.recent_5h.total_tokens,
             "recent_models": list(claude_usage.recent_5h.models),
         },
+        "openai_billing": {
+            "level": openai_billing.level,
+            "summary": openai_billing.summary_line,
+            "month_cost": _round_or_none(openai_billing.month_cost),
+            "monthly_budget": _round_or_none(openai_billing.monthly_budget),
+            "remaining": _round_or_none(openai_billing.remaining),
+            "currency": openai_billing.currency,
+            "error_kind": openai_billing.error_kind,
+        },
         "claude": {
             "total_alive": claude.total_alive,
             "active_count": claude.active_count,
@@ -304,6 +314,8 @@ def detect_chat_command(message: str) -> str:
 
     if "claude" in compact and _has_any(compact, ("usage", "用量", "额度", "token", "tokens", "账单", "账本", "今天用了多少", "花了多少")):
         return "status_claude_usage"
+    if _has_any(compact, ("openaiapi余额", "openai余额", "api余额", "api账单", "api花费", "api费用", "openaibilling", "openai账单", "openai花费", "openai费用", "billing")):
+        return "status_openai_billing"
     if _has_any(compact, ("codexusage", "codex额度", "额度", "quota", "remaining", "还剩多少", "reset")):
         return "status_usage"
     if "claude" in compact and _has_any(compact, ("状态", "status", "在干嘛", "怎么", "卡", "会话")):
@@ -340,6 +352,8 @@ def local_status_reaction(command: str, context: dict[str, object]) -> Reaction 
         return _claude_status_reaction(context)
     if command == "status_claude_usage":
         return _claude_usage_status_reaction(context)
+    if command == "status_openai_billing":
+        return _openai_billing_status_reaction(context)
     if command == "status_hardware":
         return _hardware_status_reaction(context)
     if command == "status_usage":
@@ -422,6 +436,24 @@ def _claude_usage_status_reaction(context: dict[str, object]) -> Reaction:
     return Reaction(True, line, mood, "scan", "claude_speech", performance, event="chat_claude_usage")
 
 
+def _openai_billing_status_reaction(context: dict[str, object]) -> Reaction:
+    billing = _dict(context.get("openai_billing"))
+    level = str(billing.get("level") or "unavailable")
+    summary = str(billing.get("summary") or "").strip() or "OpenAI API 账单暂时没读到。"
+    if level in {"key_missing", "permission_missing", "unavailable"}:
+        return Reaction(True, summary, "sleepy", "blink", "usage_speech", "fake_sulk", event="chat_openai_billing")
+    if level in {"low", "over_budget"}:
+        line = summary + " 这个很重要，所以夹夹不嘴硬：该收手时要收手。"
+        mood, performance = "sulky", "usage_low_sag"
+    elif level == "costs_only":
+        line = summary + " 你给我一个月预算，我就能算真正的剩余。"
+        mood, performance = "thinking", "quiet_companion"
+    else:
+        line = summary + " 账本暂时没有尖叫。"
+        mood, performance = "innocent", "quiet_companion"
+    return Reaction(True, line, mood, "scan", "usage_speech", performance, event="chat_openai_billing")
+
+
 def _hardware_status_reaction(context: dict[str, object]) -> Reaction:
     hardware = _dict(context.get("hardware"))
     level = str(hardware.get("level") or "unavailable")
@@ -481,6 +513,7 @@ def _overview_reaction(context: dict[str, object]) -> Reaction:
     usage = _dict(context.get("codex_usage"))
     claude = _dict(context.get("claude"))
     claude_usage = _dict(context.get("claude_usage"))
+    openai_billing = _dict(context.get("openai_billing"))
     parts = [
         f"活跃度 {activity.get('mode') or '未知'}",
         f"Codex {codex.get('status') or 'unknown'}",
@@ -488,6 +521,7 @@ def _overview_reaction(context: dict[str, object]) -> Reaction:
         f"硬件 {hardware.get('level') or 'unknown'}",
         f"Codex usage {usage.get('level') or 'unknown'}",
         f"Claude usage {claude_usage.get('level') or 'unknown'}",
+        f"OpenAI billing {openai_billing.get('level') or 'unknown'}",
     ]
     return Reaction(
         True,

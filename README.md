@@ -54,6 +54,26 @@ Low quota alerts are cooled down: under 30% at most every 30 minutes, under 10% 
 
 Claude's local logs do not expose a reliable official "remaining quota" percentage like Codex `rate_limits`, so this monitor reports local token usage, not remaining plan quota.
 
+## OpenAI API Billing
+
+夹夹 can read OpenAI API organization costs from `https://api.openai.com/v1/organization/costs`. This requires `OPENAI_ADMIN_KEY`, or another key with `api.usage.read` scope. A normal restricted `OPENAI_API_KEY` may return `missing_usage_scope`.
+
+The OpenAI endpoint reports costs, not a wallet-style remaining balance. To let 夹夹 report remaining budget, configure one of:
+
+```powershell
+[Environment]::SetEnvironmentVariable("OPENAI_API_MONTHLY_BUDGET_USD", "20", "User")
+```
+
+or add this to `settings.json`:
+
+```json
+{
+  "openai_api_monthly_budget_usd": 20
+}
+```
+
+Without a budget, 夹夹 reports this month's API cost but refuses to invent a remaining balance.
+
 ## Assistant Controls
 
 The right-click menu includes lightweight Clippy-inspired controls:
@@ -70,11 +90,11 @@ Right-click `Talk to 夹夹` to open a tiny local chat input near the pal. Press
 
 Chat replies use the existing `Reaction` pipeline, so a reply can still pick a mood, action, bubble color, and performance phrase. Simple state commands are handled locally before Ollama is called:
 
-- `Codex status`, `Claude status`, `hardware status`, `Codex usage`, and `Claude usage`
+- `Codex status`, `Claude status`, `hardware status`, `Codex usage`, `Claude usage`, and `OpenAI API billing`
 - `安静`, `正常`, `活泼`, `多动`
 - `进入专注模式`, `退出专注模式`, and `闭嘴半小时`
 
-Chat context is intentionally low-privacy: agent status summaries, hardware metrics, Codex usage, Claude token usage summaries, activity mode, app category, and recent pal lines. It does not include clipboard text, keystroke text, raw screen text, or full screenshot contents.
+Chat context is intentionally low-privacy: agent status summaries, hardware metrics, Codex usage, Claude token usage summaries, OpenAI API cost summaries, activity mode, app category, and recent pal lines. It does not include clipboard text, keystroke text, raw screen text, or full screenshot contents.
 
 While waiting for a local LLM reply, the pal cycles through visible wait stages instead of showing only dots: message received, low-privacy context folded, Ollama waking, model thinking, and long-wait fallback lines.
 

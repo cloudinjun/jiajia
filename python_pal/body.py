@@ -31,6 +31,7 @@ from .event_log import EventLog
 from .eyes import Eyes
 from .hardware_status import HardwareSnapshot, HardwareStatusMonitor
 from .interruptibility import Interruptibility, assess_interruptibility
+from .openai_billing import OpenAIBillingMonitor, OpenAIBillingStatus
 from .performance import PERFORMANCE_PHRASES, phrase_for_reaction
 from .soul import Soul
 from .state import PalState, Reaction
@@ -124,6 +125,7 @@ CODEX_STATUS_POLL_MS = 2500
 CODEX_USAGE_POLL_MS = 60_000
 CLAUDE_STATUS_POLL_MS = 8000
 CLAUDE_USAGE_POLL_MS = 120_000
+OPENAI_BILLING_POLL_MS = 30 * 60 * 1000
 HARDWARE_STATUS_POLL_MS = 5000
 LERP_TICK_MS = 18
 VISION_FIRST_REFRESH_MS = 5 * 60 * 1000
@@ -396,6 +398,7 @@ class PaperclipPalApp:
         self.codex_status = CodexStatusMonitor(project_root / "codex_status.json")
         self.codex_usage = CodexUsageMonitor(project_root / "codex_usage_status.json")
         self.hardware_status = HardwareStatusMonitor()
+        self.openai_billing = OpenAIBillingMonitor(project_root / "settings.json")
         self.event_log = EventLog(project_root / "memory" / "event_log.jsonl")
         self.state = PalState()
         self.decision = DecisionEngine()
@@ -403,6 +406,7 @@ class PaperclipPalApp:
         self.animation_resolver = AnimationResolver(set(self.animation_player.manifest.performances))
         self.decorations = load_decoration_manifest(project_root / "python_pal" / "decorations.yaml")
         self.queue: queue.Queue[Reaction] = queue.Queue()
+        self.status_queue: queue.Queue[Reaction] = queue.Queue()
         self.root = tk.Tk()
         self.root.title(soul.name)
         self.root.overrideredirect(True)
@@ -515,6 +519,10 @@ class PaperclipPalApp:
         self._last_claude_sessions_by_pid: dict[int, ClaudeSession] = {}
         self._recent_claude_status_fragments: list[str] = []
         self._last_claude_usage_status: ClaudeUsageStatus = ClaudeUsageStatus()
+        self._last_openai_billing_status: OpenAIBillingStatus = OpenAIBillingStatus()
+        self._last_openai_billing_event = ""
+        self._last_openai_billing_announcement_at = 0.0
+        self._openai_billing_thread: threading.Thread | None = None
         self._performance_after: list[str] = []
         self._expression_after: list[str] = []
         self._last_animation_debug = "not played yet"
@@ -545,6 +553,7 @@ class PaperclipPalApp:
         self.root.after(6000, self._poll_codex_usage)
         self.root.after(3500, self._poll_claude_status)
         self.root.after(7500, self._poll_claude_usage)
+        self.root.after(9000, self._poll_openai_billing)
         self.root.after(4200, self._poll_hardware_status)
         self._schedule_blink()
         self._schedule_look()
@@ -714,6 +723,7 @@ class PaperclipPalApp:
         self.menu.add_command(label="Codex usage", command=self._show_codex_usage)
         self.menu.add_command(label="Claude 状态", command=self._show_claude_status)
         self.menu.add_command(label="Claude usage", command=self._show_claude_usage)
+        self.menu.add_command(label="OpenAI API billing", command=self._show_openai_billing)
         self.menu.add_command(label="Hardware status", command=self._show_hardware_status)
         self.menu.add_command(label="Last events", command=self._show_last_events)
         self.menu.add_command(label="Morning digest", command=self._show_morning_digest)
@@ -1063,7 +1073,7 @@ class PaperclipPalApp:
             bubble = (reaction.bubble or "").lower()
             if event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_"):
                 return "thermal_technician"
-            if event.startswith(("codex_usage", "claude_usage", "chat_usage", "chat_claude_usage", "demo_usage")) or bubble.startswith("usage_"):
+            if event.startswith(("codex_usage", "claude_usage", "openai_billing", "chat_usage", "chat_claude_usage", "chat_openai_billing", "demo_usage")) or bubble.startswith("usage_"):
                 return "usage_accountant"
             if event.startswith(("codex_", "claude_", "chat_codex", "chat_claude", "demo_codex")) or bubble.startswith(("codex_", "claude_")):
                 return "agent_supervisor"
@@ -1671,6 +1681,7 @@ class PaperclipPalApp:
             codex_usage=self._last_codex_usage_status,
             claude=self.claude_monitor.sample(),
             claude_usage=self._last_claude_usage_status,
+            openai_billing=self._last_openai_billing_status,
             hardware=self._last_hardware_status,
             pal=self.state,
             mood=MoodSnapshot(
@@ -1715,6 +1726,12 @@ class PaperclipPalApp:
                 self.state.brain_busy = False
                 self._stop_brain_wait_animation()
                 self._stop_chat_wait_feedback()
+                self._apply_reaction(reaction)
+        except queue.Empty:
+            pass
+        try:
+            while True:
+                reaction = self.status_queue.get_nowait()
                 self._apply_reaction(reaction)
         except queue.Empty:
             pass
@@ -1938,6 +1955,48 @@ class PaperclipPalApp:
         status = self.claude_usage.sample()
         self._last_claude_usage_status = status
         self._apply_reaction(_claude_usage_reaction(status, manual=True))
+
+    def _poll_openai_billing(self) -> None:
+        self._start_openai_billing_sample(manual=False)
+        self.root.after(OPENAI_BILLING_POLL_MS, self._poll_openai_billing)
+
+    def _start_openai_billing_sample(self, manual: bool) -> None:
+        if self._openai_billing_thread and self._openai_billing_thread.is_alive():
+            if manual:
+                self.show_bubble("OpenAI API 账本正在翻页。它不是慢，是在保持财务尊严。", milliseconds=4200, kind="usage_thought")
+            return
+        if manual:
+            self.show_bubble("我去查 OpenAI API 账本。小文具翻账，本质上很严肃。", milliseconds=3600, kind="usage_thought")
+            self._perform_action("thinking_tilt")
+
+        def worker() -> None:
+            status = self.openai_billing.sample()
+            self._last_openai_billing_status = status
+            if manual:
+                self.status_queue.put(_openai_billing_reaction(status, manual=True))
+                return
+            if self._should_announce_openai_billing(status):
+                self._last_openai_billing_event = status.event_id
+                self._last_openai_billing_announcement_at = time.time()
+                self.status_queue.put(_openai_billing_reaction(status))
+
+        self._openai_billing_thread = threading.Thread(target=worker, daemon=True)
+        self._openai_billing_thread.start()
+
+    def _should_announce_openai_billing(self, status: OpenAIBillingStatus) -> bool:
+        if self._auto_reactions_paused():
+            return False
+        if status.level not in {"low", "over_budget"}:
+            return False
+        if self.state.brain_busy or self._bubble_items:
+            return False
+        if not status.event_id or status.event_id == self._last_openai_billing_event:
+            return False
+        cooldown = 6 * 60 * 60 if status.level == "low" else 2 * 60 * 60
+        return self.state.can_speak(cooldown) and time.time() - self._last_openai_billing_announcement_at >= cooldown
+
+    def _show_openai_billing(self) -> None:
+        self._start_openai_billing_sample(manual=True)
 
     def _poll_hardware_status(self) -> None:
         snapshot = self.hardware_status.sample()
@@ -2360,7 +2419,7 @@ class PaperclipPalApp:
         bubble = (reaction.bubble or "").lower()
         if event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_"):
             self._show_temporary_decoration("heat_puffs", 4200)
-        if event.startswith(("codex_usage", "claude_usage", "chat_usage", "chat_claude_usage", "demo_usage")) or bubble.startswith("usage_"):
+        if event.startswith(("codex_usage", "claude_usage", "openai_billing", "chat_usage", "chat_claude_usage", "chat_openai_billing", "demo_usage")) or bubble.startswith("usage_"):
             self._show_temporary_decoration("usage_bar", 4200)
         if reaction.performance in {"cold_arrow_then_innocent", "roast_and_scoot"} or reaction.mood in {"smirk", "smug"}:
             self._show_temporary_decoration("annotation_circle", 2600)
@@ -3489,6 +3548,47 @@ def _claude_usage_reaction(status: ClaudeUsageStatus, manual: bool = False) -> R
         performance,
         decision_reason=f"claude_usage={status.level}",
         event=f"claude_usage_{status.level}",
+    )
+
+
+def _openai_billing_reaction(status: OpenAIBillingStatus, manual: bool = False) -> Reaction:
+    line = status.summary_line
+    if status.level in {"key_missing", "permission_missing", "unavailable"}:
+        return Reaction(
+            True,
+            line,
+            "sleepy",
+            "blink",
+            "usage_speech" if manual else "usage_thought",
+            "fake_sulk",
+            decision_reason=f"openai_billing={status.level}",
+            event=f"openai_billing_{status.level}",
+        )
+
+    if status.level == "over_budget":
+        line += " 现在每一次 API 调用都在账本上留下脚印，还是带泥的。"
+        mood, action, performance = "sulky", "sleepy_sag", "usage_low_sag"
+    elif status.level == "low":
+        line += " 剩得不多了。夹夹建议先别让模型写史诗，写小条就行。"
+        mood, action, performance = "suspicious", "thinking_tilt", "fake_sulk"
+    elif status.level == "watch":
+        line += " 还没危险，但已经适合把会计夹叫出来站岗。"
+        mood, action, performance = "thinking", "scan", "suspicious_observe"
+    elif status.level == "costs_only":
+        line += " 要算余额，请在 settings.json 或环境变量里设月预算。"
+        mood, action, performance = "thinking", "scan", "quiet_companion"
+    else:
+        line += " 暂时不像会把钱包咬出洞。"
+        mood, action, performance = "innocent", "blink", "quiet_companion"
+    return Reaction(
+        True,
+        line,
+        mood,
+        action,
+        "usage_speech" if manual or status.level in {"low", "over_budget"} else "usage_thought",
+        performance,
+        decision_reason=f"openai_billing={status.level}",
+        event=f"openai_billing_{status.level}",
     )
 
 
