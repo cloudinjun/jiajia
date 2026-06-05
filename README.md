@@ -58,7 +58,9 @@ Claude's local logs do not expose a reliable official "remaining quota" percenta
 
 夹夹 can read OpenAI API organization costs from `https://api.openai.com/v1/organization/costs`. This requires `OPENAI_ADMIN_KEY`, or another key with `api.usage.read` scope. A normal restricted `OPENAI_API_KEY` may return `missing_usage_scope`.
 
-The OpenAI endpoint reports costs, not a wallet-style remaining balance. To let 夹夹 report remaining budget, configure one of:
+The OpenAI endpoint reports costs, not a wallet-style remaining balance. The old `dashboard/billing/credit_grants` balance endpoint requires a browser session key and is not available to Admin/API keys, so 夹夹 does not scrape it.
+
+For monthly budget tracking, configure one of:
 
 ```powershell
 [Environment]::SetEnvironmentVariable("OPENAI_API_MONTHLY_BUDGET_USD", "20", "User")
@@ -73,6 +75,15 @@ or add this to `settings.json`:
 ```
 
 Without a budget, 夹夹 reports this month's API cost but refuses to invent a remaining balance.
+
+For prepaid one-time balance tracking, give 夹夹 a balance snapshot and timestamp. It will subtract official Costs API spend since that timestamp:
+
+```powershell
+[Environment]::SetEnvironmentVariable("OPENAI_API_PREPAID_BALANCE_USD", "10", "User")
+[Environment]::SetEnvironmentVariable("OPENAI_API_PREPAID_BALANCE_SNAPSHOT_AT", "2026-06-05T00:40:00-07:00", "User")
+```
+
+This is an estimate based on the snapshot; refresh the snapshot if the platform balance and local estimate drift.
 
 ## Assistant Controls
 
