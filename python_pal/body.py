@@ -683,11 +683,27 @@ class PaperclipPalApp:
 
     def _install_menu(self) -> None:
         self.menu = tk.Menu(self.root, tearoff=False)
-        self.menu.add_command(label="Say something", command=lambda: self._ask_brain("manual"))
         self.menu.add_command(label="Talk to 夹夹", command=self._open_chat_input)
-        self.menu.add_command(label="Boredom line", command=lambda: self._ask_brain("bored"))
+        self.menu.add_command(label="Say something", command=lambda: self._ask_brain("manual"))
         self.menu.add_command(label="Poke", command=lambda: self._poke(force=True))
+
+        status_menu = tk.Menu(self.menu, tearoff=False)
+        status_menu.add_command(label="Status overview", command=self._show_status_overview)
+        status_menu.add_separator()
+        status_menu.add_command(label="Codex status", command=self._show_codex_status)
+        status_menu.add_command(label="Codex usage", command=self._show_codex_usage)
+        status_menu.add_command(label="Claude status", command=self._show_claude_status)
+        status_menu.add_command(label="Claude usage", command=self._show_claude_usage)
+        status_menu.add_command(label="OpenAI API billing", command=self._show_openai_billing)
+        status_menu.add_command(label="Hardware status", command=self._show_hardware_status)
+        status_menu.add_separator()
+        status_menu.add_command(label="Last events", command=self._show_last_events)
+        status_menu.add_command(label="Morning digest", command=self._show_morning_digest)
+        self.menu.add_cascade(label="Status", menu=status_menu)
+
         action_menu = tk.Menu(self.menu, tearoff=False)
+        action_menu.add_command(label="Boredom line", command=lambda: self._ask_brain("bored"))
+        action_menu.add_separator()
         for group_label, action_ids in ACTION_MENU_GROUPS:
             group_menu = tk.Menu(action_menu, tearoff=False)
             for action_id in action_ids:
@@ -697,13 +713,8 @@ class PaperclipPalApp:
                 )
             action_menu.add_cascade(label=group_label, menu=group_menu)
         self.menu.add_cascade(label="Actions", menu=action_menu)
-        preview_menu = tk.Menu(self.menu, tearoff=False)
-        for performance_id in sorted(self.animation_player.manifest.performances):
-            preview_menu.add_command(
-                label=performance_id,
-                command=lambda performance_id=performance_id: self._preview_performance(performance_id),
-            )
-        self.menu.add_cascade(label="Animation Preview", menu=preview_menu)
+
+        mode_menu = tk.Menu(self.menu, tearoff=False)
         identity_menu = tk.Menu(self.menu, tearoff=False)
         identity_menu.add_radiobutton(
             label="Auto",
@@ -718,20 +729,7 @@ class PaperclipPalApp:
                 value=pack.id,
                 command=lambda identity_id=pack.id: self._set_identity(identity_id),
             )
-        self.menu.add_cascade(label="Identity", menu=identity_menu)
-        self.menu.add_command(label="Codex status", command=self._show_codex_status)
-        self.menu.add_command(label="Codex usage", command=self._show_codex_usage)
-        self.menu.add_command(label="Claude 状态", command=self._show_claude_status)
-        self.menu.add_command(label="Claude usage", command=self._show_claude_usage)
-        self.menu.add_command(label="OpenAI API billing", command=self._show_openai_billing)
-        self.menu.add_command(label="Hardware status", command=self._show_hardware_status)
-        self.menu.add_command(label="Last events", command=self._show_last_events)
-        self.menu.add_command(label="Morning digest", command=self._show_morning_digest)
-        self.menu.add_command(label="Scripted demo", command=self._run_scripted_demo)
-        self.menu.add_command(label="Debug last decision", command=self._show_last_decision_debug)
-        self.menu.add_command(label="Last chat context", command=self._show_last_chat_context)
-        self.menu.add_command(label="Debug animation", command=self._show_last_animation_debug)
-        self.menu.add_command(label="Debug identity", command=self._show_identity_debug)
+        mode_menu.add_cascade(label="Identity", menu=identity_menu)
         freq_menu = tk.Menu(self.menu, tearoff=False)
         for label, _mult in FREQUENCY_PRESETS:
             freq_menu.add_radiobutton(
@@ -740,16 +738,39 @@ class PaperclipPalApp:
                 value=label,
                 command=lambda k=label: self._set_frequency(k),
             )
-        self.menu.add_cascade(label="活跃度", menu=freq_menu)
-        self.menu.add_separator()
-        self.menu.add_command(label="Quiet 30 min", command=lambda: self._quiet_for(30 * 60))
-        self.menu.add_checkbutton(label="Focus mode", variable=self._focus_var, command=self._toggle_focus_mode)
-        self.menu.add_command(label="Summon / resume", command=self._resume_auto_reactions)
+        mode_menu.add_cascade(label="活跃度", menu=freq_menu)
+        mode_menu.add_separator()
+        mode_menu.add_command(label="Quiet 30 min", command=lambda: self._quiet_for(30 * 60))
+        mode_menu.add_checkbutton(label="Focus mode", variable=self._focus_var, command=self._toggle_focus_mode)
+        mode_menu.add_command(label="Summon / resume", command=self._resume_auto_reactions)
+        self.menu.add_cascade(label="Mode", menu=mode_menu)
+
+        debug_menu = tk.Menu(self.menu, tearoff=False)
+        preview_menu = tk.Menu(debug_menu, tearoff=False)
+        for performance_id in sorted(self.animation_player.manifest.performances):
+            preview_menu.add_command(
+                label=performance_id,
+                command=lambda performance_id=performance_id: self._preview_performance(performance_id),
+            )
+        debug_menu.add_cascade(label="Animation Preview", menu=preview_menu)
+        debug_menu.add_separator()
+        debug_menu.add_command(label="Scripted demo", command=self._run_scripted_demo)
+        debug_menu.add_command(label="Debug last decision", command=self._show_last_decision_debug)
+        debug_menu.add_command(label="Last chat context", command=self._show_last_chat_context)
+        debug_menu.add_command(label="Debug animation", command=self._show_last_animation_debug)
+        debug_menu.add_command(label="Debug identity", command=self._show_identity_debug)
+        self.menu.add_cascade(label="Developer", menu=debug_menu)
+
         self.menu.add_separator()
         self.menu.add_command(label="退出", command=self._quit)
 
     def _show_context_menu(self, event: tk.Event) -> None:
         self.menu.tk_popup(event.x_root, event.y_root)
+
+    def _show_status_overview(self) -> None:
+        reaction = local_status_reaction("status_overview", self._build_chat_context())
+        if reaction:
+            self._apply_reaction(reaction)
 
     def _quit(self) -> None:
         self._stop_brain_wait_animation()
