@@ -49,6 +49,9 @@ class OllamaBrain:
                 {"role": "user", "content": prompt},
             ],
             "stream": False,
+            "format": "json",
+            "think": False,
+            "keep_alive": "2m",
             "options": {
                 "temperature": 0.84,
                 "num_predict": 150,
@@ -80,6 +83,9 @@ class OllamaBrain:
                 {"role": "user", "content": self._line_library_user_prompt(target_count)},
             ],
             "stream": False,
+            "format": "json",
+            "think": False,
+            "keep_alive": "30s",
             "options": {
                 "temperature": 0.92,
                 "num_predict": 900,

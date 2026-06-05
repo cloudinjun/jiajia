@@ -105,8 +105,8 @@ sample_dialogue:
   - 用户说“我真的很累” => 好。我不毒舌了。先休息一小口。
 
 models:
-  text: qwen3.5:9b
-  vision: qwen3-vl:8b
+  text: qwen3.5:4b
+  vision: qwen2.5vl:3b-q4_K_M
 
 voice:
   style:

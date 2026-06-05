@@ -65,6 +65,9 @@ class Eyes:
                     }
                 ],
                 "stream": False,
+                "format": "json",
+                "think": False,
+                "keep_alive": "30s",
                 "options": {"temperature": 0.1, "num_predict": 180},
             }
             response = self._post_json("/api/chat", payload, timeout=24)
@@ -99,18 +102,14 @@ def _capture_screen_b64() -> str:
 
 
 def _vision_prompt() -> str:
-    schema = {
-        "available": True,
-        "summary": "高层行为摘要，不超过25个中文字符",
-        "screen_tags": ["browser_research", "blank_document"],
-        "confidence": 0.0,
-    }
     return (
         "你是桌宠的本地视觉模块，只做高层环境感知。\n"
+        "必须根据图片填写实际结果，不要照抄字段说明或示例标签。\n"
         "不要转录或复述屏幕上的具体文字、聊天、邮件、密码、代码、文件名或隐私内容。\n"
+        "如果看到疑似隐私、token、聊天或会议内容，只添加 privacy_sensitive 标签。\n"
         "只判断用户大概在做什么，例如写作、编程、浏览资料、反复切窗、看视频、开会、空白文档发呆。\n"
         "可用标签示例: writing, coding, browsing, browser_research, blank_document, todo_visible, reading, video, meeting_or_chat, file_sorting, design_work, terminal_work, privacy_sensitive, unclear。\n"
-        f"只输出 JSON: {json.dumps(schema, ensure_ascii=False)}"
+        "只输出 JSON，keys 为 available(bool), summary(str, 不超过25个中文字符), screen_tags(array), confidence(number 0-1)。"
     )
 
 
