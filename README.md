@@ -23,9 +23,11 @@ High GPU/VRAM/RAM use without high temperature is treated as `busy`, not red-hot
 
 ## Codex Usage
 
-夹夹 reads Codex quota from a local bridge file, `codex_usage_status.json`. It does not scrape the Codex or ChatGPT settings UI.
+夹夹 first looks for local Codex rollout files under `%USERPROFILE%\.codex\sessions\...\rollout-*.jsonl` and reads only `token_count.rate_limits`. It converts `primary.used_percent` into 5-hour window remaining percent. It does not read message text, clipboard text, keystrokes, raw screen text, or the Codex/ChatGPT settings UI.
 
-Update the file manually with:
+If no fresh local `rate_limits` data is available, it falls back to the local bridge file, `codex_usage_status.json`.
+
+Update the fallback bridge manually with:
 
 ```powershell
 .\scripts\set_codex_usage.ps1 26 5:22am

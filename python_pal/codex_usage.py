@@ -40,13 +40,27 @@ class CodexUsageStatus:
 
 
 class CodexUsageMonitor:
-    def __init__(self, path: Path, stale_after_seconds: int = 6 * 60 * 60) -> None:
+    def __init__(
+        self,
+        path: Path,
+        stale_after_seconds: int = 6 * 60 * 60,
+        codex_home: Path | None = None,
+        session_file_limit: int = 30,
+    ) -> None:
         self.path = path
         self.stale_after_seconds = stale_after_seconds
+        self.codex_home = codex_home or Path.home() / ".codex"
+        self.session_file_limit = session_file_limit
         self._last_remaining: float | None = None
         self._last_level = "unavailable"
 
     def sample(self) -> CodexUsageStatus:
+        session_status = self._sample_sessions()
+        if session_status is not None:
+            return session_status
+        return self._sample_bridge_file()
+
+    def _sample_bridge_file(self) -> CodexUsageStatus:
         try:
             stat = self.path.stat()
             raw = json.loads(self.path.read_text(encoding="utf-8-sig"))
@@ -63,6 +77,61 @@ class CodexUsageMonitor:
         source = _clean_text(raw.get("source"), limit=40)
         updated_at = _clean_text(raw.get("updated_at"), limit=90)
         stale = bool(raw.get("stale")) or time.time() - stat.st_mtime > self.stale_after_seconds
+        signature = f"bridge|{remaining}|{reset_at}|{updated_at}|{stale}|{stat.st_mtime_ns}"
+        return self._build_status(remaining, reset_at, reset_in, plan, source, updated_at, stale, signature)
+
+    def _sample_sessions(self) -> CodexUsageStatus | None:
+        sessions_root = self.codex_home / "sessions"
+        if not sessions_root.exists():
+            return None
+        try:
+            files = sorted(
+                sessions_root.rglob("rollout-*.jsonl"),
+                key=lambda path: path.stat().st_mtime,
+                reverse=True,
+            )[: self.session_file_limit]
+        except OSError:
+            return None
+        for path in files:
+            try:
+                stat = path.stat()
+            except OSError:
+                continue
+            extracted = _latest_codex_rate_limit(path)
+            if extracted is None:
+                continue
+            line_no, rate_limit = extracted
+            primary = rate_limit.get("primary")
+            if not isinstance(primary, dict):
+                continue
+            used_percent = _percent_or_none(primary.get("used_percent"))
+            remaining = 100.0 - used_percent if used_percent is not None else None
+            reset_at = _timestamp_to_iso(primary.get("resets_at"))
+            reset_in = _reset_in_seconds(reset_at)
+            stale = (
+                time.time() - stat.st_mtime > self.stale_after_seconds
+                or _reset_expired(reset_at, grace_seconds=5 * 60)
+            )
+            if stale:
+                continue
+            plan = _clean_text(rate_limit.get("plan_type") or rate_limit.get("limit_name"), limit=40)
+            source = "codex_sessions"
+            updated_at = datetime.fromtimestamp(stat.st_mtime).astimezone().isoformat(timespec="seconds")
+            signature = f"{source}|{path.name}|{line_no}|{remaining}|{reset_at}|{stat.st_mtime_ns}"
+            return self._build_status(remaining, reset_at, reset_in, plan, source, updated_at, stale, signature)
+        return None
+
+    def _build_status(
+        self,
+        remaining: float | None,
+        reset_at: str,
+        reset_in: float | None,
+        plan: str,
+        source: str,
+        updated_at: str,
+        stale: bool,
+        event_id: str,
+    ) -> CodexUsageStatus:
         level = _level_for(remaining, reset_in, stale)
         if (
             self._last_remaining is not None
@@ -76,8 +145,6 @@ class CodexUsageMonitor:
         previous = self._last_level
         tags = _usage_tags(level, remaining, reset_in, stale)
         summary = _summary_line(remaining, reset_in, stale)
-        signature = f"{level}|{remaining}|{reset_at}|{updated_at}|{stale}|{stat.st_mtime_ns}"
-        event_id = signature
         self._last_remaining = remaining
         self._last_level = level
         return CodexUsageStatus(
@@ -189,6 +256,26 @@ def _parse_datetime(value: str) -> datetime | None:
     return parsed.astimezone()
 
 
+def _timestamp_to_iso(value: Any) -> str:
+    try:
+        timestamp = float(value)
+    except (TypeError, ValueError):
+        return ""
+    if timestamp <= 0:
+        return ""
+    try:
+        return datetime.fromtimestamp(timestamp).astimezone().isoformat(timespec="seconds")
+    except (OSError, OverflowError, ValueError):
+        return ""
+
+
+def _reset_expired(value: str, grace_seconds: int) -> bool:
+    reset_at = _parse_datetime(value)
+    if reset_at is None:
+        return False
+    return (datetime.now().astimezone() - reset_at).total_seconds() > grace_seconds
+
+
 def _percent_or_none(value: Any) -> float | None:
     try:
         percent = float(value)
@@ -206,3 +293,39 @@ def _clean_text(value: Any, limit: int = 80) -> str:
 
 def _round_or_none(value: float | None) -> float | None:
     return round(value, 1) if value is not None else None
+
+
+def _latest_codex_rate_limit(path: Path) -> tuple[int, dict[str, Any]] | None:
+    latest: tuple[int, dict[str, Any]] | None = None
+    try:
+        with path.open("r", encoding="utf-8-sig", errors="replace") as handle:
+            for line_no, line in enumerate(handle, 1):
+                if "token_count" not in line or "rate_limits" not in line:
+                    continue
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                for rate_limit in _iter_rate_limits(record):
+                    limit_id = _clean_text(rate_limit.get("limit_id"), limit=40).lower()
+                    if limit_id and limit_id != "codex":
+                        continue
+                    latest = (line_no, rate_limit)
+    except OSError:
+        return None
+    return latest
+
+
+def _iter_rate_limits(value: Any) -> list[dict[str, Any]]:
+    found: list[dict[str, Any]] = []
+    stack = [value]
+    while stack:
+        current = stack.pop()
+        if isinstance(current, dict):
+            rate_limits = current.get("rate_limits")
+            if isinstance(rate_limits, dict):
+                found.append(rate_limits)
+            stack.extend(current.values())
+        elif isinstance(current, list):
+            stack.extend(current)
+    return found
