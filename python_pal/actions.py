@@ -17,6 +17,7 @@ ACTION_LABELS: dict[str, str] = {
     "thinking_tilt": "Thinking tilt",
     "sleepy_sag": "Sleepy sag",
     "startled_pop": "Startled pop",
+    "tail_wag": "Tail wag",
     "smug_sway": "Smug sway",
     "sulk": "Sulk",
     "hide": "Hide",
@@ -33,7 +34,7 @@ ACTION_LABELS: dict[str, str] = {
 ACTION_MENU_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Mood", ("happy_bounce", "dance", "celebrate", "smug_sway", "sulk", "hide")),
     ("State", ("thinking_tilt", "sleepy_sag", "flop", "stretch", "scan", "patrol")),
-    ("Reactive", ("wiggle", "blink", "peek", "jump", "twirl", "shake", "startled_pop", "nod")),
+    ("Reactive", ("wiggle", "blink", "peek", "jump", "twirl", "shake", "startled_pop", "tail_wag", "nod")),
     ("Movement", ("twist_scoot", "mini_hop_shift", "relocate_hop", "roast_and_scoot", "retreat_to_corner", "drop_in")),
 )
 
@@ -55,6 +56,7 @@ ACTION_DESCRIPTIONS: dict[str, str] = {
     "thinking_tilt": "歪着想一想，适合思考和吐槽前的停顿。",
     "sleepy_sag": "慢慢塌下去再恢复，适合困、无聊、加载太久。",
     "startled_pop": "突然弹高又缩回，适合被戳、提示、意外状态。",
+    "tail_wag": "把回形针右侧翘起的尾端轻轻甩两下，适合开心、得意、被逗到。",
     "smug_sway": "得意地小幅左右摆，适合毒舌后装无辜。",
     "sulk": "缩下去闷一下，适合小委屈、小嫌弃、小无语。",
     "hide": "往下躲一躲，适合害羞、心虚、说完冷箭装无辜。",

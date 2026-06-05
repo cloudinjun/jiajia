@@ -131,7 +131,7 @@ AMBIENT_MIN_MS = 18_000
 AMBIENT_MAX_MS = 45_000
 AMBIENT_COOLDOWN_SECONDS = 50
 LOW_STIMULUS_IDLE_ACTIONS = ("blink", "peek", "nod", "micro_soften")
-COMMON_IDLE_ACTIONS = ("blink", "peek", "scan", "thinking_tilt", "nod", "wiggle")
+COMMON_IDLE_ACTIONS = ("blink", "peek", "scan", "thinking_tilt", "nod", "wiggle", "tail_wag")
 MID_IDLE_ACTIONS = ("stretch", "sleepy_sag", "smug_sway", "patrol", "mini_hop_shift")
 RARE_IDLE_ACTIONS = ("twirl", "flop", "hide", "dance", "relocate_hop")
 LARGE_IDLE_ACTIONS = {"jump", "flop", "dance", "twirl", "stretch", "sleepy_sag", "sulk", "hide", "celebrate"}
@@ -149,6 +149,9 @@ BODY_CURVES = (
     ((277.5, 466.726), (254.0, 374.226), (257.5, 322.226)),
     ((259.216, 296.726), (275.5, 267.226), (301.0, 250.726)),
 )
+BODY_MAIN_CURVES = BODY_CURVES[:-1]
+TAIL_START = BODY_CURVES[-2][2]
+TAIL_CURVES = (BODY_CURVES[-1],)
 LEFT_BROW_START = (64.0, 56.7265)
 LEFT_BROW_CURVES = (
     ((64.0, 56.7265), (81.7087, 52.8505), (93.2292, 52.7265)),
@@ -444,6 +447,9 @@ class PaperclipPalApp:
         self._pupil_look = (0.0, 0.0)
         self._pupil_size_scale = 1.0
         self._brow_base_coords: dict[int, tuple[float, ...]] = {}
+        self.tail_wire = 0
+        self._tail_base_coords: tuple[float, ...] = ()
+        self._tail_wag_after: list[str] = []
         self._is_blinking = False
         self._mouse_follow_after: str | None = None
         self._mouse_follow_until = 0.0
@@ -591,10 +597,17 @@ class PaperclipPalApp:
     def _draw_pal(self) -> None:
         c = self.canvas
         c.create_line(
-            *_scale_coords(_path_coords(BODY_START, BODY_CURVES)), smooth=False,
+            *_scale_coords(_path_coords(BODY_START, BODY_MAIN_CURVES)), smooth=False,
             width=30 * PAL_SCALE, fill=WIRE, capstyle=tk.ROUND,
             joinstyle=tk.ROUND, tags=("pal", "wire"),
         )
+        tail_coords = tuple(_scale_coords(_path_coords(TAIL_START, TAIL_CURVES)))
+        self.tail_wire = c.create_line(
+            *tail_coords, smooth=False,
+            width=30 * PAL_SCALE, fill=WIRE, capstyle=tk.ROUND,
+            joinstyle=tk.ROUND, tags=("pal", "wire", "tail"),
+        )
+        self._tail_base_coords = tail_coords
         c.create_oval(*_oval_bounds(57, 154.726, 57), fill=EYE_WHITE, outline="", tags=("pal", "eye"))
         c.create_oval(*_oval_bounds(213, 195.226, 57, 56.5), fill=EYE_WHITE, outline="", tags=("pal", "eye"))
         left_pupil_bounds = _oval_bounds(64, 154.726, 39)
@@ -621,13 +634,17 @@ class PaperclipPalApp:
             self.left_brow: left_brow_coords,
             self.right_brow: right_brow_coords,
         }
+        self.canvas.tag_lower(self.tail_wire, "eye")
         self._apply_hardware_tint()
 
     def _reset_pal_geometry(self) -> None:
+        self._cancel_tail_wag(reset=False)
         look = self._pupil_look
         self._clear_decorations()
         self.canvas.delete("pal")
         self._pupil_bounds.clear()
+        self.tail_wire = 0
+        self._tail_base_coords = ()
         self._pal_scale = (1.0, 1.0)
         self._action_offset = (0.0, 0.0)
         self._bob_x = 0.0
@@ -719,6 +736,7 @@ class PaperclipPalApp:
         self._stop_brain_wait_animation()
         self._stop_chat_wait_feedback(clear_bubble=True)
         self._cancel_performance_phrase()
+        self._cancel_tail_wag(reset=False)
         self._cancel_delayed_decoration_cues()
         self._clear_decorations("temporary")
         self._cancel_scripted_demo()
@@ -2418,6 +2436,8 @@ class PaperclipPalApp:
     def _perform_action(self, action: str) -> None:
         if not action or action == "idle":
             return
+        if action != "tail_wag":
+            self._cancel_tail_wag(reset=True)
         if action in {
             "twist_scoot",
             "mini_hop_shift",
@@ -2446,9 +2466,70 @@ class PaperclipPalApp:
         if action == "scan":
             self._scan()
             return
+        if action == "tail_wag":
+            self._run_tail_wag()
+            return
         frames = ACTION_FRAMES.get(action)
         if frames:
             self._run_large_action(frames)
+
+    def _run_tail_wag(self) -> None:
+        if self._large_action_running or not self.tail_wire:
+            return
+        self._cancel_tail_wag(reset=False)
+        self._set_brow_pose("proud")
+        self._set_pupil_pose(-0.35, -0.2, size_scale=1.02)
+        frames: tuple[tuple[float, int], ...] = (
+            (0.0, 20),
+            (7.0, 70),
+            (-8.0, 80),
+            (8.5, 80),
+            (-6.0, 75),
+            (4.0, 70),
+            (0.0, 90),
+        )
+
+        def step(index: int = 0) -> None:
+            if index >= len(frames):
+                self._cancel_tail_wag(reset=True)
+                self._schedule_expression_reset(900)
+                return
+            amount, delay = frames[index]
+            self._set_tail_wag_amount(amount)
+            after_id = self.root.after(delay, lambda: step(index + 1))
+            self._tail_wag_after.append(after_id)
+
+        step()
+
+    def _cancel_tail_wag(self, reset: bool = True) -> None:
+        for after_id in self._tail_wag_after:
+            try:
+                self.root.after_cancel(after_id)
+            except tk.TclError:
+                pass
+        self._tail_wag_after.clear()
+        if reset:
+            self._set_tail_wag_amount(0.0)
+
+    def _set_tail_wag_amount(self, amount: float) -> None:
+        if not self.tail_wire or not self._tail_base_coords:
+            return
+        sx, sy = self._pal_scale
+        actor_dx = self._action_offset[0] + self._bob_x
+        actor_dy = self._action_offset[1] + self._bob_y
+        pair_count = max(1, len(self._tail_base_coords) // 2)
+        coords: list[float] = []
+        for index in range(pair_count):
+            x = self._tail_base_coords[index * 2]
+            y = self._tail_base_coords[index * 2 + 1]
+            progress = index / max(1, pair_count - 1)
+            tip_bias = progress ** 1.35
+            wag_x = amount * tip_bias
+            wag_y = abs(amount) * 0.14 * math.sin(progress * math.pi)
+            tx = PAL_CENTER_X + (x + wag_x - PAL_CENTER_X) * sx + actor_dx
+            ty = PAL_SCALE_CENTER_Y + (y + wag_y - PAL_SCALE_CENTER_Y) * sy + actor_dy
+            coords.extend((tx, ty))
+        self.canvas.coords(self.tail_wire, *coords)
 
     def _perform_micro_action(self, action: str) -> None:
         if action == "micro_focus_pause":
@@ -2624,6 +2705,7 @@ class PaperclipPalApp:
     def _wiggle(self) -> None:
         if self._large_action_running:
             return
+        self._cancel_tail_wag(reset=True)
         frames = (
             (1.13, 0.88, 42),
             (0.93, 1.08, 54),
