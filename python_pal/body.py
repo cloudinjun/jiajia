@@ -89,6 +89,9 @@ CODEX_USAGE_COLORS = {
     "refilled": "#10a37f",
     "unavailable": "#a8a8a8",
 }
+USAGE_BADGE_WIDTH = 82
+USAGE_BADGE_HEIGHT = 26
+USAGE_BADGE_BOTTOM_GAP = 12
 STATUS_BADGES: dict[str, tuple[str, str, str]] = {
     "codex_waiting": ("C", "#f0b429", "circle"),
     "hardware_hot": ("°", "#d86b6b", "circle"),
@@ -2000,8 +2003,9 @@ class PaperclipPalApp:
         if percent is None:
             return
         color = CODEX_USAGE_COLORS.get(status.level, CODEX_USAGE_COLORS["watch"])
-        x, y = 10, 12
-        width, height = 78, 26
+        width, height = USAGE_BADGE_WIDTH, USAGE_BADGE_HEIGHT
+        x = (self.width - width) / 2
+        y = self.height - height - USAGE_BADGE_BOTTOM_GAP
         fill_width = max(4, round((width - 8) * percent / 100))
         self._usage_badge_items.extend(
             [
