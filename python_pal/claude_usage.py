@@ -88,7 +88,7 @@ class ClaudeUsageMonitor:
         now = datetime.now().astimezone()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         recent_start = now - timedelta(hours=5)
-        scan_start = min(today_start, recent_start)
+        history_start = now - timedelta(days=14)
 
         try:
             files = sorted(
@@ -107,7 +107,7 @@ class ClaudeUsageMonitor:
                 stat = path.stat()
             except OSError:
                 continue
-            if stat.st_mtime < scan_start.timestamp() - 60 * 60:
+            if stat.st_mtime < history_start.timestamp():
                 continue
             latest_mtime = max(latest_mtime, stat.st_mtime)
             for entry in _iter_usage_entries(path):
@@ -132,7 +132,7 @@ class ClaudeUsageMonitor:
         recent = _summarize(recent_entries)
         last = _summarize([latest_entry])
         level = _level_for(recent, stale)
-        summary = _summary_line(today, recent, last, stale)
+        summary = _summary_line(today, recent, last, latest_entry.timestamp, latest_mtime, stale)
         tags = _usage_tags(level)
         return ClaudeUsageStatus(
             source="claude_projects",
@@ -254,9 +254,22 @@ def _summary_line(
     today: ClaudeUsageWindow,
     recent: ClaudeUsageWindow,
     last: ClaudeUsageWindow,
+    last_timestamp: datetime | None,
+    latest_mtime: float,
     stale: bool,
 ) -> str:
     if today.requests <= 0 and recent.requests <= 0:
+        if last.requests > 0 and last_timestamp is not None:
+            log_note = ""
+            if latest_mtime > 0 and datetime.fromtimestamp(latest_mtime).astimezone() > last_timestamp:
+                log_note = " 本地日志后来有更新，但没有新的真实 Claude 计费用量；多半是恢复/回放/状态记录。"
+            stale_note = " 数据已经有点旧。" if stale else ""
+            model = f"，模型 {last.models[0]}" if last.models else ""
+            return (
+                f"今天和最近5小时没有新的真实 Claude usage。"
+                f"最近一次真实记录是 {_format_time_label(last_timestamp)}{model}，约 {_format_tokens(last.total_tokens)} tokens。"
+                f"{log_note}{stale_note}"
+            )
         return "今天还没有可统计的 Claude usage。它暂时没有账本，只有气质。"
     parts = [
         f"Claude 今日 {today.requests} 次响应，约 {_format_tokens(today.total_tokens)} tokens",
@@ -312,6 +325,17 @@ def _format_tokens(value: int) -> str:
     if value >= 1_000:
         return f"{value / 1_000:.1f}k"
     return str(value)
+
+
+def _format_time_label(value: datetime) -> str:
+    local = value.astimezone()
+    now = datetime.now().astimezone()
+    if local.date() == now.date():
+        return f"今天 {local.strftime('%H:%M')}"
+    yesterday = (now - timedelta(days=1)).date()
+    if local.date() == yesterday:
+        return f"昨天 {local.strftime('%H:%M')}"
+    return local.strftime("%Y-%m-%d %H:%M")
 
 
 def _as_int(value: Any) -> int:
