@@ -21,6 +21,7 @@ class EarContext:
     idle_seconds: float = 0.0
     window_switches_per_minute: int = 0
     activity_level: str = "active"
+    is_fullscreen: bool = False
     behavior_tags: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, object]:
@@ -32,6 +33,7 @@ class EarContext:
             "idle_seconds": round(self.idle_seconds, 1),
             "window_switches_per_minute": self.window_switches_per_minute,
             "activity_level": self.activity_level,
+            "is_fullscreen": self.is_fullscreen,
             "behavior_tags": self.behavior_tags,
         }
 
@@ -48,6 +50,7 @@ class Ears:
         now = time.time()
         title = _foreground_window_title()
         process = _foreground_process_name()
+        is_fullscreen = _foreground_is_fullscreen()
         category = _app_category(process, title)
         signature = f"{process}|{title}"
         if signature != self._last_signature:
@@ -60,7 +63,7 @@ class Ears:
         focus_seconds = max(0.0, now - self._focus_started_at)
         switches = len(self._switch_times)
         activity = _activity_level(idle)
-        tags = _behavior_tags(category, process, title, focus_seconds, idle, switches, activity)
+        tags = _behavior_tags(category, process, title, focus_seconds, idle, switches, activity, is_fullscreen)
         return EarContext(
             active_window_title=_safe_title(title, category),
             active_process=process,
@@ -69,6 +72,7 @@ class Ears:
             idle_seconds=idle,
             window_switches_per_minute=switches,
             activity_level=activity,
+            is_fullscreen=is_fullscreen,
             behavior_tags=tags,
         )
 
@@ -77,6 +81,24 @@ class LASTINPUTINFO(ctypes.Structure):
     _fields_ = [
         ("cbSize", wintypes.UINT),
         ("dwTime", wintypes.DWORD),
+    ]
+
+
+class RECT(ctypes.Structure):
+    _fields_ = [
+        ("left", wintypes.LONG),
+        ("top", wintypes.LONG),
+        ("right", wintypes.LONG),
+        ("bottom", wintypes.LONG),
+    ]
+
+
+class MONITORINFO(ctypes.Structure):
+    _fields_ = [
+        ("cbSize", wintypes.DWORD),
+        ("rcMonitor", RECT),
+        ("rcWork", RECT),
+        ("dwFlags", wintypes.DWORD),
     ]
 
 
@@ -119,6 +141,34 @@ def _foreground_process_name() -> str:
         except Exception:
             pass
     return _process_name_from_path(pid.value)
+
+
+def _foreground_is_fullscreen() -> bool:
+    hwnd = _foreground_window_handle()
+    if not hwnd:
+        return False
+    user32 = ctypes.windll.user32
+    try:
+        user32.MonitorFromWindow.restype = wintypes.HMONITOR
+    except AttributeError:
+        user32.MonitorFromWindow.restype = ctypes.c_void_p
+    rect = RECT()
+    if not user32.GetWindowRect(hwnd, ctypes.byref(rect)):
+        return False
+    monitor = user32.MonitorFromWindow(hwnd, 2)
+    if not monitor:
+        return False
+    info = MONITORINFO()
+    info.cbSize = ctypes.sizeof(MONITORINFO)
+    if not user32.GetMonitorInfoW(monitor, ctypes.byref(info)):
+        return False
+    tolerance = 2
+    return (
+        abs(rect.left - info.rcMonitor.left) <= tolerance
+        and abs(rect.top - info.rcMonitor.top) <= tolerance
+        and abs(rect.right - info.rcMonitor.right) <= tolerance
+        and abs(rect.bottom - info.rcMonitor.bottom) <= tolerance
+    )
 
 
 def _process_name_from_path(pid: int) -> str:
@@ -171,6 +221,7 @@ def _behavior_tags(
     idle_seconds: float,
     switches_per_minute: int,
     activity: str,
+    is_fullscreen: bool,
 ) -> list[str]:
     tags = {f"app_{category}", activity}
     text = f"{process} {title}".lower()
@@ -192,6 +243,8 @@ def _behavior_tags(
         tags.add("blank_document")
     if category == "meeting_or_chat":
         tags.add("privacy_sensitive")
+    if is_fullscreen:
+        tags.add("fullscreen")
     return sorted(tags)
 
 

@@ -24,11 +24,12 @@ from .mood import MoodEngine, FREQUENCY_PRESETS, FREQUENCY_DEFAULT
 from .claude_status import ClaudeOverview, ClaudeSession, ClaudeStatusMonitor
 from .codex_status import CodexStatus, CodexStatusMonitor
 from .codex_usage import CodexUsageMonitor, CodexUsageStatus, format_reset_in
-from .decision import DecisionEngine
+from .decision import DecisionEngine, DecisionResult
 from .ears import Ears
 from .event_log import EventLog
 from .eyes import Eyes
 from .hardware_status import HardwareSnapshot, HardwareStatusMonitor
+from .interruptibility import Interruptibility, assess_interruptibility
 from .performance import PERFORMANCE_PHRASES, phrase_for_reaction
 from .soul import Soul
 from .state import PalState, Reaction
@@ -93,6 +94,7 @@ STATUS_BADGES: dict[str, tuple[str, str, str]] = {
     "hardware_hot": ("°", "#d86b6b", "circle"),
     "usage_low": ("%", "#e4a03b", "circle"),
     "focus_mode": ("F", "#7c8db5", "circle"),
+    "do_not_disturb": ("D", "#7c8db5", "circle"),
     "error": ("!", "#d65b4a", "triangle"),
     "sleeping": ("Z", "#a8a8a8", "circle"),
 }
@@ -911,6 +913,7 @@ class PaperclipPalApp:
     def _build_chat_context(self) -> dict[str, object]:
         world = self._world_state()
         policy = self._activity_policy()
+        interruptibility = self._interruptibility(world)
         context = build_chat_context(
             world,
             activity_mode=self._freq_var.get(),
@@ -918,6 +921,7 @@ class PaperclipPalApp:
             focus_mode=bool(self._focus_var.get()),
             quiet_remaining_seconds=self._quiet_remaining_seconds(),
         )
+        context.update(interruptibility.as_context())
         self._last_chat_context_debug = json.dumps(context, ensure_ascii=False, indent=2)
         return context
 
@@ -1345,7 +1349,15 @@ class PaperclipPalApp:
         )
 
     def _auto_reactions_paused(self) -> bool:
-        return self._focus_var.get() or time.time() < self._quiet_until
+        return not self._interruptibility().allow_speech
+
+    def _interruptibility(self, world: WorldState | None = None) -> Interruptibility:
+        activity = world.user_activity if world else self.ears.sample()
+        return assess_interruptibility(
+            activity,
+            focus_mode=bool(self._focus_var.get()),
+            quiet_remaining_seconds=self._quiet_remaining_seconds(),
+        )
 
     def _quiet_remaining_seconds(self) -> float:
         return max(0.0, self._quiet_until - time.time())
@@ -1395,8 +1407,9 @@ class PaperclipPalApp:
     def _micro_tick(self) -> None:
         self._micro_after = None
         if not self._large_action_running and not self.state.brain_busy and not self._dragging:
-            if self._auto_reactions_paused():
-                if random.random() < 0.18:
+            interruptibility = self._interruptibility()
+            if not interruptibility.allow_speech:
+                if interruptibility.allow_animation and random.random() < 0.18:
                     self._play_idle_animation(self._pick_idle_animation(micro=True, low_stimulus=True), source="micro_quiet")
                 self._schedule_micro()
                 return
@@ -1412,8 +1425,9 @@ class PaperclipPalApp:
         self._companion_after = None
         if not self._large_action_running and not self.state.brain_busy and not self._dragging:
             policy = self._activity_policy()
-            if self._auto_reactions_paused():
-                if random.random() < 0.28:
+            interruptibility = self._interruptibility()
+            if not interruptibility.allow_speech:
+                if interruptibility.allow_animation and random.random() < 0.28:
                     self._play_idle_animation(self._pick_idle_animation(low_stimulus=True), source="companion_quiet")
                 self._schedule_companion()
                 return
@@ -1640,17 +1654,20 @@ class PaperclipPalApp:
         )
 
     def _context(self, event: str, world: WorldState | None = None) -> dict[str, object]:
-        context = (world or self._world_state()).as_context(event)
+        world_state = world or self._world_state()
+        context = world_state.as_context(event)
         identity_id = self._identity_var.get()
         if identity_id and identity_id != "auto":
             context["identity_id"] = identity_id
         focus_mode = bool(self._focus_var.get())
         quiet_remaining = self._quiet_remaining_seconds()
         policy = self._activity_policy()
+        interruptibility = self._interruptibility(world_state)
         context["pal_focus_mode"] = focus_mode
         context["pal_quiet_remaining_seconds"] = round(quiet_remaining, 1)
         context["activity_tier"] = policy.tier
         context["activity_alert_threshold"] = policy.alert_threshold
+        context.update(interruptibility.as_context())
         if focus_mode or quiet_remaining > 0:
             tags = list(context.get("environment_tags") or [])
             tags.append("focus_mode" if focus_mode else "quiet_mode")
@@ -1658,6 +1675,8 @@ class PaperclipPalApp:
         else:
             tags = list(context.get("environment_tags") or [])
             tags.append(f"activity_{policy.tier}")
+            if not interruptibility.allow_speech:
+                tags.append(f"interrupt_{interruptibility.mode}")
             context["environment_tags"] = sorted(set(str(tag) for tag in tags if str(tag)))
         return context
 
@@ -2067,8 +2086,13 @@ class PaperclipPalApp:
 
     def _status_badge_ids(self) -> list[str]:
         badges: list[str] = []
+        interruptibility = self._interruptibility()
+        if not interruptibility.allow_badges:
+            return badges
         if self._focus_var.get() or self._quiet_remaining_seconds() > 0:
             badges.append("focus_mode")
+        elif interruptibility.mode != "open":
+            badges.append("do_not_disturb")
         if self._last_codex_status.status == "waiting_user":
             badges.append("codex_waiting")
         if self._last_codex_status.status in {"error", "blocked", "disconnected"}:
@@ -2548,7 +2572,16 @@ class PaperclipPalApp:
         self.root.after(delay, self._ambient_tick)
 
     def _ambient_tick(self) -> None:
-        if self._auto_reactions_paused():
+        interruptibility = self._interruptibility()
+        if not interruptibility.allow_speech:
+            self.decision.last_decision = DecisionResult(
+                False,
+                event="ambient",
+                reason=interruptibility.reason,
+                pattern="interruptibility",
+                reaction_style="silent_watch",
+                blocked_rules=[f"interruptibility:{interruptibility.mode}"],
+            )
             self._schedule_ambient()
             return
         policy = self._activity_policy()
