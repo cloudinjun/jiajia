@@ -399,6 +399,7 @@ class PaperclipPalApp:
         self.root.attributes("-topmost", True)
         self.root.attributes("-transparentcolor", TRANSPARENT)
         self.root.configure(bg=TRANSPARENT)
+        self.root.protocol("WM_DELETE_WINDOW", self._quit)
         self.width = PAL_CANVAS_WIDTH
         self.height = PAL_CANVAS_HEIGHT
         self.canvas = tk.Canvas(
@@ -707,10 +708,45 @@ class PaperclipPalApp:
         self.menu.add_checkbutton(label="Focus mode", variable=self._focus_var, command=self._toggle_focus_mode)
         self.menu.add_command(label="Summon / resume", command=self._resume_auto_reactions)
         self.menu.add_separator()
-        self.menu.add_command(label="Quit", command=self.root.destroy)
+        self.menu.add_command(label="退出", command=self._quit)
 
     def _show_context_menu(self, event: tk.Event) -> None:
         self.menu.tk_popup(event.x_root, event.y_root)
+
+    def _quit(self) -> None:
+        self._stop_brain_wait_animation()
+        self._stop_chat_wait_feedback(clear_bubble=True)
+        self._cancel_performance_phrase()
+        self._cancel_delayed_decoration_cues()
+        self._clear_decorations("temporary")
+        self._cancel_scripted_demo()
+        for attr in (
+            "_mouse_follow_after",
+            "_rebound_after",
+            "_large_action_after",
+            "_window_move_after",
+            "_hardware_tint_after",
+            "_status_badge_after",
+            "_micro_after",
+            "_companion_after",
+        ):
+            after_id = getattr(self, attr, None)
+            if after_id:
+                try:
+                    self.root.after_cancel(after_id)
+                except tk.TclError:
+                    pass
+                setattr(self, attr, None)
+        if self._chat_window and self._chat_window.winfo_exists():
+            try:
+                self._chat_window.destroy()
+            except tk.TclError:
+                pass
+        try:
+            self.bubble_root.destroy()
+        except tk.TclError:
+            pass
+        self.root.destroy()
 
     def _open_chat_input(self) -> None:
         if self._chat_window and self._chat_window.winfo_exists():
