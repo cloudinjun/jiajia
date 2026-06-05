@@ -107,7 +107,7 @@ class PalChatBrain:
             "你正在和用户短聊，不是通用客服，也不替用户操作电脑。\n"
             "回答要短，通常 1-3 句。可以乖巧、无害、轻微毒舌，但只戳行为，不评价人格。\n"
             "如果用户表达累、焦虑、难过、不舒服、崩溃，进入 comfort mode：不毒舌，短句，降低存在感。\n"
-            "你可以引用给定的低隐私桌面状态：Codex、Claude、硬件、Codex usage、活跃度、最近自己说过的话。\n"
+            "你可以引用给定的低隐私桌面状态：Codex、Claude、硬件、Codex usage、Claude usage、活跃度、最近自己说过的话。\n"
             "不要声称看到了上下文里没有的数据。状态未知就直接说未知，带一点夹夹味。\n"
             "输出 JSON，不要 Markdown，不要解释。"
         )
@@ -219,6 +219,7 @@ def build_chat_context(
     usage = world.codex_usage
     hardware = world.hardware
     claude = world.claude
+    claude_usage = world.claude_usage
     return {
         "activity": {
             "mode": activity_mode or world.mood.key,
@@ -251,6 +252,17 @@ def build_chat_context(
             "reset_in_label": _usage_reset_label(usage.as_dict()),
             "summary": usage.summary_line,
             "stale": usage.stale,
+        },
+        "claude_usage": {
+            "level": claude_usage.level,
+            "summary": claude_usage.summary_line,
+            "source": claude_usage.source,
+            "stale": claude_usage.stale,
+            "today_requests": claude_usage.today.requests,
+            "today_total_tokens": claude_usage.today.total_tokens,
+            "recent_5h_requests": claude_usage.recent_5h.requests,
+            "recent_5h_total_tokens": claude_usage.recent_5h.total_tokens,
+            "recent_models": list(claude_usage.recent_5h.models),
         },
         "claude": {
             "total_alive": claude.total_alive,
@@ -290,6 +302,8 @@ def detect_chat_command(message: str) -> str:
     if _has_any(compact, ("闭嘴", "别说话", "安静半小时", "quiet30", "shutup", "shush")):
         return "quiet_30m"
 
+    if "claude" in compact and _has_any(compact, ("usage", "用量", "额度", "token", "tokens", "账单", "账本", "今天用了多少", "花了多少")):
+        return "status_claude_usage"
     if _has_any(compact, ("codexusage", "codex额度", "额度", "quota", "remaining", "还剩多少", "reset")):
         return "status_usage"
     if "claude" in compact and _has_any(compact, ("状态", "status", "在干嘛", "怎么", "卡", "会话")):
@@ -324,6 +338,8 @@ def local_status_reaction(command: str, context: dict[str, object]) -> Reaction 
         return _codex_status_reaction(context)
     if command == "status_claude":
         return _claude_status_reaction(context)
+    if command == "status_claude_usage":
+        return _claude_usage_status_reaction(context)
     if command == "status_hardware":
         return _hardware_status_reaction(context)
     if command == "status_usage":
@@ -389,6 +405,23 @@ def _claude_status_reaction(context: dict[str, object]) -> Reaction:
     return Reaction(True, line, "thinking", "scan", "claude_speech", "suspicious_observe", event="chat_claude_status")
 
 
+def _claude_usage_status_reaction(context: dict[str, object]) -> Reaction:
+    usage = _dict(context.get("claude_usage"))
+    level = str(usage.get("level") or "unavailable")
+    summary = str(usage.get("summary") or "").strip()
+    if level == "unavailable":
+        line = summary or "还没有 Claude usage 数据。夹夹暂时没有账本，只有眉毛。"
+        return Reaction(True, line, "sleepy", "blink", "claude_speech", "fake_sulk", event="chat_claude_usage")
+    line = summary or "Claude usage 有数据，但它今天表现得过于抽象。"
+    if level in {"busy", "heavy"}:
+        line += " 这不是官方剩余额度，是本地 token 账；夹夹不会拿旧账冒充限额。"
+        mood, performance = "suspicious", "suspicious_observe"
+    else:
+        line += " 这是本地 token 账，不是官方剩余额度。"
+        mood, performance = "thinking", "quiet_companion"
+    return Reaction(True, line, mood, "scan", "claude_speech", performance, event="chat_claude_usage")
+
+
 def _hardware_status_reaction(context: dict[str, object]) -> Reaction:
     hardware = _dict(context.get("hardware"))
     level = str(hardware.get("level") or "unavailable")
@@ -447,12 +480,14 @@ def _overview_reaction(context: dict[str, object]) -> Reaction:
     hardware = _dict(context.get("hardware"))
     usage = _dict(context.get("codex_usage"))
     claude = _dict(context.get("claude"))
+    claude_usage = _dict(context.get("claude_usage"))
     parts = [
         f"活跃度 {activity.get('mode') or '未知'}",
         f"Codex {codex.get('status') or 'unknown'}",
         f"Claude {claude.get('active_count') or 0}/{claude.get('total_alive') or 0} active",
         f"硬件 {hardware.get('level') or 'unknown'}",
-        f"usage {usage.get('level') or 'unknown'}",
+        f"Codex usage {usage.get('level') or 'unknown'}",
+        f"Claude usage {claude_usage.get('level') or 'unknown'}",
     ]
     return Reaction(
         True,

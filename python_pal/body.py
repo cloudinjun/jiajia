@@ -22,6 +22,7 @@ from .chat import ChatSession, PalChatBrain, build_chat_context, detect_chat_com
 from .decorations import DecorationDefinition, load_decoration_manifest
 from .mood import MoodEngine, FREQUENCY_PRESETS, FREQUENCY_DEFAULT
 from .claude_status import ClaudeOverview, ClaudeSession, ClaudeStatusMonitor
+from .claude_usage import ClaudeUsageMonitor, ClaudeUsageStatus
 from .codex_status import CodexStatus, CodexStatusMonitor
 from .codex_usage import CodexUsageMonitor, CodexUsageStatus, format_reset_in
 from .decision import DecisionEngine, DecisionResult
@@ -122,6 +123,7 @@ PAL_HIT_INSET = 6
 CODEX_STATUS_POLL_MS = 2500
 CODEX_USAGE_POLL_MS = 60_000
 CLAUDE_STATUS_POLL_MS = 8000
+CLAUDE_USAGE_POLL_MS = 120_000
 HARDWARE_STATUS_POLL_MS = 5000
 LERP_TICK_MS = 18
 VISION_FIRST_REFRESH_MS = 5 * 60 * 1000
@@ -507,10 +509,12 @@ class PaperclipPalApp:
         self._line_bank_thread: threading.Thread | None = None
         self._vision_thread: threading.Thread | None = None
         self.claude_monitor = ClaudeStatusMonitor()
+        self.claude_usage = ClaudeUsageMonitor()
         self._last_claude_event = ""
         self._last_claude_alive_pids: set[int] = set()
         self._last_claude_sessions_by_pid: dict[int, ClaudeSession] = {}
         self._recent_claude_status_fragments: list[str] = []
+        self._last_claude_usage_status: ClaudeUsageStatus = ClaudeUsageStatus()
         self._performance_after: list[str] = []
         self._expression_after: list[str] = []
         self._last_animation_debug = "not played yet"
@@ -540,6 +544,7 @@ class PaperclipPalApp:
         self.root.after(1500, self._poll_codex_status)
         self.root.after(6000, self._poll_codex_usage)
         self.root.after(3500, self._poll_claude_status)
+        self.root.after(7500, self._poll_claude_usage)
         self.root.after(4200, self._poll_hardware_status)
         self._schedule_blink()
         self._schedule_look()
@@ -708,6 +713,7 @@ class PaperclipPalApp:
         self.menu.add_command(label="Codex status", command=self._show_codex_status)
         self.menu.add_command(label="Codex usage", command=self._show_codex_usage)
         self.menu.add_command(label="Claude 状态", command=self._show_claude_status)
+        self.menu.add_command(label="Claude usage", command=self._show_claude_usage)
         self.menu.add_command(label="Hardware status", command=self._show_hardware_status)
         self.menu.add_command(label="Last events", command=self._show_last_events)
         self.menu.add_command(label="Morning digest", command=self._show_morning_digest)
@@ -1057,7 +1063,7 @@ class PaperclipPalApp:
             bubble = (reaction.bubble or "").lower()
             if event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_"):
                 return "thermal_technician"
-            if event.startswith(("codex_usage", "chat_usage", "demo_usage")) or bubble.startswith("usage_"):
+            if event.startswith(("codex_usage", "claude_usage", "chat_usage", "chat_claude_usage", "demo_usage")) or bubble.startswith("usage_"):
                 return "usage_accountant"
             if event.startswith(("codex_", "claude_", "chat_codex", "chat_claude", "demo_codex")) or bubble.startswith(("codex_", "claude_")):
                 return "agent_supervisor"
@@ -1664,6 +1670,7 @@ class PaperclipPalApp:
             codex=self.codex_status.sample(),
             codex_usage=self._last_codex_usage_status,
             claude=self.claude_monitor.sample(),
+            claude_usage=self._last_claude_usage_status,
             hardware=self._last_hardware_status,
             pal=self.state,
             mood=MoodSnapshot(
@@ -1922,6 +1929,15 @@ class PaperclipPalApp:
             ):
                 self._apply_reaction(reaction)
         self.root.after(CLAUDE_STATUS_POLL_MS, self._poll_claude_status)
+
+    def _poll_claude_usage(self) -> None:
+        self._last_claude_usage_status = self.claude_usage.sample()
+        self.root.after(CLAUDE_USAGE_POLL_MS, self._poll_claude_usage)
+
+    def _show_claude_usage(self) -> None:
+        status = self.claude_usage.sample()
+        self._last_claude_usage_status = status
+        self._apply_reaction(_claude_usage_reaction(status, manual=True))
 
     def _poll_hardware_status(self) -> None:
         snapshot = self.hardware_status.sample()
@@ -2344,7 +2360,7 @@ class PaperclipPalApp:
         bubble = (reaction.bubble or "").lower()
         if event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_"):
             self._show_temporary_decoration("heat_puffs", 4200)
-        if event.startswith(("codex_usage", "chat_usage", "demo_usage")) or bubble.startswith("usage_"):
+        if event.startswith(("codex_usage", "claude_usage", "chat_usage", "chat_claude_usage", "demo_usage")) or bubble.startswith("usage_"):
             self._show_temporary_decoration("usage_bar", 4200)
         if reaction.performance in {"cold_arrow_then_innocent", "roast_and_scoot"} or reaction.mood in {"smirk", "smug"}:
             self._show_temporary_decoration("annotation_circle", 2600)
@@ -3433,6 +3449,47 @@ def _codex_usage_reaction(status: CodexUsageStatus, manual: bool = False) -> Rea
 
 def _format_usage_percent(percent: float | None) -> str:
     return "未知" if percent is None else f"{percent:.0f}"
+
+
+def _claude_usage_reaction(status: ClaudeUsageStatus, manual: bool = False) -> Reaction:
+    if status.level == "unavailable":
+        return Reaction(
+            True,
+            status.summary_line or "还没有 Claude usage 数据。夹夹暂时没有账本，只有眉毛。",
+            "sleepy",
+            "blink",
+            "claude_speech" if manual else "claude_thought",
+            "fake_sulk",
+            event="claude_usage_unavailable",
+        )
+
+    line = status.summary_line
+    if status.level == "heavy":
+        line += " 账本有点厚，Claude 看起来不是在工作，是在燃烧上下文。"
+        mood, action, performance = "sulky", "sleepy_sag", "usage_low_sag"
+    elif status.level == "busy":
+        line += " 它很忙，忙得很有订阅制软件的气质。"
+        mood, action, performance = "suspicious", "scan", "suspicious_observe"
+    elif status.level == "active":
+        line += " 有动静，但还没到需要摆出会计脸。"
+        mood, action, performance = "thinking", "thinking_tilt", "quiet_companion"
+    elif status.level == "quiet":
+        line += " 它今天暂时比较安静。安静得像在等你先犯错。"
+        mood, action, performance = "innocent", "blink", "quiet_companion"
+    else:
+        line += " 数据有点旧，夹夹先不拿旧账吓唬你。"
+        mood, action, performance = "sleepy", "blink", "fake_sulk"
+
+    return Reaction(
+        True,
+        line,
+        mood,
+        action,
+        "claude_speech" if manual else "claude_thought",
+        performance,
+        decision_reason=f"claude_usage={status.level}",
+        event=f"claude_usage_{status.level}",
+    )
 
 
 def _hardware_status_reaction(snapshot: HardwareSnapshot, manual: bool = False) -> Reaction:

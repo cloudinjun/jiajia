@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import time
 
 from .claude_status import ClaudeOverview
+from .claude_usage import ClaudeUsageStatus
 from .codex_status import CodexStatus
 from .codex_usage import CodexUsageStatus
 from .ears import EarContext
@@ -35,6 +36,7 @@ class WorldState:
     codex: CodexStatus
     codex_usage: CodexUsageStatus
     claude: ClaudeOverview
+    claude_usage: ClaudeUsageStatus
     hardware: HardwareSnapshot
     pal: PalState
     mood: MoodSnapshot
@@ -54,6 +56,7 @@ class WorldState:
             tags.add("claude_active")
         elif self.claude.total_alive:
             tags.add("claude_idle")
+        tags.update(self.claude_usage.tags)
         tags.update(self.hardware.tags)
         return sorted(tags)
 
@@ -67,6 +70,7 @@ class WorldState:
             **self.screen.as_dict(),
             **self.codex.as_dict(),
             **self.codex_usage.as_dict(),
+            **self.claude_usage.as_dict(),
             **self.hardware.as_dict(),
             "claude_total_alive": self.claude.total_alive,
             "claude_active_count": self.claude.active_count,
