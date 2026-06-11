@@ -10,6 +10,12 @@ project-specific flat vector.
 
 ## Demo
 
+![User input to thinking to reply](docs/media/hero-interaction.gif)
+
+The core interaction loop is: user types a prompt, the pal performs a visible
+thinking/searching state while the local LLM works, then it replies with a
+bubble and a small character performance.
+
 | Idle | Cold arrow | Sleepy |
 |---|---|---|
 | ![Idle breathe](docs/media/idle-breathe.gif) | ![Cold arrow then innocent](docs/media/cold-arrow-then-innocent.gif) | ![Sleepy sag](docs/media/sleepy-sag.gif) |
