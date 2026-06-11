@@ -112,6 +112,8 @@ EYE_POSES: dict[str, EyePose] = {
     "soft": (0.0, 0.25, 0.96, 0.92),
     "peek_up": (1.9, -0.75, 0.92, 1.0),
     "proud": (-0.35, -0.25, 1.02, 1.0),
+    "wide": (0.0, -0.25, 1.18, 1.0),
+    "sleepy": (0.0, 0.75, 0.92, 0.50),
     "blink": (0.0, 0.0, 1.0, 0.12),
 }
 
@@ -124,6 +126,7 @@ BROW_POSES: dict[str, BrowPose] = {
     "laugh": ((0.0, 1.4, -0.02), (0.0, 1.2, 0.02)),
     "sulk": ((0.0, 2.6, -0.03), (0.0, 2.1, 0.03)),
     "proud": ((0.0, -1.4, -0.06), (0.0, -1.1, 0.06)),
+    "asleep": ((0.0, 3.2, -0.04), (0.0, 2.8, 0.04)),
 }
 
 
@@ -152,6 +155,18 @@ def build_hero(path: Path) -> None:
     prompt = "make a smug face"
     typed_steps = [prompt[:count] for count in range(0, len(prompt) + 1, 2)]
 
+    for _ in range(6):
+        frames.append(
+            render_frame(
+                action=(0, -2, 1.0, 1.0),
+                eye="wide",
+                brows="innocent",
+                input_text="",
+                stage_label="1  Type",
+                effect="cursor_ping",
+            )
+        )
+
     for index, typed in enumerate(typed_steps):
         phase = index / max(1, len(typed_steps) - 1)
         frames.append(
@@ -161,6 +176,7 @@ def build_hero(path: Path) -> None:
                 brows="innocent",
                 input_text=typed,
                 stage_label="1  Type",
+                effect="cursor_ping" if index % 3 == 0 else "",
             )
         )
 
@@ -185,6 +201,8 @@ def build_hero(path: Path) -> None:
                 input_text=prompt,
                 stage_label="2  Think / search",
                 badge=("LLM", USAGE),
+                effect="search_rings",
+                wire_color="#9fb4d6",
             )
         )
 
@@ -201,16 +219,19 @@ def build_hero(path: Path) -> None:
                 bubble=("speech", reply, BROW),
                 input_text=prompt,
                 stage_label="3  Reply + perform",
+                effect="cold_spark" if index < 10 else "",
             )
         )
 
     frames.extend(
         render_frame(
-            eye="round",
+            action=(0, -1, 0.98, 1.03),
+            eye="wide",
             brows="innocent",
             bubble=("speech", "I am only a stationery item.", BROW),
             input_text=prompt,
             stage_label="3  Reply + perform",
+            effect="innocent_glow",
         )
         for _ in range(10)
     )
@@ -241,10 +262,21 @@ def build_cold_arrow(path: Path) -> None:
     tilt_states = action_states("thinking_tilt")
     nod_states = action_states("nod")
 
+    for _ in range(10):
+        frames.append(
+            render_frame(
+                action=(-8, 2, 0.88, 1.10),
+                eye="side_eye",
+                brows="judge",
+                bubble=("thought", "assessing...", BROW),
+                effect="cold_spark",
+            )
+        )
+
     for index, state in enumerate(tilt_states[:20]):
         eye = "neutral" if index < 8 else "side_eye"
         brows = "soft" if index < 8 else "judge"
-        frames.append(render_frame(action=state, eye=eye, brows=brows))
+        frames.append(render_frame(action=state, eye=eye, brows=brows, effect="cold_spark" if index > 8 else ""))
 
     for _ in range(8):
         frames.append(
@@ -253,6 +285,7 @@ def build_cold_arrow(path: Path) -> None:
                 eye="side_eye",
                 brows="judge",
                 bubble=("speech", "This looks like preparation.\nVery decorative.", BROW),
+                effect="cold_spark",
             )
         )
 
@@ -260,29 +293,53 @@ def build_cold_arrow(path: Path) -> None:
         frames.append(
             render_frame(
                 action=state,
-                eye="round",
+                eye="wide",
                 brows="innocent",
                 bubble=("speech", "I am only a stationery item.", BROW),
+                effect="innocent_glow",
             )
         )
 
     for _ in range(8):
-        frames.append(render_frame(eye="round", brows="innocent"))
+        frames.append(render_frame(action=(0, -1, 0.98, 1.03), eye="wide", brows="innocent", effect="innocent_glow"))
     save_gif(frames, path)
 
 
 def build_sleepy(path: Path) -> None:
     frames: list[Image.Image] = []
+    for _ in range(10):
+        frames.append(
+            render_frame(
+                action=(0, 25, 1.18, 0.58),
+                eye="sleepy",
+                brows="asleep",
+                decoration="zzz",
+                effect="sleep_droop",
+                wire_color="#b9b9b9",
+            )
+        )
     for index, state in enumerate(action_states("sleepy_sag")):
         frames.append(
             render_frame(
                 action=state,
-                eye="soft",
-                brows="sulk",
+                eye="sleepy" if index > 3 else "soft",
+                brows="asleep" if index > 3 else "sulk",
                 decoration="zzz" if index > 8 else "",
+                effect="sleep_droop" if index > 5 else "",
+                wire_color="#b9b9b9",
             )
         )
-    frames.extend(render_frame(eye="soft", brows="sulk", decoration="zzz") for _ in range(12))
+    frames.extend(
+        render_frame(
+            action=(0, 18, 1.10, 0.70),
+            eye="sleepy",
+            brows="asleep",
+            decoration="zzz",
+            effect="sleep_droop",
+            wire_color="#b9b9b9",
+        )
+        for _ in range(12)
+    )
     save_gif(frames, path)
 
 
@@ -305,20 +362,28 @@ def build_status(path: Path) -> None:
                 brows="judge",
                 bubble=(bubble_kind, line, accent),
                 badge=("C" if index < 27 else "Cl", accent),
+                effect="status_scan",
+                wire_color="#a6c9bc" if index < 27 else "#d4b09e",
             )
         )
     save_gif(frames, path)
 
 
 def build_tail(path: Path) -> None:
-    amounts = [0.0, 7.0, -8.0, 8.5, -6.0, 4.0, 0.0]
+    amounts = [14.0, -15.0, 16.0, -12.0, 10.0, -7.0, 0.0]
     frames: list[Image.Image] = []
     for amount in amounts:
         frames.extend(
-            render_frame(eye="proud", brows="proud", tail_wag=amount)
+            render_frame(
+                action=(0, -3, 0.98, 1.04),
+                eye="proud",
+                brows="proud",
+                tail_wag=amount,
+                effect="tail_motion",
+            )
             for _ in range(3)
         )
-    frames.extend(render_frame(eye="round", brows="innocent") for _ in range(8))
+    frames.extend(render_frame(eye="wide", brows="innocent", effect="innocent_glow") for _ in range(8))
     save_gif(frames, path)
 
 
@@ -386,11 +451,17 @@ def render_frame(
     decoration: str = "",
     input_text: str = "",
     stage_label: str = "",
+    effect: str = "",
+    wire_color: str = WIRE,
 ) -> Image.Image:
     image = Image.new("RGBA", (STAGE_W * SS, STAGE_H * SS), BG)
     draw = ImageDraw.Draw(image)
 
-    draw_character(draw, action=action, eye=eye, brows=brows, tail_wag=tail_wag)
+    if effect in {"search_rings", "status_scan", "sleep_droop", "cursor_ping"}:
+        draw_effect(draw, effect)
+    draw_character(draw, action=action, eye=eye, brows=brows, tail_wag=tail_wag, wire_color=wire_color)
+    if effect in {"cold_spark", "innocent_glow", "tail_motion"}:
+        draw_effect(draw, effect)
     if decoration == "zzz":
         draw_zzz(draw)
     if badge:
@@ -410,12 +481,13 @@ def draw_character(
     eye: str,
     brows: str,
     tail_wag: float,
+    wire_color: str,
 ) -> None:
     body_points = transform_path(path_points(BODY_START, BODY_MAIN_CURVES), action)
     tail_points = tail_path_points(tail_wag)
     tail_points = transform_path(tail_points, action)
-    line(draw, body_points, WIRE, 30 * SOURCE_SCALE)
-    line(draw, tail_points, WIRE, 30 * SOURCE_SCALE)
+    line(draw, body_points, wire_color, 30 * SOURCE_SCALE)
+    line(draw, tail_points, wire_color, 30 * SOURCE_SCALE)
 
     ellipse(draw, oval_bounds(57, 154.726, 57), EYE_WHITE, action)
     ellipse(draw, oval_bounds(213, 195.226, 57, 56.5), EYE_WHITE, action)
@@ -583,6 +655,63 @@ def draw_bubble(draw: ImageDraw.ImageDraw, kind: str, text: str, accent: str) ->
             outline=accent,
         )
     draw.multiline_text((54 * SS, 43 * SS), text, font=font, fill=TEXT, spacing=4 * SS)
+
+
+def draw_effect(draw: ImageDraw.ImageDraw, effect: str) -> None:
+    if effect == "cursor_ping":
+        cx, cy = 304 * SS, 398 * SS
+        for radius, color in ((5, "#dce7f4"), (9, "#eef3f8")):
+            r = radius * SS
+            draw.ellipse((cx - r, cy - r, cx + r, cy + r), outline=color, width=2 * SS)
+        return
+
+    if effect == "search_rings":
+        for radius, color in ((42, "#d9e4f8"), (57, "#edf3ff")):
+            x1, y1 = (178 - radius) * SS, (210 - radius) * SS
+            x2, y2 = (178 + radius) * SS, (210 + radius) * SS
+            draw.arc((x1, y1, x2, y2), start=20, end=315, fill=color, width=3 * SS)
+        for x, y, color in ((246, 162, USAGE), (258, 184, "#8ba7de"), (103, 194, "#b9c9e9")):
+            draw.ellipse(((x - 4) * SS, (y - 4) * SS, (x + 4) * SS, (y + 4) * SS), fill=color)
+        return
+
+    if effect == "status_scan":
+        for x in (78, 92, 106):
+            draw.line((x * SS, 152 * SS, x * SS, 282 * SS), fill="#e6eef8", width=2 * SS)
+        for y in (194, 218, 242):
+            draw.line((82 * SS, y * SS, 278 * SS, y * SS), fill="#eef3f7", width=2 * SS)
+        return
+
+    if effect == "sleep_droop":
+        draw.rounded_rectangle((112 * SS, 314 * SS, 246 * SS, 330 * SS), radius=8 * SS, fill="#eeeeee")
+        for x, y, r in ((105, 286, 4), (88, 270, 3), (250, 280, 3)):
+            draw.ellipse(((x - r) * SS, (y - r) * SS, (x + r) * SS, (y + r) * SS), fill="#dadada")
+        return
+
+    if effect == "cold_spark":
+        for points in (
+            ((246, 150), (258, 142), (252, 158)),
+            ((92, 134), (80, 126), (86, 142)),
+            ((272, 218), (286, 214)),
+        ):
+            scaled = [(x * SS, y * SS) for x, y in points]
+            draw.line(scaled, fill="#9c5662", width=3 * SS)
+        return
+
+    if effect == "innocent_glow":
+        for cx, cy in ((135, 199), (200, 216)):
+            r = 25 * SS
+            draw.ellipse((cx * SS - r, cy * SS - r, cx * SS + r, cy * SS + r), outline="#f1f1f1", width=3 * SS)
+        return
+
+    if effect == "tail_motion":
+        for offset, alpha_color in ((0, "#d8d8d8"), (12, "#e6e6e6"), (24, "#efefef")):
+            draw.arc(
+                ((252 + offset) * SS, 198 * SS, (314 + offset) * SS, 296 * SS),
+                start=120,
+                end=220,
+                fill=alpha_color,
+                width=3 * SS,
+            )
 
 
 def draw_input_panel(draw: ImageDraw.ImageDraw, text: str, stage_label: str) -> None:
