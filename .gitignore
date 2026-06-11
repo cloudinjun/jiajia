@@ -4,11 +4,19 @@ __pycache__/
 # Local runtime state
 codex_status.json
 codex_usage_status.json
+claude_account_status.json
+openai_billing_status.json
+gemini_usage_status.json
 settings.json
 memory/
+.env
+.env.*
 
 # Editor and OS noise
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Generated local scratch
+.codex_tmp/

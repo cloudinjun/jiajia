@@ -1,146 +1,247 @@
 # Paperclip Pal
 
-Windows desktop pet prototype for 夹夹, a flat paperclip character with small reactive behaviors.
+Paperclip Pal is a lightweight Windows desktop pet: a flat paperclip character
+with reactive animations, status monitoring, local personality lines, and a
+low-privacy sensing layer.
+
+It is inspired by desktop assistant tropes, but it does not use Microsoft
+Office Assistant assets or Microsoft Agent components. The character art is a
+project-specific flat vector.
+
+## Demo
+
+| Idle | Cold arrow | Sleepy |
+|---|---|---|
+| ![Idle breathe](docs/media/idle-breathe.gif) | ![Cold arrow then innocent](docs/media/cold-arrow-then-innocent.gif) | ![Sleepy sag](docs/media/sleepy-sag.gif) |
+
+| Status colors | Tail wag |
+|---|---|
+| ![Status colors](docs/media/status-colors.gif) | ![Tail wag](docs/media/tail-wag.gif) |
+
+## Current Features
+
+- Transparent, always-on-top Windows desktop pet.
+- Drag to move, double-click to poke, right-click menu for actions and status.
+- Flat vector paperclip body with layered eyes, pupils, brows, and tail.
+- Procedural animation actions: blink, scan, wiggle, jump, flop, dance, twirl,
+  stretch, sleepy sag, smug sway, tail wag, and more.
+- Performance phrases such as `cold_arrow_then_innocent`,
+  `suspicious_observe`, `fake_sulk`, and `tiny_celebrate`.
+- Speech and thought bubbles with Codex/Claude/OpenAI/hardware accent colors.
+- Activity presets: quiet, normal, active, and hyper.
+- Optional local Ollama chat/reaction brain.
+- Optional low-privacy monitors for Codex, Claude, hardware, and OpenAI API
+  costs.
+
+## Requirements
+
+- Windows 11 is the primary target.
+- Python 3.11+.
+- Optional: `psutil` for CPU/RAM/disk metrics.
+- Optional: NVIDIA `nvidia-smi` for GPU metrics.
+- Optional: Ollama for local personality generation.
+
+The app uses Tkinter and pure Python drawing. It does not need Electron,
+Live2D, Office Assistant, or Microsoft Agent.
 
 ## Run
 
+From the repository root:
+
 ```powershell
-C:\Users\cloud\AppData\Local\Programs\Python\Python311\pythonw.exe -B -m python_pal.main
+python -m python_pal.main
 ```
 
-## Hardware Watcher
+For a background-style launch on Windows:
 
-The hardware watcher samples low-privacy system metrics and lets 夹夹 tint itself when the computer gets warm.
+```powershell
+pythonw -B -m python_pal.main
+```
 
-It reads:
+Self-test without opening the desktop pet:
 
-- CPU usage, RAM usage, and disk usage through optional `psutil`
-- NVIDIA GPU usage, GPU temperature, and VRAM usage through `nvidia-smi` when available
+```powershell
+python -m python_pal.main --self-test
+```
 
-It does not read clipboard text, keystrokes, chat content, or screen text. Alerts use rolling samples and cooldowns so short spikes do not trigger noisy bubbles.
+Scripted animation/status demo:
 
-High GPU/VRAM/RAM use without high temperature is treated as `busy`, not red-hot. Hardware tint is temporary: it appears during hardware reminders or manual hardware checks, then returns to the normal gray body.
+```powershell
+python -m python_pal.main --demo
+```
 
-## Codex Usage
+## Character Direction
 
-夹夹 first looks for local Codex rollout files under `%USERPROFILE%\.codex\sessions\...\rollout-*.jsonl` and reads only `token_count.rate_limits`. It converts `primary.used_percent` into 5-hour window remaining percent. It does not read message text, clipboard text, keystrokes, raw screen text, or the Codex/ChatGPT settings UI.
+The character should stay simple:
 
-If no fresh local `rate_limits` data is available, it falls back to the local bridge file, `codex_usage_status.json`.
+- paperclip body
+- large round eyes
+- dark brows
+- no mouth
+- no hands or feet
+- no gradients or complex shadows
 
-Update the fallback bridge manually with:
+Most personality should come from timing, eye movement, brow movement,
+squash/stretch, pauses, and after-reactions.
+
+The base SVG is:
+
+```text
+python_pal/assets/paperclip/paperclip-pal-refined.svg
+```
+
+The asset is split into stable layer IDs:
+
+- `body_wire`
+- `left_eye_white`
+- `right_eye_white`
+- `left_pupil`
+- `right_pupil`
+- `left_brow`
+- `right_brow`
+
+## Privacy Model
+
+Paperclip Pal is designed as a local-first desktop companion. It should observe
+state, not private content.
+
+By default, it does not read:
+
+- clipboard text
+- keystroke text
+- passwords, tokens, or chat contents
+- raw screen text
+- full screenshot contents
+
+See [PRIVACY.md](PRIVACY.md) for the detailed sensing and storage policy.
+
+## Status Monitors
+
+### Codex
+
+Paperclip Pal can read local Codex rollout files under:
+
+```text
+%USERPROFILE%\.codex\sessions\...\rollout-*.jsonl
+```
+
+It reads only `token_count.rate_limits` and converts `primary.used_percent`
+into a remaining percentage for the 5-hour window. It does not read Codex
+message text.
+
+If fresh rollout data is unavailable, it can use a local bridge file:
 
 ```powershell
 .\scripts\set_codex_usage.ps1 26 5:22am
 ```
 
-Expected JSON shape:
+### Claude
 
-```json
-{
-  "usage_remaining_percent": 26,
-  "reset_at": "2026-06-04T05:22:00-07:00",
-  "plan": "Pro",
-  "source": "manual",
-  "updated_at": "2026-06-04T03:12:00-07:00",
-  "stale": false
-}
+Paperclip Pal can summarize local Claude Code token usage from:
+
+```text
+%USERPROFILE%\.claude\projects\...\*.jsonl
 ```
 
-Low quota alerts are cooled down: under 30% at most every 30 minutes, under 10% at most every 10 minutes.
+It reads only `message.usage`, model names, timestamps, and project names.
+Claude local logs do not expose an official remaining quota percentage, so this
+monitor reports token usage, not plan quota.
 
-## Claude Usage
+### OpenAI API Costs
 
-夹夹 reads Claude Code token usage from `%USERPROFILE%\.claude\projects\...\*.jsonl` and only inspects `message.usage`, model names, timestamps, and project names. It deduplicates repeated assistant message ids and summarizes today's usage, the recent 5-hour window, and the last request.
+Paperclip Pal can read OpenAI API organization costs from:
 
-Claude's local logs do not expose a reliable official "remaining quota" percentage like Codex `rate_limits`, so this monitor reports local token usage, not remaining plan quota.
+```text
+https://api.openai.com/v1/organization/costs
+```
 
-## OpenAI API Billing
-
-夹夹 can read OpenAI API organization costs from `https://api.openai.com/v1/organization/costs`. This requires `OPENAI_ADMIN_KEY`, or another key with `api.usage.read` scope. A normal restricted `OPENAI_API_KEY` may return `missing_usage_scope`.
-
-The OpenAI endpoint reports costs, not a wallet-style remaining balance. The old `dashboard/billing/credit_grants` balance endpoint requires a browser session key and is not available to Admin/API keys, so 夹夹 does not scrape it.
-
-For monthly budget tracking, configure one of:
+Set one of these environment variables:
 
 ```powershell
-[Environment]::SetEnvironmentVariable("OPENAI_API_MONTHLY_BUDGET_USD", "20", "User")
+[Environment]::SetEnvironmentVariable("OPENAI_ADMIN_KEY", "your-admin-key", "User")
 ```
 
-or add this to `settings.json`:
-
-```json
-{
-  "openai_api_monthly_budget_usd": 20
-}
-```
-
-Without a budget, 夹夹 reports this month's API cost but refuses to invent a remaining balance.
-
-For prepaid one-time balance tracking, give 夹夹 a balance snapshot and timestamp. It will subtract official Costs API spend since that timestamp:
+The OpenAI Costs endpoint reports costs, not a wallet-style prepaid balance.
+For prepaid tracking, provide a manual balance snapshot:
 
 ```powershell
 [Environment]::SetEnvironmentVariable("OPENAI_API_PREPAID_BALANCE_USD", "10", "User")
 [Environment]::SetEnvironmentVariable("OPENAI_API_PREPAID_BALANCE_SNAPSHOT_AT", "2026-06-05T00:40:00-07:00", "User")
 ```
 
-This is an estimate based on the snapshot; refresh the snapshot if the platform balance and local estimate drift.
+Paperclip Pal will subtract official costs since that timestamp and report an
+estimate.
 
-## Assistant Controls
+### Hardware
 
-The right-click menu includes lightweight Clippy-inspired controls:
+The hardware watcher can sample:
 
-- `Quiet 30 min`: pauses automatic chatter and status alerts, then retreats with a sulky animation.
-- `Focus mode`: keeps only tiny low-presence motions while suppressing automatic bubbles.
-- `Summon / resume`: clears quiet/focus mode and brings 夹夹 back.
+- CPU usage, RAM usage, and disk usage through optional `psutil`
+- NVIDIA GPU utilization, temperature, and VRAM through `nvidia-smi`
 
-Manual status checks still work while quiet or focus mode is active.
+Hardware tint is temporary and should appear during relevant reminders or
+manual checks, not as a permanent visual state.
 
-## Local Chat
+## Local Chat And Ollama
 
-Right-click `Talk to 夹夹` to open a tiny local chat input near the pal. Press Enter to send or Esc to close.
+The right-click menu includes a local chat entry. Simple status commands are
+handled locally first. Optional Ollama calls can generate personality lines and
+line-bank refills.
 
-Chat replies use the existing `Reaction` pipeline, so a reply can still pick a mood, action, bubble color, and performance phrase. Simple state commands are handled locally before Ollama is called:
+The local chat context is intentionally compact: status summaries, hardware
+metrics, activity mode, app category, and recent pal lines. It should not
+include raw screen text, clipboard text, keystrokes, or full screenshots.
 
-- `Codex status`, `Claude status`, `hardware status`, `Codex usage`, `Claude usage`, and `OpenAI API billing`
-- `安静`, `正常`, `活泼`, `多动`
-- `进入专注模式`, `退出专注模式`, and `闭嘴半小时`
+## Generate Demo GIFs
 
-Chat context is intentionally low-privacy: agent status summaries, hardware metrics, Codex usage, Claude token usage summaries, OpenAI API cost summaries, activity mode, app category, and recent pal lines. It does not include clipboard text, keystroke text, raw screen text, or full screenshot contents.
-
-While waiting for a local LLM reply, the pal cycles through visible wait stages instead of showing only dots: message received, low-privacy context folded, Ollama waking, model thinking, and long-wait fallback lines.
-
-## Activity Policy
-
-The `活跃度` menu is a behavior policy, not just a speech-rate slider:
-
-- `安静`: visual state only, with critical automatic alerts.
-- `正常`: important status changes, conservative context detection.
-- `活泼`: earlier warnings, more agent watching, more ambient observations.
-- `多动`: Clippy-style proactive detection and personality chatter are allowed.
-
-The policy controls speech frequency, micro-animation frequency, proactive environment detection, and alert thresholds for Codex, Claude, usage, and hardware signals.
-
-## Event Log And Demo
-
-Low-privacy events are appended to `memory/event_log.jsonl`. The log records source, event, level, summary, and the pal reaction, but not keystrokes, clipboard text, chat content, or screen text.
-
-Right-click tools:
-
-- `Last events`: shows the most recent event records.
-- `Morning digest`: summarizes events since the previous digest.
-- `Animation Preview`: plays manifest-defined performance phrases.
-- `Scripted demo`: simulates Codex, usage, hardware, focus, poke, cooling, and done states.
-
-Command-line demo:
+The public GIFs in `docs/media/` are generated from the same flat character
+asset and `ACTION_FRAMES` definitions used by the app.
 
 ```powershell
-python -m python_pal.main --demo
+python scripts\generate_demo_gifs.py
 ```
 
-## Identity Decorations And Idle Variety
+The script requires Pillow:
 
-Identity packs can now render small flat-vector decorations from `python_pal/decorations.yaml`. These are separate from status badges: badges report system state, while decorations express role/personality, such as a tiny terminal for Agent Supervisor, a thermometer for Thermal Technician, a ledger for Usage Accountant, or a red pen for Critic Clip.
+```powershell
+python -m pip install pillow
+```
 
-`python_pal/animation_resolver.py` maps conceptual identity animation names, such as `agent_running` or `sleep_loop`, to current playable actions or performance phrases. This lets YAML names work today while leaving room for richer assets later.
+## Repository Layout
 
-Idle animation selection is identity-aware and keeps a short recent-action history so the pal does not loop the same few actions. Quiet/focus modes restrict idle motion to low-stimulus actions.
+```text
+python_pal/
+  main.py                  app entry point
+  body.py                  Tk desktop body, canvas drawing, animations
+  animations.yaml          logical states and procedural performance phrases
+  actions.py               visible action vocabulary
+  soul.yaml                personality and behavior rules
+  assets/paperclip/        base flat vector character asset
+  assets/decorations/      small accessory references
+scripts/
+  set_codex_status.ps1     local Codex status bridge helper
+  set_codex_usage.ps1      local Codex usage bridge helper
+  generate_demo_gifs.py    reproducible public GIF generator
+docs/media/
+  *.gif                    generated animation demos for README
+```
+
+## Local Runtime Files
+
+These are intentionally ignored by git:
+
+- `settings.json`
+- `memory/`
+- `codex_status.json`
+- `codex_usage_status.json`
+- `claude_account_status.json`
+- `.env*`
+
+Do not commit local usage data, account status snapshots, API keys, or memory
+logs.
+
+## License
+
+Project code and original Paperclip Pal assets are released under the MIT
+License. Imported IconPark decoration references remain under Apache-2.0; see
+`python_pal/assets/decorations/iconpark/`.
