@@ -5,7 +5,43 @@ from dataclasses import dataclass
 from .actions import MODEL_ACTIONS
 
 
+STATE_ANIMATION_ALIASES: dict[str, str] = {
+    "standby": "idle",
+    "quiet": "idle",
+    "neutral": "idle",
+    "think": "thinking_loop",
+    "thinking": "thinking_loop",
+    "waiting": "thinking_loop",
+    "processing": "thinking_loop",
+    "loading": "thinking_loop",
+    "working": "thinking_loop",
+    "running": "thinking_loop",
+    "listen": "typing_focus",
+    "listening": "typing_focus",
+    "typing": "typing_focus",
+    "input": "typing_focus",
+    "user_typing": "typing_focus",
+    "compose": "typing_focus",
+    "composing": "typing_focus",
+    "error": "error_shake",
+    "blocked": "error_shake",
+    "failed": "error_shake",
+    "failure": "error_shake",
+    "crash": "error_shake",
+    "critical": "error_shake",
+    "success": "tiny_celebrate",
+    "done": "tiny_celebrate",
+    "finished": "tiny_celebrate",
+    "complete": "tiny_celebrate",
+    "completed": "tiny_celebrate",
+    "sleep": "sleep_loop",
+    "sleeping": "sleep_loop",
+    "asleep": "sleep_loop",
+    "sleepy": "sleep_loop",
+}
+
 ANIMATION_ALIASES: dict[str, str] = {
+    **STATE_ANIMATION_ALIASES,
     "idle_breathe": "idle",
     "blink_innocent": "blink",
     "side_eye": "peek",
@@ -15,13 +51,13 @@ ANIMATION_ALIASES: dict[str, str] = {
     "soft_nudge": "nod",
     "audit_done": "nod",
     "judgement_pause": "thinking_tilt",
-    "agent_listening": "scan",
-    "agent_listen": "scan",
-    "agent_running": "patrol",
-    "agent_stuck": "thinking_tilt",
-    "agent_error": "shake",
+    "agent_listening": "typing_focus",
+    "agent_listen": "typing_focus",
+    "agent_running": "thinking_loop",
+    "agent_stuck": "thinking_loop",
+    "agent_error": "error_shake",
     "agent_done_smug": "tiny_celebrate",
-    "error_pop": "startled_pop",
+    "error_pop": "error_shake",
     "warm_idle": "micro_soften",
     "fan_shake": "shake",
     "meltdown": "flop",
@@ -40,7 +76,7 @@ ANIMATION_ALIASES: dict[str, str] = {
     "sleepy_sass": "smug_sway",
     "slow_peek": "peek",
     "inspect_corpse": "scan",
-    "error_autopsy": "thinking_tilt",
+    "error_autopsy": "thinking_loop",
     "tiny_stamp": "nod",
     "roast_charge": "thinking_tilt",
     "cold_arrow_heavy": "cold_arrow_then_innocent",
@@ -53,6 +89,7 @@ ANIMATION_ALIASES: dict[str, str] = {
     "boop_escape": "roast_and_scoot",
     "low_power_idle": "sleepy_sag",
     "crawl_back": "sleepy_sag",
+    "fake_innocent": "blink",
 }
 
 
@@ -94,8 +131,12 @@ class AnimationResolver:
         target = _key(ANIMATION_ALIASES.get(requested))
         if target:
             if target in self.performances:
-                definition = ResolvedAnimation(requested=requested, kind="performance", performance=target, fallback_reason=f"alias:{target}")
-                return definition
+                return ResolvedAnimation(
+                    requested=requested,
+                    kind="performance",
+                    performance=target,
+                    fallback_reason=f"alias:{target}",
+                )
             if target in self.actions:
                 return ResolvedAnimation(requested=requested, action=target, fallback_reason=f"alias:{target}")
 
