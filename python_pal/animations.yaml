@@ -4,6 +4,10 @@ first_batch:
   - idle_breathe
   - blink
   - side_eye
+  - typing_focus
+  - thinking_loop
+  - error_shake
+  - sleep_loop
   - cold_arrow_then_innocent
   - fake_sulk
 
@@ -23,53 +27,83 @@ procedural_assets:
 
 logical_states:
   idle:
+    aliases: [standby, neutral, quiet]
     performance: ""
     fallback_action: idle
-    meaning: normal quiet standby
+    meaning: quiet standby; only the breathing loop should be continuous
+  typing:
+    aliases: [input, listening, composing, user_typing]
+    performance: typing_focus
+    fallback_action: blink
+    meaning: user is entering a prompt or the pal is listening without interrupting
+  thinking:
+    aliases: [think, waiting, loading, processing, working, running]
+    performance: thinking_loop
+    fallback_action: thinking_tilt
+    meaning: model, agent, or status check is active
+  success:
+    aliases: [done, finished, complete, completed, celebrate, refilled, recovery]
+    performance: tiny_celebrate
+    fallback_action: happy_bounce
+    meaning: task completed, quota recovered, or status improved
+  error:
+    aliases: [blocked, failed, failure, crash, exception, critical, overloaded]
+    performance: error_shake
+    fallback_action: shake
+    meaning: error, blocked flow, failed check, or critical status
+  sleep:
+    aliases: [sleeping, asleep, sleepy, sulky, sulk, low_power]
+    performance: sleep_loop
+    fallback_action: sleepy_sag
+    meaning: low energy, quiet mode, or dramatic collapse
   suspicious:
+    aliases: [audit, judging, observe]
     performance: suspicious_observe
     fallback_action: thinking_tilt
     meaning: noticed avoidance or odd context
   cold_arrow:
+    aliases: [roast, smirk, smug]
     performance: cold_arrow_then_innocent
     fallback_action: thinking_tilt
     meaning: soft roast followed by fake innocence
   guilty:
+    aliases: [caught]
     performance: smug_but_caught
     fallback_action: blink
     meaning: caught after being smug
   comfort:
+    aliases: [focused, innocent, calm]
     performance: quiet_companion
     fallback_action: blink
     meaning: low-pressure companionship
-  sleeping:
-    performance: fake_sulk
-    fallback_action: sleepy_sag
-    meaning: low energy or dramatic collapse
   waking:
-    performance: quiet_companion
+    aliases: [wake, recovering]
+    performance: wake_startled
     fallback_action: startled_pop
-    meaning: returning from low energy
+    meaning: returning from sleep or quiet mode
   poke:
+    aliases: [boop, touched]
     performance: smug_but_caught
     fallback_action: wiggle
     meaning: touch reaction
-  celebrate:
-    performance: tiny_celebrate
-    fallback_action: happy_bounce
-    meaning: small success celebration
-  error:
-    performance: fake_sulk
-    fallback_action: shake
-    meaning: error or blocked frustration
 
 state_rules:
-  - state: celebrate
-    moods: [happy, proud, done]
+  - state: success
+    moods: [happy, proud, done, success]
     actions: [happy_bounce, celebrate]
-  - state: sleeping
+  - state: error
+    moods: [error, blocked, failed, failure, critical, overloaded, startled]
+    actions: [shake, startled_pop]
+  - state: sleep
     moods: [sleepy, sulky, sulk]
     actions: [sleepy_sag, sulk, hide, flop]
+  - state: typing
+    moods: [typing, listening, input, composing]
+    bubble_shapes: [thought]
+  - state: thinking
+    moods: [thinking, processing, waiting, loading]
+    actions: [thinking_tilt, scan, patrol]
+    bubble_shapes: [thought]
   - state: comfort
     moods: [focused, innocent]
   - state: suspicious
@@ -82,6 +116,63 @@ state_rules:
     bubble_shapes: [speech]
 
 performance_phrases:
+  typing_focus:
+    type: procedural
+    fallback_action: blink
+    locks_cursor_follow: true
+    sequence:
+      - brows: innocent
+        eyes: round
+        duration_ms: 120
+      - action: blink
+        duration_ms: 160
+      - eyes: side_eye
+        duration_ms: 220
+      - action: nod
+        duration_ms: 260
+      - bubble: speak
+        duration_ms: 120
+      - reset: expression
+
+  thinking_loop:
+    type: procedural
+    fallback_action: thinking_tilt
+    locks_cursor_follow: true
+    sequence:
+      - brows: soft
+        eyes: neutral
+        duration_ms: 120
+      - action: thinking_tilt
+        duration_ms: 520
+      - eyes: side_eye
+        duration_ms: 180
+      - action: scan
+        duration_ms: 620
+      - bubble: speak
+        duration_ms: 120
+      - action: nod
+        duration_ms: 220
+      - reset: expression
+
+  error_shake:
+    type: procedural
+    fallback_action: shake
+    locks_cursor_follow: true
+    sequence:
+      - brows: guilty
+        eyes: round
+        duration_ms: 120
+      - action: shake
+        duration_ms: 360
+      - bubble: speak
+        duration_ms: 130
+      - brows: sulk
+        eyes: peek_up
+        duration_ms: 220
+      - action: blink
+        duration_ms: 160
+      - reset: expression
+
   cold_arrow_then_innocent:
     type: procedural
     fallback_action: thinking_tilt
@@ -282,6 +373,8 @@ performance_phrases:
         duration_ms: 140
       - action: sleepy_sag
         duration_ms: 700
+      - bubble: speak
+        duration_ms: 120
       - action: blink
         duration_ms: 260
       - pause_ms: 220
