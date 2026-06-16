@@ -33,6 +33,7 @@ class LogicalState:
     performance: str = ""
     fallback_action: str = "idle"
     meaning: str = ""
+    aliases: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -59,6 +60,15 @@ class AnimationManifest:
     states: dict[str, LogicalState] = field(default_factory=dict)
     rules: tuple[StateRule, ...] = ()
     performances: dict[str, PerformanceDefinition] = field(default_factory=dict)
+    state_aliases: dict[str, str] = field(default_factory=dict)
+
+    def canonical_state(self, state: str) -> str:
+        key = _key(state)
+        if not key:
+            return "idle"
+        if key in self.state_aliases:
+            return self.state_aliases[key]
+        return key if key in self.states else "idle"
 
     def state_for_reaction(self, mood: str, action: str, bubble: str) -> str:
         mood = _key(mood)
@@ -66,15 +76,15 @@ class AnimationManifest:
         bubble = _key(bubble)
         for rule in self.rules:
             if rule.matches(mood, action, bubble):
-                return rule.state
-        return mood if mood in self.states else "idle"
+                return self.canonical_state(rule.state)
+        return self.canonical_state(mood)
 
     def performance_for_state(self, state: str) -> str:
-        logical_state = self.states.get(_key(state))
+        logical_state = self.states.get(self.canonical_state(state))
         return logical_state.performance if logical_state else ""
 
     def fallback_action_for_state(self, state: str) -> str:
-        logical_state = self.states.get(_key(state))
+        logical_state = self.states.get(self.canonical_state(state))
         return logical_state.fallback_action if logical_state else "idle"
 
     def performance(self, name: str) -> PerformanceDefinition | None:
@@ -83,21 +93,30 @@ class AnimationManifest:
 
 def load_animation_manifest(path: Path) -> AnimationManifest:
     data = _load_yaml(path) if path.exists() else {}
-    states = {
-        _key(name): LogicalState(
-            name=_key(name),
-            performance=_key(_dict(raw).get("performance")),
-            fallback_action=_key(_dict(raw).get("fallback_action")) or "idle",
-            meaning=str(_dict(raw).get("meaning") or ""),
+    states: dict[str, LogicalState] = {}
+    for name, raw in _dict(data.get("logical_states")).items():
+        key = _key(name)
+        if not key:
+            continue
+        raw_data = _dict(raw)
+        states[key] = LogicalState(
+            name=key,
+            performance=_key(raw_data.get("performance")),
+            fallback_action=_key(raw_data.get("fallback_action")) or "idle",
+            meaning=str(raw_data.get("meaning") or ""),
+            aliases=tuple(_key_list(raw_data.get("aliases"))),
         )
-        for name, raw in _dict(data.get("logical_states")).items()
-    }
     rules = tuple(_parse_rule(raw) for raw in _list(data.get("state_rules")) if isinstance(raw, dict))
     performances = {
         _key(name): _parse_performance(_key(name), raw)
         for name, raw in _dict(data.get("performance_phrases")).items()
     }
-    return AnimationManifest(states=states, rules=rules, performances=performances)
+    return AnimationManifest(
+        states=states,
+        rules=rules,
+        performances=performances,
+        state_aliases=_state_aliases(states),
+    )
 
 
 def bubble_shape_for(bubble: str) -> str:
@@ -140,6 +159,15 @@ def _parse_step(raw: dict[str, Any]) -> AnimationStep:
         pause_ms=_int(raw.get("pause_ms"), 0),
         duration_ms=_int(raw.get("duration_ms"), 0),
     )
+
+
+def _state_aliases(states: dict[str, LogicalState]) -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    for name, state in states.items():
+        aliases[name] = name
+        for alias in state.aliases:
+            aliases[alias] = name
+    return aliases
 
 
 def _dict(value: object) -> dict[str, Any]:
