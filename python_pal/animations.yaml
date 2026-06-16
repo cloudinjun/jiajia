@@ -127,11 +127,12 @@ performance_phrases:
       - action: blink
         duration_ms: 160
       - eyes: side_eye
-        duration_ms: 220
-      - action: nod
         duration_ms: 260
+      - pause_ms: 120
       - bubble: speak
         duration_ms: 120
+      - action: nod
+        duration_ms: 220
       - reset: expression
 
   thinking_loop:
@@ -139,15 +140,18 @@ performance_phrases:
     fallback_action: thinking_tilt
     locks_cursor_follow: true
     sequence:
-      - brows: soft
-        eyes: neutral
-        duration_ms: 120
-      - action: thinking_tilt
-        duration_ms: 520
       - eyes: side_eye
-        duration_ms: 180
-      - action: scan
+        duration_ms: 120
+      - brows: soft
+        duration_ms: 100
+      - action: thinking_tilt
         duration_ms: 620
+      - brows: judge
+        eyes: side_eye
+        duration_ms: 220
+      - action: scan
+        duration_ms: 650
+      - pause_ms: 160
       - bubble: speak
         duration_ms: 120
       - action: nod
@@ -162,13 +166,15 @@ performance_phrases:
       - brows: guilty
         eyes: round
         duration_ms: 120
+      - action: startled_pop
+        duration_ms: 260
       - action: shake
         duration_ms: 360
       - bubble: speak
         duration_ms: 130
       - brows: sulk
         eyes: peek_up
-        duration_ms: 220
+        duration_ms: 360
       - action: blink
         duration_ms: 160
       - reset: expression
@@ -180,19 +186,21 @@ performance_phrases:
     sequence:
       - brows: soft
         eyes: neutral
-        duration_ms: 180
-      - action: thinking_tilt
-        duration_ms: 700
+        duration_ms: 140
       - eyes: side_eye
-        duration_ms: 280
-      - brows: judge
-        duration_ms: 180
-      - pause_ms: 160
-      - bubble: speak
         duration_ms: 120
+      - action: thinking_tilt
+        duration_ms: 620
+      - brows: judge
+        eyes: side_eye
+        duration_ms: 280
+      - pause_ms: 220
+      - bubble: speak
+        duration_ms: 140
+      - pause_ms: 100
       - brows: innocent
         eyes: round
-        duration_ms: 80
+        duration_ms: 90
       - action: blink
         duration_ms: 180
       - action: nod
@@ -212,12 +220,13 @@ performance_phrases:
       - pause_ms: 80
       - bubble: speak
         duration_ms: 90
+      - pause_ms: 120
       - brows: guilty
         eyes: round
-        duration_ms: 240
+        duration_ms: 360
       - brows: innocent
         eyes: round
-        duration_ms: 180
+        duration_ms: 160
       - action: blink
         duration_ms: 180
       - reset: expression
@@ -230,8 +239,8 @@ performance_phrases:
         duration_ms: 460
       - brows: sulk
         eyes: peek_up
-        duration_ms: 260
-      - pause_ms: 120
+        duration_ms: 360
+      - pause_ms: 140
       - bubble: speak
         duration_ms: 140
       - action: sulk
@@ -247,14 +256,16 @@ performance_phrases:
     locks_cursor_follow: true
     sequence:
       - brows: judge
+        eyes: side_eye
         duration_ms: 160
       - action: scan
-        duration_ms: 650
-      - eyes: side_eye
-        duration_ms: 260
-      - action: thinking_tilt
-        duration_ms: 480
+        duration_ms: 520
       - pause_ms: 120
+      - action: thinking_tilt
+        duration_ms: 460
+      - brows: judge
+        eyes: side_eye
+        duration_ms: 180
       - bubble: speak
         duration_ms: 140
       - reset: expression
@@ -268,18 +279,16 @@ performance_phrases:
     sequence:
       - brows: soft
         eyes: soft
-        duration_ms: 160
-      - action: sleepy_sag
-        duration_ms: 380
-      - pause_ms: 80
-      - bubble: speak
-        duration_ms: 140
+        duration_ms: 220
       - action: blink
         duration_ms: 220
+      - pause_ms: 180
+      - bubble: speak
+        duration_ms: 140
       - action: nod
         duration_ms: 260
       - reset: expression
-        duration_ms: 240
+        duration_ms: 260
 
   tiny_celebrate:
     type: procedural
@@ -290,6 +299,8 @@ performance_phrases:
         duration_ms: 100
       - action: happy_bounce
         duration_ms: 320
+      - action: tail_wag
+        duration_ms: 360
       - pause_ms: 80
       - bubble: speak
         duration_ms: 120
@@ -308,14 +319,17 @@ performance_phrases:
         duration_ms: 340
       - brows: judge
         eyes: side_eye
-        duration_ms: 240
+        duration_ms: 260
       - bubble: speak
-        duration_ms: 120
+        duration_ms: 140
+      - pause_ms: 180
       - action: roast_and_scoot
         duration_ms: 420
       - brows: innocent
         eyes: round
         duration_ms: 160
+      - action: blink
+        duration_ms: 180
       - reset: expression
 
   agent_stuck_stare:
@@ -326,8 +340,8 @@ performance_phrases:
         duration_ms: 500
       - brows: judge
         eyes: side_eye
-        duration_ms: 300
-      - pause_ms: 180
+        duration_ms: 520
+      - pause_ms: 260
       - bubble: speak
         duration_ms: 130
       - action: thinking_tilt
@@ -342,24 +356,29 @@ performance_phrases:
         duration_ms: 360
       - brows: guilty
         eyes: round
-        duration_ms: 160
+        duration_ms: 180
       - action: sulk
         duration_ms: 420
       - bubble: speak
         duration_ms: 130
+      - brows: sulk
+        eyes: peek_up
+        duration_ms: 260
       - reset: expression
 
   usage_low_sag:
     type: procedural
     fallback_action: sulk
     sequence:
-      - action: sleepy_sag
+      - action: scan
         duration_ms: 420
       - brows: sulk
         eyes: peek_up
-        duration_ms: 220
+        duration_ms: 260
       - bubble: speak
         duration_ms: 120
+      - action: sleepy_sag
+        duration_ms: 420
       - action: blink
         duration_ms: 180
       - reset: expression
@@ -370,13 +389,15 @@ performance_phrases:
     sequence:
       - brows: soft
         eyes: soft
-        duration_ms: 140
+        duration_ms: 180
       - action: sleepy_sag
         duration_ms: 700
+      - brows: sulk
+        eyes: peek_up
+        duration_ms: 520
+      - pause_ms: 900
       - bubble: speak
         duration_ms: 120
-      - action: blink
-        duration_ms: 260
       - pause_ms: 220
       - reset: expression
 
@@ -384,18 +405,21 @@ performance_phrases:
     type: procedural
     fallback_action: startled_pop
     sequence:
+      - brows: sulk
+        eyes: peek_up
+        duration_ms: 160
       - action: startled_pop
         duration_ms: 420
       - brows: guilty
         eyes: round
-        duration_ms: 180
+        duration_ms: 220
       - action: blink
         duration_ms: 180
       - bubble: speak
         duration_ms: 120
       - brows: innocent
         eyes: round
-        duration_ms: 140
+        duration_ms: 160
       - reset: expression
 
   retreat_to_corner:
@@ -407,6 +431,9 @@ performance_phrases:
         duration_ms: 160
       - action: retreat_to_corner
         duration_ms: 900
+      - brows: soft
+        eyes: soft
+        duration_ms: 220
       - bubble: speak
         duration_ms: 120
       - reset: expression
@@ -424,4 +451,6 @@ performance_phrases:
         duration_ms: 120
       - action: nod
         duration_ms: 220
+      - action: tail_wag
+        duration_ms: 360
       - reset: expression
