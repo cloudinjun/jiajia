@@ -141,7 +141,7 @@ identities:
     allowed_moods: [startled, sulky, innocent, thinking]
     core_animations: [warm_idle, fan_shake, meltdown, cooldown_recover, fake_sulk]
     triggers: [hardware_warm, hardware_hot, hardware_overloaded, hardware_cooling, gpu_temp_high, cpu_temp_high, gpu_usage_high, ram_high, vram_high, system_hot, overheated]
-    visual_addons: [thermometer_icon]
+    visual_addons: [side_heat_gauge]
     animations:
       idle: warm_idle
       alert: fan_shake
@@ -208,7 +208,7 @@ identities:
     allowed_moods: [innocent, focused, sleepy]
     core_animations: [quiet_breathe, slow_blink, look_away_respectfully, tiny_support_bob]
     triggers: [long_focus, deep_work, comfort_mode, privacy_sensitive, focus_mode, quiet_mode, user_dismissed]
-    visual_addons: []
+    visual_addons: [focus_aura]
     animations:
       idle: quiet_companion
       recovery: fake_innocent
@@ -237,7 +237,7 @@ identities:
     allowed_moods: [sleepy, sulky, innocent]
     core_animations: [yawn_to_sleep, sleep_loop, wake_startled, pretend_not_sleeping, sleepy_sass]
     triggers: [event_idle, idle_staring, user_away, low_energy, sleepy]
-    visual_addons: []
+    visual_addons: [sleep_cloud]
     animations:
       idle: sleepy_sag
       alert: slow_peek
@@ -351,7 +351,7 @@ identities:
     fallback_action: wiggle
     preferred_performance: smug_but_caught
     triggers: [event_bored, event_poke, bored, poke]
-    visual_addons: []
+    visual_addons: [gremlin_spark]
     animations:
       idle: smug_sway
       alert: boop_escape
@@ -378,7 +378,7 @@ identities:
     fallback_action: flop
     preferred_performance: fake_sulk
     triggers: [critical, usage_critical, gpu_temp_critical, codex_error, overheated, repeated_poke]
-    visual_addons: []
+    visual_addons: [meltdown_shadow]
     animations:
       idle: low_power_idle
       critical: meltdown
