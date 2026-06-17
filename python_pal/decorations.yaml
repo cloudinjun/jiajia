@@ -3,12 +3,12 @@ schema_version: 1
 decorations:
   tiny_terminal:
     anchor: upper_right
-    dx: 10
-    dy: 10
+    dx: 6
+    dy: 8
     color: "#10a37f"
     lifetime: identity
     role: identity_prop
-    shape_type: terminal_box
+    shape_type: terminal_monitor
     pulse: false
 
   status_dot:
@@ -23,22 +23,32 @@ decorations:
 
   tiny_checklist:
     anchor: lower_left
-    dx: 18
-    dy: -18
+    dx: 7
+    dy: -24
     color: "#42a96b"
     lifetime: identity
     role: identity_prop
-    shape_type: checklist
+    shape_type: audit_clipboard
     pulse: false
 
-  thermometer_icon:
-    anchor: upper_left
-    dx: -10
-    dy: 26
+  side_heat_gauge:
+    anchor: right_side
+    dx: 10
+    dy: 22
     color: "#d86b6b"
     lifetime: identity
     role: identity_prop
-    shape_type: thermometer
+    shape_type: side_heat_gauge
+    pulse: false
+
+  thermometer_icon:
+    anchor: right_side
+    dx: 10
+    dy: 22
+    color: "#d86b6b"
+    lifetime: identity
+    role: identity_prop
+    shape_type: side_heat_gauge
     pulse: false
 
   heat_tint:
@@ -63,12 +73,12 @@ decorations:
 
   tiny_ledger:
     anchor: lower_left
-    dx: 12
-    dy: -14
+    dx: 3
+    dy: -18
     color: "#4f7ecf"
     lifetime: identity
     role: identity_prop
-    shape_type: ledger
+    shape_type: receipt_ledger
     pulse: false
 
   usage_bar:
@@ -81,10 +91,30 @@ decorations:
     shape_type: mini_bar
     pulse: false
 
+  focus_aura:
+    anchor: around_character
+    dx: -2
+    dy: 4
+    color: "#9b8bd8"
+    lifetime: identity
+    role: identity_prop
+    shape_type: quiet_aura
+    pulse: false
+
+  sleep_cloud:
+    anchor: ground
+    dx: 8
+    dy: 0
+    color: "#8a8a8a"
+    lifetime: identity
+    role: identity_prop
+    shape_type: sleep_cloud
+    pulse: false
+
   red_pen:
     anchor: right_side
-    dx: 12
-    dy: 18
+    dx: 11
+    dy: 16
     color: "#d65b4a"
     lifetime: identity
     role: identity_prop
@@ -103,8 +133,8 @@ decorations:
 
   z_symbol:
     anchor: above_head
-    dx: 28
-    dy: 2
+    dx: 22
+    dy: -2
     color: "#8a8a8a"
     lifetime: state
     role: state_mark
@@ -123,12 +153,12 @@ decorations:
 
   tiny_magnifier:
     anchor: lower_left
-    dx: 14
-    dy: -12
+    dx: 5
+    dy: -16
     color: "#5f6d7a"
     lifetime: identity
     role: identity_prop
-    shape_type: magnifier
+    shape_type: bug_evidence
     pulse: false
 
   stamp:
@@ -142,13 +172,13 @@ decorations:
     pulse: false
 
   tiny_lock:
-    anchor: upper_right
-    dx: 18
-    dy: 18
+    anchor: lower_left
+    dx: 0
+    dy: -6
     color: "#6f62b8"
     lifetime: identity
     role: identity_prop
-    shape_type: lock
+    shape_type: tab_stack
     pulse: false
 
   tab_bar:
@@ -159,4 +189,24 @@ decorations:
     lifetime: temporary
     role: state_mark
     shape_type: tab_bar
+    pulse: false
+
+  gremlin_spark:
+    anchor: upper_right
+    dx: 20
+    dy: 4
+    color: "#9a5ba3"
+    lifetime: identity
+    role: identity_prop
+    shape_type: gremlin_spark
+    pulse: false
+
+  meltdown_shadow:
+    anchor: ground
+    dx: 2
+    dy: 0
+    color: "#d7839b"
+    lifetime: identity
+    role: identity_prop
+    shape_type: meltdown_shadow
     pulse: false
