@@ -13,20 +13,28 @@ first_identity_animation_batch:
   sleepy_clip: [sleep_loop, wake_startled]
 
 visual_strategy:
-  formula: "同一只回形针 + 一个小图标 + 一种颜色状态 + 一套动作节奏"
+  formula: "同一只回形针 + 明确身份剪影 + 一种颜色状态 + 一套动作节奏"
   rules:
     - 主轮廓不变
-    - 配件只用一到两个
+    - 长期配饰只用一个主剪影，必要时加一个短效状态标记
     - 颜色点缀只用一种
     - 不加嘴
     - 不加手脚
+    - 避免把圆形配饰放在眼睛附近，防止被误读成眼镜或第三只眼
 
 identities:
   - id: default_pal
     display_name: Default Pal
     purpose: 保持夹夹本体的乖巧嘴欠气质
     roast_angle: 长得无害，说话扎心，说完立刻装无辜
+    character_brief: 不扮演职业身份，是桌面上赖着不走的小文具同居人；它不是助理，也不是宠物，只是很会把事实折成冷箭。
     visual_formula: 同一只回形针，不加嘴和四肢
+    visual_signature: 干净纸夹轮廓、大圆眼、眉毛负责全部人格；长期没有身份道具，靠冷箭后的瞬间装无辜形成记忆点。
+    accessory_design: 默认身份保持空白，只允许短效 cold spark、批注圈和 innocent halo；不要长期挂任何职业道具。
+    avoid_visuals:
+      - 长期帽子或服装
+      - 任何嘴部符号
+      - 让默认身份看起来像正式助理的徽章
     color_accent: paperclip_gray
     default_mood: smirk
     fallback_action: blink
@@ -48,7 +56,14 @@ identities:
     display_name: 任务监察员夹
     purpose: 观察拖延、窗口乱切、TODO 失控和假装准备
     roast_angle: 把逃避说成一份很客观的桌面审计报告
-    visual_formula: 小 checklist 或审判眉，主轮廓不变
+    character_brief: 像一个过于认真的微型审计员，专门记录“准备阶段”和“执行阶段”之间的可疑温差；它不催命，只把拖延写进报告。
+    visual_formula: 审计夹板/清单剪影 + 绿色勾选点 + 审判眉，主轮廓不变
+    visual_signature: 第一眼应读成“它夹着一份任务审计表”，不是普通便签；清单是竖向矩形、带折角、三行任务和一个明显绿色勾。
+    accessory_design: 主配饰为 lower-left 审计夹板，尺寸比旧 checklist 更大；短效可加小红叉、审计圈或绿色勾，不要靠近眼睛。
+    avoid_visuals:
+      - 太小的普通 checklist
+      - 像购物清单或便签的软装饰
+      - 与 usage 账本相似的蓝色条形图
     color_accent: audit_green
     default_mood: suspicious
     fallback_action: thinking_tilt
@@ -74,7 +89,14 @@ identities:
     display_name: Agent 监工夹
     purpose: 盯 Codex、Claude 和其他 agent 的运行、等待、报错
     roast_angle: 像小监工一样盯另一个 AI 打工
-    visual_formula: 小终端或状态灯，Codex/Claude 用各自代表色
+    character_brief: 不是工程师，是小小工头；它站在另一个 AI 的施工现场旁边，盯进度、等确认、看报错，然后用办公室政治口吻做旁白。
+    visual_formula: 小终端监控牌 + 绿色状态灯 + 偏执侧眼，Codex/Claude 用各自代表色
+    visual_signature: 第一眼应读成“监控屏/终端牌”，有三点窗口按钮、prompt 符号、短输出线和状态灯；不要只是一枚抽象绿点。
+    accessory_design: 主配饰为 upper-right terminal monitor，状态灯可独立 pulse；agent stuck 时加等候 cursor 或小沙漏点阵。
+    avoid_visuals:
+      - 只有 status dot 没有终端轮廓
+      - 像普通聊天气泡的屏幕
+      - 和 task_auditor 的清单矩形混淆
     color_accent: agent_green
     default_mood: thinking
     fallback_action: scan
@@ -102,7 +124,15 @@ identities:
     display_name: 硬件温控员夹
     purpose: 观察 GPU、CPU、RAM、温度和高负载
     roast_angle: 把电脑高负载说成文具快熟了
-    visual_formula: 小温度计或热色状态，不改变身体结构
+    character_brief: 像机房里最小的温控员，认真到有点夸张；它担心的不是性能，是自己这根办公用品会不会被热风烤弯。
+    visual_formula: 侧边热量条 + 热浪/小汗滴 + warm red，不使用靠脸圆形温度计
+    visual_signature: 第一眼应读成“热量计/过热条”，不是单边眼镜；热量条贴身体侧边或下方，带刻度和红色液位，热浪在头顶短效出现。
+    accessory_design: 主配饰改为 side heat gauge：竖向温度条、三段刻度、底部液位；hardware hot 时叠加 heat wisps 和小汗滴。
+    avoid_visuals:
+      - 靠近眼睛的圆形 bulb
+      - 单边眼镜形状
+      - 独立小圆点状态灯
+      - 像医生温度计的长柄贴脸符号
     color_accent: warm_red
     default_mood: startled
     fallback_action: shake
@@ -131,7 +161,14 @@ identities:
     display_name: 预算会计夹
     purpose: 报告 Codex usage、reset 时间、电量或额度状态
     roast_angle: 用小账本语气提醒额度不是空气
-    visual_formula: 小进度条、小账本或小钟
+    character_brief: 像一位把额度当作真实货币的小会计，语气克制、精确、略带心疼；它不反对使用，只反对铺张。
+    visual_formula: 小收据/账本条 + 蓝色余额刻度 + 百分号，不走普通进度条路线
+    visual_signature: 第一眼应读成“账单/收据”，有页签、短横金额线、百分号和余额条；区别于 task_auditor 的任务清单。
+    accessory_design: 主配饰为 lower-left receipt ledger，形状更窄长；usage warning 时加 mini balance bar 和 reset 小钟点。
+    avoid_visuals:
+      - 只有一条没有语义的蓝色进度条
+      - 和 task checklist 类似的多行待办纸
+      - 红色 error 风格
     color_accent: budget_blue
     default_mood: focused
     fallback_action: scan
@@ -154,7 +191,15 @@ identities:
     display_name: 安静陪伴夹
     purpose: 用户深度工作或情绪低时降低打扰
     roast_angle: 把嘴折起来，存在感放轻
-    visual_formula: 软眼神、低能量 bob，不加配件
+    character_brief: 像把自己折小的陪伴者；它不证明存在感，只在角落里保持一点软软的注意力。
+    visual_formula: 软眼神 + 低能量呼吸 + 淡紫色安静 aura，不挂职业道具
+    visual_signature: 第一眼应读成“低存在感模式”，不是新职业；可以有淡紫色静音点、月牙或轻 ring，但必须很弱。
+    accessory_design: 长期不挂硬道具；状态装饰可用 tiny quiet ring、soft dot 或小月牙，透明感用浅色模拟。
+    avoid_visuals:
+      - 工具图标
+      - 职业徽章
+      - 高对比强颜色
+      - 像睡眠身份的 Z 符号
     color_accent: calm_lavender
     default_mood: innocent
     fallback_action: blink
@@ -176,7 +221,14 @@ identities:
     display_name: 困困夹
     purpose: 长时间 idle、深夜或低能量状态时慢慢下沉
     roast_angle: 半睡半醒地讲办公室冷话
-    visual_formula: 慢 blink、下沉、趴平，不加睡帽
+    character_brief: 像一根快要拥有家具属性的回形针，嘴还醒着，身体已经开始下班；它的吐槽来自半梦半醒的办公室空气。
+    visual_formula: Z cluster + 软云/低灰阴影 + 慢 blink，不加睡帽
+    visual_signature: 第一眼应读成“低功耗/睡眠”，不是伤心；三个不同大小的 Z 和低灰软垫比单个 Z 更重要。
+    accessory_design: above-head 三段 Z cluster，身体下方可有 soft cloud shadow；真正 sleep 时维持低位，不频繁弹醒。
+    avoid_visuals:
+      - 睡帽
+      - 枕头手脚化
+      - 和 sulk/meltdown 共用同一个塌陷表情
     color_accent: sleepy_gray
     default_mood: sleepy
     fallback_action: sleepy_sag
@@ -198,7 +250,15 @@ identities:
     display_name: Debug 法医夹
     purpose: 错误、测试失败、程序崩溃或 agent blocked 时出场
     roast_angle: 用验尸报告的严肃语气描述 bug
-    visual_formula: 小放大镜或小印章，保持扁平
+    character_brief: 像严肃过头的微型事故调查员，把 bug 当作案发现场；它不慌，它只是不合时宜地开始写死因报告。
+    visual_formula: 放大镜 + 证物标签/警戒短线，保持扁平，不靠脸
+    visual_signature: 第一眼应读成“调查现场”，不是眼镜；放大镜必须在 lower-left 或侧边，旁边带证物标签或小警戒线。
+    accessory_design: 主配饰为 tilted magnifier + evidence tag；error 时可叠 warning burst，success 时用小 stamp。
+    avoid_visuals:
+      - 放大镜靠眼睛
+      - 单边眼镜形状
+      - 和 thermal 圆形 bulb 混淆
+      - 医生听诊器风格
     color_accent: error_red
     default_mood: suspicious
     fallback_action: scan
@@ -219,7 +279,14 @@ identities:
     display_name: 设计评审夹
     purpose: 审 deck、UI、图面、排版和视觉层级
     roast_angle: 不说丑，只说它很难被保护
-    visual_formula: 小红笔或批注圈，主轮廓不变
+    character_brief: 像拿着红笔的无害评审员，语气很乖，眼神很不客气；它不说丑，只让问题自己站出来。
+    visual_formula: 红笔 + 手画批注圈 + judge 眉，主轮廓不变
+    visual_signature: 第一眼应读成“正在批注设计稿”，红笔应有笔尖、笔帽和斜线姿态；批注圈要像手画，不像普通圆环。
+    accessory_design: 主配饰为 right-side red pen；短效为 annotation circle、红色小箭头和下划线。
+    avoid_visuals:
+      - 普通铅笔或画笔
+      - 像武器的尖锐大红笔
+      - 覆盖主体轮廓的大批注
     color_accent: critic_red
     default_mood: smirk
     fallback_action: thinking_tilt
@@ -242,7 +309,14 @@ identities:
     display_name: Tab 看守夹
     purpose: 提醒浏览器、窗口、tab 或文件夹太多
     roast_angle: 把多任务描述成电子夜市
-    visual_formula: 小栏杆或锁图标，不变成吉祥物
+    character_brief: 像夜市入口的小看守，面对一排过度繁殖的 tab 保持职业冷静；它不关窗口，只负责指出这已经像摊位管理。
+    visual_formula: 浏览器 tab 堆 + 小栏杆/锁点 + 靛紫色，不用普通锁图标单独表达
+    visual_signature: 第一眼应读成“tab 堆被看守”，三个错开的 tab 卡片比锁更重要；锁只能作为一个小点，不要成为主图标。
+    accessory_design: 主配饰为 lower-left stacked tabs 或 tiny browser fence；状态短效可用 tab_bar、block mark 或小锁点。
+    avoid_visuals:
+      - 只有 lock 图标
+      - 和 agent terminal 的窗口混淆
+      - 像文件夹或账本的矩形堆
     color_accent: warden_indigo
     default_mood: suspicious
     fallback_action: patrol
@@ -263,7 +337,15 @@ identities:
     display_name: 犯贱彩蛋夹
     purpose: 无聊、戳它、闲聊时纯犯贱
     roast_angle: 说完就跑，随后装作只是一个文具
-    visual_formula: 眉毛更欠、眼睛偏一点，不加嘴
+    character_brief: 像默认夹夹里漏出来的一点小坏心眼，不承担正式职责；它负责把“我只是建议”说得非常不可信。
+    visual_formula: 紫色小火花 + smug 眉 + 短逃跑动作，不加固定职业道具
+    visual_signature: 第一眼应读成“犯贱彩蛋状态”，靠表情和短效火花区分，不要长期挂恶魔角或尾巴。
+    accessory_design: 长期无配饰；短效可用 mischievous spark、tiny motion tick、假无辜 halo。
+    avoid_visuals:
+      - 恶魔角
+      - 尾巴或手脚
+      - 过度拟人化表情
+      - 像默认身份的普通无装饰状态
     color_accent: mischievous_plum
     default_mood: smug
     fallback_action: wiggle
@@ -283,7 +365,14 @@ identities:
     display_name: 破防夹
     purpose: critical usage、过热、连续戳、错误爆炸时软成一滩
     roast_angle: 把崩溃说成形态发生了妥协
-    visual_formula: 软掉、塌下去、慢慢爬起，不换皮
+    character_brief: 像一根短暂失去办公用品尊严的回形针，不是情绪失控，是物理形态在协商；它塌得很认真，也会慢慢爬回去。
+    visual_formula: 软塌低位 + 浅粉灰 puddle shadow + 小 warning 泡，不换皮
+    visual_signature: 第一眼应读成“形态软掉”，不是普通错误；低位身体和浅色塌陷阴影比 warning 图标更重要。
+    accessory_design: 主状态为 body pose，不靠长期配饰；短效用 puddle shadow、tiny warning bubble 和 crawl-back motion ticks。
+    avoid_visuals:
+      - 大警告牌压过角色
+      - 和 sleepy 的 Z/软云混淆
+      - 眼泪或表情过度拟人化
     color_accent: meltdown_pink
     default_mood: sulky
     fallback_action: flop
