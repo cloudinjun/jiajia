@@ -10,7 +10,7 @@ Britclip is based on the visual shorthand of an Edwardian club concierge and old
 - burgundy bow tie
 - walnut cane with brass tip
 - restrained proud expression
-- tail wrapped over the cane handle
+- tapered tail tip resting over the cane handle
 
 The costume deliberately avoids a monocle, moustache, flag motif, mouth, hands, and feet. The goal is a readable gentleman silhouette without replacing the base paperclip character.
 
@@ -27,9 +27,21 @@ The source asset follows the same flat style as the base character:
 
 Different flat colors may separate the hat crown, hat band, bow knot, cane body, and brass tip, but none of those layers should simulate lighting.
 
+## Tail semantics
+
+The tail is always a tail. It may imitate the function of a hand through timing, curvature, overlap, and contact, but it must never become a paw, mitten, fist, circular hand, or closed gripping loop.
+
+For the cane pose:
+
+- the main tail keeps its original broad paperclip-wire character
+- the final section narrows into `tail_tip`
+- the tapered tip curves downward and rests over the cane handle
+- the cane remains behind the tail in the layer order
+- support is communicated by contact and overlap, not by adding fingers or a round hand shape
+
 ## Asset structure
 
-`britclip-rigged.svg` keeps the body, tail, face, costume props, and anchors in separately named groups. The tail is split from the main body so it can retrieve and hold props during the transformation animation.
+`britclip-rigged.svg` keeps the body, tail, face, costume props, and anchors in separately named groups. The tail is split from the main body so it can retrieve and support props during the transformation animation.
 
 Important groups:
 
@@ -40,7 +52,7 @@ costume_back
 cane
 tail_root
 tail_wire
-tail_grip
+tail_tip
 costume_front
 top_hat
 bow_tie
@@ -53,16 +65,16 @@ right_brow
 rig_anchors
 ```
 
-## Cane grip and layer order
+## Cane support and layer order
 
-The cane is part of `costume_back`. The tail is rendered afterward as a foreground layer, so the tail loop visually covers the cane handle at the contact point. This overlap is intentional: it should read as the tail supporting or holding the cane, not as the cane being pasted over the tail.
+The cane is part of `costume_back`. The tapered tail is rendered afterward as a foreground layer. Its tip overlaps the highest part of the cane handle, so the pose reads as the tail resting on and supporting the cane.
 
 Required order:
 
 ```text
 base body
 cane / costume_back
-tail foreground grip
+tapered tail foreground support
 hat and bow tie / costume_front
 functional identity prop
 state mark
@@ -81,7 +93,8 @@ Completed:
 - static equipped SVG
 - flat no-highlight/no-shadow style pass
 - separate tail and prop layers
-- foreground tail-over-cane grip
+- tapered non-hand-like tail support pose
+- foreground tail-over-cane contact
 - named anchors
 - enter/exit storyboard
 - persistent costume specification
