@@ -29,6 +29,7 @@ assets:
   fallback: procedural_costume_overlay
 
 style:
+  rendering: pure_flat_vector
   body_wire: "#AEAEAE"
   pupil_and_brow: "#402A32"
   hat: "#30353B"
@@ -43,27 +44,46 @@ style:
     - no_monocle
     - no_moustache
     - no_flag_motif
+    - no_gradients
+    - no_highlights
+    - no_shadows
+    - no_opacity_effects
+    - solid_flat_fills_only
     - keep_main_paperclip_silhouette
+    - tail_must_render_above_cane
+
+render_order:
+  - body_root
+  - costume_back
+  - tail_root
+  - costume_front
+  - identity_prop
+  - state_mark
+  - performance_accent
+  - bubble
 
 layers:
   body_root:
-    children: [body_wire, tail_root, left_eye_white, right_eye_white, left_pupil, right_pupil, left_brow, right_brow]
+    children: [body_wire, left_eye_white, right_eye_white, left_pupil, right_pupil, left_brow, right_brow]
+  costume_back:
+    children: [cane]
   tail_root:
     children: [tail_wire, tail_grip]
-  costume_britclip:
-    children: [top_hat, bow_tie, cane]
+    z_rule: foreground_over_cane
+  costume_front:
+    children: [top_hat, bow_tie]
   top_hat:
-    children: [hat_crown, hat_crown_highlight, hat_band, hat_brim, hat_brim_highlight]
+    children: [hat_crown, hat_band, hat_brim]
   bow_tie:
-    children: [bow_left, bow_right, bow_left_fold, bow_right_fold, bow_knot]
+    children: [bow_left, bow_right, bow_knot]
   cane:
-    children: [cane_shadow, cane_body, cane_highlight, cane_handle_highlight, cane_tip]
+    children: [cane_body, cane_tip]
 
 anchors:
   body_anchor: [158, 286]
   tail_root_anchor: [257.5, 322.226]
   tail_tip_anchor: [333, 250]
-  tail_grip_anchor: [337, 258]
+  tail_grip_anchor: [338, 258]
   prop_spawn_anchor: [286, 320]
   hat_anchor: [160, 22]
   bow_tie_anchor: [158, 254]
@@ -140,6 +160,8 @@ validation:
   - costume_remains_visible_after_enter_animation
   - costume_survives_identity_switches
   - tail_grip_remains_attached_to_cane_handle
+  - tail_renders_above_cane_at_handle_intersection
   - hat_and_bow_tie_follow_body_transform
+  - no_highlight_or_shadow_layers
   - no_canvas_clipping_at_1x
   - readable_without_text_at_1x
