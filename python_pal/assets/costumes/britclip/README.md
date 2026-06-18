@@ -10,9 +10,22 @@ Britclip is based on the visual shorthand of an Edwardian club concierge and old
 - burgundy bow tie
 - walnut cane with brass tip
 - restrained proud expression
-- tail wrapped around the cane handle
+- tail wrapped over the cane handle
 
 The costume deliberately avoids a monocle, moustache, flag motif, mouth, hands, and feet. The goal is a readable gentleman silhouette without replacing the base paperclip character.
+
+## Flat-vector rule
+
+The source asset follows the same flat style as the base character:
+
+- solid fills only
+- no gradients
+- no highlights
+- no shadows
+- no opacity-based lighting effects
+- simple dark outlines where separation is needed
+
+Different flat colors may separate the hat crown, hat band, bow knot, cane body, and brass tip, but none of those layers should simulate lighting.
 
 ## Asset structure
 
@@ -23,43 +36,52 @@ Important groups:
 ```text
 body_root
 body_wire
+costume_back
+cane
 tail_root
 tail_wire
 tail_grip
+costume_front
+top_hat
+bow_tie
 left_eye_white
 right_eye_white
 left_pupil
 right_pupil
 left_brow
 right_brow
-costume_britclip
-top_hat
-bow_tie
-cane
 rig_anchors
 ```
 
-## Persistent lifecycle
+## Cane grip and layer order
 
-This is a costume, not an identity decoration. Once equipped, it should remain visible while functional identities such as `agent_supervisor`, `thermal_technician`, or `bug_coroner` change underneath it.
+The cane is part of `costume_back`. The tail is rendered afterward as a foreground layer, so the tail loop visually covers the cane handle at the contact point. This overlap is intentional: it should read as the tail supporting or holding the cane, not as the cane being pasted over the tail.
 
-Recommended render order:
+Required order:
 
 ```text
 base body
-persistent costume
+cane / costume_back
+tail foreground grip
+hat and bow tie / costume_front
 functional identity prop
 state mark
 performance accent
 bubble
 ```
 
+## Persistent lifecycle
+
+This is a costume, not an identity decoration. Once equipped, it should remain visible while functional identities such as `agent_supervisor`, `thermal_technician`, or `bug_coroner` change underneath it.
+
 ## Current status
 
 Completed:
 
 - static equipped SVG
+- flat no-highlight/no-shadow style pass
 - separate tail and prop layers
+- foreground tail-over-cane grip
 - named anchors
 - enter/exit storyboard
 - persistent costume specification
