@@ -51,10 +51,11 @@ style:
     - solid_flat_fills_only
     - keep_main_paperclip_silhouette
     - tail_must_render_above_cane
-    - tail_tip_must_remain_tapered
-    - no_closed_tail_grip_loop
-    - no_paw_mitten_fist_or_round_hand_shape
-    - tail_simulates_support_by_curve_and_overlap_only
+    - tail_uses_same_stroke_width_color_and_round_cap_as_body_wire
+    - tail_end_is_natural_stroke_cap
+    - no_separate_tail_tip_shape
+    - no_paw_mitten_fist_or_added_hand_shape
+    - tail_simulates_support_by_curve_contact_and_overlap_only
     - cane_top_must_meet_tail_tip_underside
     - cane_bottom_must_match_body_visual_bottom
 
@@ -74,9 +75,9 @@ layers:
   costume_back:
     children: [cane]
   tail_root:
-    children: [tail_tip, tail_wire]
+    children: [tail_wire]
     z_rule: foreground_over_cane
-    semantic_rule: flexible_tail_not_hand
+    semantic_rule: same_wire_construction_as_body
   costume_front:
     children: [top_hat, bow_tie]
   top_hat:
@@ -89,13 +90,13 @@ layers:
 anchors:
   body_anchor: [158, 286]
   tail_root_anchor: [257.5, 322.226]
-  tail_tip_anchor: [316, 249]
-  tail_support_anchor: [340, 279]
+  tail_tip_anchor: [340, 266]
+  tail_support_anchor: [340, 281]
   tail_tip_bottom_anchor: [340, 281]
   prop_spawn_anchor: [286, 320]
   hat_anchor: [160, 22]
   bow_tie_anchor: [158, 254]
-  cane_anchor: [345, 281]
+  cane_anchor: [345, 286.5]
   cane_contact_anchor: [340, 281]
   body_visual_bottom_anchor: [180, 560]
   cane_bottom_anchor: [333, 560]
@@ -121,7 +122,7 @@ enter_storyboard:
     - id: retrieve_cane
       start_ms: 1750
       duration_ms: 800
-      action: tail_retrieves_folded_cane_cane_extends_and_tail_tip_settles_over_handle
+      action: tail_retrieves_folded_cane_cane_extends_and_tail_end_settles_over_handle
     - id: settle_pose
       start_ms: 2550
       duration_ms: 550
@@ -158,7 +159,7 @@ costume_idle:
     hat_settle: very_low
     bow_tie_breathe: low
     cane_tap_chance: rare
-    tail_tip_flex: subtle
+    tail_end_flex: subtle
 
 costume_action_map:
   idle_breathe: gentleman_idle
@@ -171,10 +172,10 @@ costume_action_map:
 validation:
   - costume_remains_visible_after_enter_animation
   - costume_survives_identity_switches
-  - tail_tip_remains_visibly_continuous_with_tail_wire
-  - tail_tip_remains_tapered
-  - no_closed_tail_loop
-  - no_hand_like_round_endcap
+  - tail_wire_matches_body_wire_stroke_style
+  - tail_end_is_only_the_round_cap_of_tail_wire
+  - no_separate_tail_tip_geometry
+  - no_added_hand_like_shape
   - tail_renders_above_cane_at_handle_intersection
   - cane_top_meets_tail_tip_underside
   - cane_bottom_matches_body_visual_bottom
