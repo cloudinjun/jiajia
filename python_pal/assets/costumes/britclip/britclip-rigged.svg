@@ -52,22 +52,20 @@
     </g>
   </g>
 
-  <!-- The cane is intentionally rendered behind the tail. -->
   <g id="costume_back">
     <g id="cane" data-anchor="cane_anchor">
       <path id="cane_body"
-            d="M333 518 L333 255
-               C333 231 345 216 358 223
-               C371 230 366 247 354 253
-               C346 257 338 254 334 248"
+            d="M333 548 L333 286
+               C333 277 338 271 346 271
+               C354 271 360 277 360 285
+               C360 294 353 300 345 300"
             stroke="#5A3828" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
       <path id="cane_tip"
-            d="M326 515 L340 515 L340 527 L326 527 Z"
+            d="M326 547 L340 547 L340 560 L326 560 Z"
             fill="#B08A43" stroke="#775E2E" stroke-width="3" stroke-linejoin="round"/>
     </g>
   </g>
 
-  <!-- Foreground tail loop overlaps the cane handle so it reads as supporting the cane. -->
   <g id="tail_root" data-z="foreground-over-cane">
     <path id="tail_wire"
           d="M257.5 322.226
@@ -112,11 +110,15 @@
     <circle id="body_anchor" cx="158" cy="286" r="5" fill="#00AEEF"/>
     <circle id="tail_root_anchor" cx="257.5" cy="322.226" r="5" fill="#00AEEF"/>
     <circle id="tail_tip_anchor" cx="333" cy="250" r="5" fill="#00AEEF"/>
-    <circle id="tail_grip_anchor" cx="338" cy="258" r="5" fill="#00AEEF"/>
+    <circle id="tail_grip_anchor" cx="338" cy="268" r="5" fill="#00AEEF"/>
+    <circle id="tail_tip_bottom_anchor" cx="338" cy="277" r="5" fill="#00AEEF"/>
     <circle id="prop_spawn_anchor" cx="286" cy="320" r="5" fill="#00AEEF"/>
     <circle id="hat_anchor" cx="160" cy="22" r="5" fill="#00AEEF"/>
     <circle id="bow_tie_anchor" cx="158" cy="254" r="5" fill="#00AEEF"/>
-    <circle id="cane_anchor" cx="333" cy="255" r="5" fill="#00AEEF"/>
-    <circle id="ground_anchor" cx="180" cy="523" r="5" fill="#00AEEF"/>
+    <circle id="cane_anchor" cx="346" cy="271" r="5" fill="#00AEEF"/>
+    <circle id="cane_contact_anchor" cx="338" cy="271" r="5" fill="#00AEEF"/>
+    <circle id="body_visual_bottom_anchor" cx="180" cy="560" r="5" fill="#00AEEF"/>
+    <circle id="cane_bottom_anchor" cx="333" cy="560" r="5" fill="#00AEEF"/>
+    <circle id="ground_anchor" cx="180" cy="560" r="5" fill="#00AEEF"/>
   </g>
 </svg>
