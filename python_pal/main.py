@@ -5,6 +5,7 @@ from pathlib import Path
 
 from .body import PaperclipPalApp
 from .brain_ollama import OllamaBrain
+from .chat_language import install_chat_language_support
 from .soul import load_soul
 
 
@@ -21,6 +22,7 @@ def main() -> None:
         reaction = brain.react("self-test", {"active_window_title": "Codex", "idle_seconds": 0})
         print(f"{soul.name}: {reaction.line}")
         return
+    install_chat_language_support(PaperclipPalApp)
     app = PaperclipPalApp(soul, project_root)
     if args.demo:
         app.root.after(1000, app._run_scripted_demo)
