@@ -2,7 +2,7 @@
      width="190" height="325" viewBox="0 -90 380 650"
      fill="none" role="img" aria-labelledby="title desc">
   <title id="title">Britclip / 英伦夹</title>
-  <desc id="desc">A flat-vector Paperclip Pal costume with a charcoal top hat, burgundy bow tie, and walnut cane supported by a tapered tail tip.</desc>
+  <desc id="desc">A flat-vector Paperclip Pal costume with a charcoal top hat, burgundy bow tie, and walnut cane supported by the natural rounded end of its tail.</desc>
 
   <metadata>
     costume_id: britclip
@@ -10,7 +10,7 @@
     profession: Edwardian club concierge and old-school gentleman
     source_character: paperclip-pal-refined.svg
     style: pure flat vector, solid fills only, no highlights, no shadows, no mouth, no hands, no feet
-    tail_rule: tail remains a tapered tail; it may imitate a supporting gesture but never forms a paw, mitten, fist, or closed hand loop
+    tail_rule: tail uses the same stroke, width, color, and rounded cap as body_wire; support is shown only by curvature, contact, and layer overlap
     render_order: body_root, costume_back, tail_root, costume_front, rig_anchors
   </metadata>
 
@@ -56,10 +56,10 @@
   <g id="costume_back">
     <g id="cane" data-anchor="cane_anchor">
       <path id="cane_body"
-            d="M333 548 L333 299
-               C333 289 338 281 345 281
-               C352 281 357 286 357 293
-               C357 301 351 306 344 306"
+            d="M333 548 L333 304
+               C333 294 338 286.5 345 286.5
+               C352 286.5 357 291.5 357 298.5
+               C357 306.5 351 311.5 344 311.5"
             stroke="#5A3828" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
       <path id="cane_tip"
             d="M326 547 L340 547 L340 560 L326 560 Z"
@@ -67,22 +67,13 @@
     </g>
   </g>
 
-  <!-- The tail remains a continuous tapered appendage. It rests over the cane; it does not become a hand. -->
+  <!-- The tail keeps the exact same visual construction as the body: one rounded stroke. -->
   <g id="tail_root" data-z="foreground-over-cane">
-    <path id="tail_tip"
-          d="M311 234
-             C327 233 341 240 348 252
-             C353 261 350 272 340 281
-             L333 273
-             C339 267 340 262 337 257
-             C333 252 326 249 316 250
-             L311 234 Z"
-          fill="#AEAEAE"/>
     <path id="tail_wire"
           d="M257.5 322.226
              C261 299 276 276 297 260
-             C306 253 311 250 316 249"
-          stroke="#AEAEAE" stroke-width="30" stroke-linecap="butt" stroke-linejoin="round"/>
+             C312 247 329 249 340 266"
+          stroke="#AEAEAE" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 
   <g id="costume_front">
@@ -113,13 +104,13 @@
   <g id="rig_anchors" visibility="hidden">
     <circle id="body_anchor" cx="158" cy="286" r="5" fill="#00AEEF"/>
     <circle id="tail_root_anchor" cx="257.5" cy="322.226" r="5" fill="#00AEEF"/>
-    <circle id="tail_tip_anchor" cx="316" cy="249" r="5" fill="#00AEEF"/>
-    <circle id="tail_support_anchor" cx="340" cy="279" r="5" fill="#00AEEF"/>
+    <circle id="tail_tip_anchor" cx="340" cy="266" r="5" fill="#00AEEF"/>
+    <circle id="tail_support_anchor" cx="340" cy="281" r="5" fill="#00AEEF"/>
     <circle id="tail_tip_bottom_anchor" cx="340" cy="281" r="5" fill="#00AEEF"/>
     <circle id="prop_spawn_anchor" cx="286" cy="320" r="5" fill="#00AEEF"/>
     <circle id="hat_anchor" cx="160" cy="22" r="5" fill="#00AEEF"/>
     <circle id="bow_tie_anchor" cx="158" cy="254" r="5" fill="#00AEEF"/>
-    <circle id="cane_anchor" cx="345" cy="281" r="5" fill="#00AEEF"/>
+    <circle id="cane_anchor" cx="345" cy="286.5" r="5" fill="#00AEEF"/>
     <circle id="cane_contact_anchor" cx="340" cy="281" r="5" fill="#00AEEF"/>
     <circle id="body_visual_bottom_anchor" cx="180" cy="560" r="5" fill="#00AEEF"/>
     <circle id="cane_bottom_anchor" cx="333" cy="560" r="5" fill="#00AEEF"/>
