@@ -2,20 +2,16 @@
      width="190" height="325" viewBox="0 -90 380 650"
      fill="none" role="img" aria-labelledby="title desc">
   <title id="title">Britclip / 英伦夹</title>
-  <desc id="desc">Paperclip Pal transformed into an old-fashioned British club concierge with a charcoal top hat, burgundy bow tie, and walnut cane held by its tail.</desc>
+  <desc id="desc">A flat-vector Paperclip Pal costume with a charcoal top hat, burgundy bow tie, and walnut cane held from the foreground by its tail.</desc>
 
   <metadata>
     costume_id: britclip
     lifecycle: persistent_costume
     profession: Edwardian club concierge and old-school gentleman
     source_character: paperclip-pal-refined.svg
-    style: pure flat vector, no mouth, no hands, no feet
+    style: pure flat vector, solid fills only, no highlights, no shadows, no mouth, no hands, no feet
+    render_order: body_root, costume_back, tail_root, costume_front, rig_anchors
   </metadata>
-
-  <g id="optional_flat_shadow">
-    <ellipse cx="177" cy="527" rx="116" ry="13" fill="#E9E9E9"/>
-    <ellipse cx="333" cy="528" rx="25" ry="6" fill="#E4DED8"/>
-  </g>
 
   <g id="body_root">
     <g id="body_wire">
@@ -32,20 +28,6 @@
             stroke="#AEAEAE" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
     </g>
 
-    <g id="tail_root">
-      <path id="tail_wire"
-            d="M257.5 322.226
-               C261 299 276 276 297 260
-               C309 251 320 247 333 250"
-            stroke="#AEAEAE" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
-      <path id="tail_grip"
-            d="M331 250
-               C342 244 350 250 347 260
-               C344 270 331 271 326 263
-               C322 257 325 253 331 250"
-            stroke="#AEAEAE" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
-    </g>
-
     <g id="left_eye_white">
       <circle cx="57" cy="154.726" r="57" fill="#ECECEC"/>
     </g>
@@ -55,11 +37,9 @@
 
     <g id="left_pupil">
       <circle cx="69" cy="151" r="38" fill="#402A32"/>
-      <circle cx="81" cy="137" r="7" fill="#FFFFFF" opacity="0.88"/>
     </g>
     <g id="right_pupil">
       <circle cx="210" cy="190" r="38" fill="#402A32"/>
-      <circle cx="222" cy="176" r="7" fill="#FFFFFF" opacity="0.88"/>
     </g>
 
     <g id="left_brow">
@@ -72,23 +52,48 @@
     </g>
   </g>
 
-  <g id="costume_britclip">
+  <!-- The cane is intentionally rendered behind the tail. -->
+  <g id="costume_back">
+    <g id="cane" data-anchor="cane_anchor">
+      <path id="cane_body"
+            d="M333 518 L333 255
+               C333 231 345 216 358 223
+               C371 230 366 247 354 253
+               C346 257 338 254 334 248"
+            stroke="#5A3828" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+      <path id="cane_tip"
+            d="M326 515 L340 515 L340 527 L326 527 Z"
+            fill="#B08A43" stroke="#775E2E" stroke-width="3" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- Foreground tail loop overlaps the cane handle so it reads as supporting the cane. -->
+  <g id="tail_root" data-z="foreground-over-cane">
+    <path id="tail_wire"
+          d="M257.5 322.226
+             C261 299 276 276 297 260
+             C310 251 322 247 333 250"
+          stroke="#AEAEAE" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="tail_grip"
+          d="M330 250
+             C337 243 348 244 351 252
+             C354 261 347 268 338 268
+             C331 268 326 264 325 259
+             C324 255 327 252 330 250"
+          stroke="#AEAEAE" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g id="costume_front">
     <g id="top_hat" data-anchor="hat_anchor">
       <path id="hat_crown"
             d="M101 -58 C127 -72 190 -74 220 -59 L226 18 C197 30 126 31 96 19 Z"
             fill="#30353B" stroke="#20252A" stroke-width="5" stroke-linejoin="round"/>
-      <path id="hat_crown_highlight"
-            d="M113 -48 C134 -58 180 -60 204 -51"
-            stroke="#515861" stroke-width="5" stroke-linecap="round" opacity="0.75"/>
       <path id="hat_band"
             d="M98 0 C129 9 193 9 224 0 L226 20 C194 31 127 31 96 20 Z"
             fill="#6E2638"/>
       <path id="hat_brim"
             d="M70 18 C102 7 221 7 250 21 C252 34 242 43 223 47 C177 56 106 54 78 45 C67 41 62 31 70 18 Z"
             fill="#2A2F34" stroke="#20252A" stroke-width="5" stroke-linejoin="round"/>
-      <path id="hat_brim_highlight"
-            d="M87 34 C126 43 204 43 235 33"
-            stroke="#4A5057" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
     </g>
 
     <g id="bow_tie" data-anchor="bow_tie_anchor">
@@ -98,27 +103,8 @@
       <path id="bow_right"
             d="M165 247 C179 235 199 235 211 249 C205 267 186 273 165 260 Z"
             fill="#7A263B" stroke="#4D1826" stroke-width="4" stroke-linejoin="round"/>
-      <path id="bow_left_fold" d="M147 249 C132 247 121 250 114 256"
-            stroke="#A65063" stroke-width="4" stroke-linecap="round"/>
-      <path id="bow_right_fold" d="M169 249 C184 247 195 250 203 256"
-            stroke="#A65063" stroke-width="4" stroke-linecap="round"/>
       <ellipse id="bow_knot" cx="158" cy="254" rx="13" ry="12"
                fill="#5F1E30" stroke="#451522" stroke-width="4"/>
-    </g>
-
-    <g id="cane" data-anchor="cane_anchor">
-      <path id="cane_shadow"
-            d="M337 520 L337 257 C337 232 348 219 360 225 C372 232 369 248 358 254 C350 259 342 256 338 250"
-            stroke="#3B241B" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" opacity="0.28"/>
-      <path id="cane_body"
-            d="M333 518 L333 255 C333 231 345 216 358 223 C371 230 366 247 354 253 C346 257 338 254 334 248"
-            stroke="#5A3828" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-      <path id="cane_highlight" d="M329 511 L329 268"
-            stroke="#8A5A3B" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
-      <path id="cane_handle_highlight" d="M337 239 C342 226 351 222 358 226"
-            stroke="#A06C48" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
-      <path id="cane_tip" d="M326 515 L340 515 L340 527 L326 527 Z"
-            fill="#B08A43" stroke="#775E2E" stroke-width="3" stroke-linejoin="round"/>
     </g>
   </g>
 
@@ -126,7 +112,7 @@
     <circle id="body_anchor" cx="158" cy="286" r="5" fill="#00AEEF"/>
     <circle id="tail_root_anchor" cx="257.5" cy="322.226" r="5" fill="#00AEEF"/>
     <circle id="tail_tip_anchor" cx="333" cy="250" r="5" fill="#00AEEF"/>
-    <circle id="tail_grip_anchor" cx="337" cy="258" r="5" fill="#00AEEF"/>
+    <circle id="tail_grip_anchor" cx="338" cy="258" r="5" fill="#00AEEF"/>
     <circle id="prop_spawn_anchor" cx="286" cy="320" r="5" fill="#00AEEF"/>
     <circle id="hat_anchor" cx="160" cy="22" r="5" fill="#00AEEF"/>
     <circle id="bow_tie_anchor" cx="158" cy="254" r="5" fill="#00AEEF"/>
