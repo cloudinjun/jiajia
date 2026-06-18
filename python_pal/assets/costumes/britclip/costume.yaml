@@ -51,6 +51,8 @@ style:
     - solid_flat_fills_only
     - keep_main_paperclip_silhouette
     - tail_must_render_above_cane
+    - cane_top_must_meet_tail_tip_underside
+    - cane_bottom_must_match_body_visual_bottom
 
 render_order:
   - body_root
@@ -83,12 +85,16 @@ anchors:
   body_anchor: [158, 286]
   tail_root_anchor: [257.5, 322.226]
   tail_tip_anchor: [333, 250]
-  tail_grip_anchor: [338, 258]
+  tail_grip_anchor: [338, 268]
+  tail_tip_bottom_anchor: [338, 277]
   prop_spawn_anchor: [286, 320]
   hat_anchor: [160, 22]
   bow_tie_anchor: [158, 254]
-  cane_anchor: [333, 255]
-  ground_anchor: [180, 523]
+  cane_anchor: [346, 271]
+  cane_contact_anchor: [338, 271]
+  body_visual_bottom_anchor: [180, 560]
+  cane_bottom_anchor: [333, 560]
+  ground_anchor: [180, 560]
 
 enter_storyboard:
   duration_ms: 3100
@@ -161,6 +167,8 @@ validation:
   - costume_survives_identity_switches
   - tail_grip_remains_attached_to_cane_handle
   - tail_renders_above_cane_at_handle_intersection
+  - cane_top_meets_tail_tip_underside
+  - cane_bottom_matches_body_visual_bottom
   - hat_and_bow_tie_follow_body_transform
   - no_highlight_or_shadow_layers
   - no_canvas_clipping_at_1x
