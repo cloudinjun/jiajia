@@ -10,7 +10,7 @@ Britclip is based on the visual shorthand of an Edwardian club concierge and old
 - burgundy bow tie
 - walnut cane with brass tip
 - restrained proud expression
-- tapered tail tip resting over the cane handle
+- the natural rounded tail end resting over the cane handle
 
 The costume deliberately avoids a monocle, moustache, flag motif, mouth, hands, and feet. The goal is a readable gentleman silhouette without replacing the base paperclip character.
 
@@ -29,19 +29,23 @@ Different flat colors may separate the hat crown, hat band, bow knot, cane body,
 
 ## Tail semantics
 
-The tail is always a tail. It may imitate the function of a hand through timing, curvature, overlap, and contact, but it must never become a paw, mitten, fist, circular hand, or closed gripping loop.
+The tail is always drawn in exactly the same way as the body wire:
 
-For the cane pose:
+- one open stroked path
+- `#AEAEAE`
+- `stroke-width="30"`
+- rounded line cap
+- rounded line join
+- no custom taper polygon
+- no added grip loop or hand-shaped endpoint
 
-- the main tail keeps its original broad paperclip-wire character
-- the final section narrows into `tail_tip`
-- the tapered tip curves downward and rests over the cane handle
-- the cane remains behind the tail in the layer order
-- support is communicated by contact and overlap, not by adding fingers or a round hand shape
+It may imitate a supporting gesture through timing, curvature, contact, and foreground overlap, but its construction must remain the original paperclip wire construction.
+
+For the cane pose, the natural rounded cap at the end of `tail_wire` rests over the cane handle. The cane is rendered behind it. This communicates support without changing the tail into a paw, mitten, fist, or hand.
 
 ## Asset structure
 
-`britclip-rigged.svg` keeps the body, tail, face, costume props, and anchors in separately named groups. The tail is split from the main body so it can retrieve and support props during the transformation animation.
+`britclip-rigged.svg` keeps the body, tail, face, costume props, and anchors in separately named groups. The tail is split from the body path for animation control, but both paths use the same visual drawing method.
 
 Important groups:
 
@@ -52,7 +56,6 @@ costume_back
 cane
 tail_root
 tail_wire
-tail_tip
 costume_front
 top_hat
 bow_tie
@@ -67,14 +70,14 @@ rig_anchors
 
 ## Cane support and layer order
 
-The cane is part of `costume_back`. The tapered tail is rendered afterward as a foreground layer. Its tip overlaps the highest part of the cane handle, so the pose reads as the tail resting on and supporting the cane.
+The cane is part of `costume_back`. The tail is rendered afterward as a foreground layer. The rounded end of the tail touches the highest visible point of the cane handle, while the cane bottom aligns with the body baseline.
 
 Required order:
 
 ```text
 base body
 cane / costume_back
-tapered tail foreground support
+natural tail-wire foreground support
 hat and bow tie / costume_front
 functional identity prop
 state mark
@@ -93,8 +96,9 @@ Completed:
 - static equipped SVG
 - flat no-highlight/no-shadow style pass
 - separate tail and prop layers
-- tapered non-hand-like tail support pose
+- tail restored to the same stroke construction as the body
 - foreground tail-over-cane contact
+- cane and body baseline alignment
 - named anchors
 - enter/exit storyboard
 - persistent costume specification
