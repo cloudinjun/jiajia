@@ -1,0 +1,125 @@
+{
+  "quizzes": [
+    {
+      "id": "background_process_v1",
+      "title": "你今天像哪种电脑后台进程",
+      "subtitle": "完全不负责。结果没有科学性，只有夹夹的办公用品偏见。",
+      "language": "zh-CN",
+      "safety_label": "entertainment_only",
+      "source": "fallback",
+      "metrics": ["scheduler", "cache", "renderer", "watchdog", "indexer", "screensaver"],
+      "questions": [
+        {
+          "id": "q1",
+          "text": "刚打开电脑，你第一件事更像是？",
+          "options": [
+            {"id": "a", "text": "先把所有窗口排整齐，像在摆供。", "scores": {"scheduler": 2, "indexer": 1}},
+            {"id": "b", "text": "打开旧文件，等灵感自己认领现场。", "scores": {"cache": 2, "screensaver": 1}},
+            {"id": "c", "text": "先看一眼状态栏，假装自己掌控全局。", "scores": {"watchdog": 2, "scheduler": 1}},
+            {"id": "d", "text": "把界面调好看，再慢慢开始心虚。", "scores": {"renderer": 2, "cache": 1}}
+          ]
+        },
+        {
+          "id": "q2",
+          "text": "任务卡住时，你最自然的动作是？",
+          "options": [
+            {"id": "a", "text": "重开一个列表，给问题举办分会场。", "scores": {"scheduler": 2, "indexer": 1}},
+            {"id": "b", "text": "翻以前的资料，像考古自己的勇气。", "scores": {"cache": 2, "indexer": 1}},
+            {"id": "c", "text": "盯着报错，等它先眨眼。", "scores": {"watchdog": 2, "screensaver": 1}},
+            {"id": "d", "text": "截图发给未来的自己，现场保持优雅。", "scores": {"renderer": 2, "watchdog": 1}}
+          ]
+        },
+        {
+          "id": "q3",
+          "text": "如果你的脑子有一个进度条，它现在大概显示？",
+          "options": [
+            {"id": "a", "text": "12%，但写着正在初始化。很正式。", "scores": {"scheduler": 2}},
+            {"id": "b", "text": "67%，因为加载了很多不一定有用的旧东西。", "scores": {"cache": 2}},
+            {"id": "c", "text": "99%，卡在最后一步，像经典软件体验。", "scores": {"watchdog": 2}},
+            {"id": "d", "text": "看起来 100%，其实只是 UI 比较自信。", "scores": {"renderer": 2}}
+          ]
+        },
+        {
+          "id": "q4",
+          "text": "你面对一个很长的 TODO，会先处理哪一项？",
+          "options": [
+            {"id": "a", "text": "先分类。工作没动，但秩序感上岗了。", "scores": {"scheduler": 2}},
+            {"id": "b", "text": "先找最熟悉的做，像回缓存里取暖。", "scores": {"cache": 2}},
+            {"id": "c", "text": "先找最危险的，防止它突然长牙。", "scores": {"watchdog": 2}},
+            {"id": "d", "text": "先改标题，让它看起来像已经开始。", "scores": {"renderer": 2, "screensaver": 1}}
+          ]
+        },
+        {
+          "id": "q5",
+          "text": "别人问你进展如何，你更想回答？",
+          "options": [
+            {"id": "a", "text": "流程已经梳理完了。具体成果正在路上堵车。", "scores": {"scheduler": 2}},
+            {"id": "b", "text": "我找到了很多参考。它们正在互相凝视。", "scores": {"indexer": 2, "cache": 1}},
+            {"id": "c", "text": "我发现了几个问题。它们发现了我。", "scores": {"watchdog": 2}},
+            {"id": "d", "text": "视觉上非常接近完成。现实上比较含蓄。", "scores": {"renderer": 2}}
+          ]
+        },
+        {
+          "id": "q6",
+          "text": "如果夹夹偷偷看你五分钟，它会记录下什么？",
+          "options": [
+            {"id": "a", "text": "你切窗口的路线很稳定，像通勤。", "scores": {"scheduler": 1, "screensaver": 2}},
+            {"id": "b", "text": "你复制了很多东西，像在囤冬粮。", "scores": {"cache": 2, "indexer": 1}},
+            {"id": "c", "text": "你一直在等一个状态变绿，信仰很朴素。", "scores": {"watchdog": 2}},
+            {"id": "d", "text": "你把东西调漂亮了，工作因此受到轻微威胁。", "scores": {"renderer": 2}}
+          ]
+        }
+      ],
+      "results": [
+        {
+          "id": "scheduler",
+          "metric": "scheduler",
+          "title": "日程调度进程",
+          "line": "你今天负责安排一切，除了真正开始。流程很优雅，执行还在候场。",
+          "mood": "smirk",
+          "action": "thinking_tilt"
+        },
+        {
+          "id": "cache",
+          "metric": "cache",
+          "title": "怀旧缓存进程",
+          "line": "你把旧资料加载得很温柔。新任务在旁边站着，像没被邀请。",
+          "mood": "innocent",
+          "action": "peek"
+        },
+        {
+          "id": "renderer",
+          "metric": "renderer",
+          "title": "界面渲染进程",
+          "line": "你很会让事情看起来已经发生。夹夹尊重这种视觉上的胜利。",
+          "mood": "smug",
+          "action": "smug_sway"
+        },
+        {
+          "id": "watchdog",
+          "metric": "watchdog",
+          "title": "异常监控进程",
+          "line": "你今天的警觉性很高。问题还没爆，你已经提前摆好了审判席。",
+          "mood": "suspicious",
+          "action": "scan"
+        },
+        {
+          "id": "indexer",
+          "metric": "indexer",
+          "title": "资料索引进程",
+          "line": "你收集信息的样子很像大型图书馆。只是出口暂时没有标出来。",
+          "mood": "thinking",
+          "action": "thinking_tilt"
+        },
+        {
+          "id": "screensaver",
+          "metric": "screensaver",
+          "title": "省电待机进程",
+          "line": "你没有停止工作，你只是把存在感调成了屏保模式。很节能，也很明显。",
+          "mood": "sleepy",
+          "action": "sleepy_sag"
+        }
+      ]
+    }
+  ]
+}
