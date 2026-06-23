@@ -21,7 +21,18 @@ class QuizSafetyTests(unittest.TestCase):
         packet = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")[0]
         bad = replace(packet, title="你的焦虑诊断是什么")
         errors = validate_quiz_packet(bad)
-        self.assertTrue(any("forbidden" in error for error in errors))
+        self.assertTrue(any("forbidden assessment" in error for error in errors))
+
+    def test_allows_light_anxiety_joke_without_assessment_language(self) -> None:
+        packet = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")[0]
+        light = replace(packet, title="你的排版焦虑像哪种后台进程")
+        self.assertEqual(validate_quiz_packet(light), [])
+
+    def test_rejects_hard_forbidden_terms(self) -> None:
+        packet = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")[0]
+        bad = replace(packet, title="你的前额叶损坏指数")
+        errors = validate_quiz_packet(bad)
+        self.assertTrue(any("hard forbidden" in error for error in errors))
 
     def test_rejects_wrong_option_count(self) -> None:
         packet = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")[0]

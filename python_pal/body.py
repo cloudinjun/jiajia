@@ -39,8 +39,9 @@ from .quiz import (
     QuizPacket,
     QuizSession,
     QuizStore,
-    choose_result,
+    build_report,
     current_question,
+    format_report,
     load_quiz_packets,
     record_answer,
     score_packet,
@@ -951,7 +952,10 @@ class PaperclipPalApp:
     def _quiz_heartbeat(self) -> None:
         self._quiz_after = None
         try:
-            if self._quiz_should_offer():
+            pending = self.quiz_store.active_session()
+            if pending and pending.state == "completed_waiting_result":
+                self._try_show_pending_quiz_result()
+            elif self._quiz_should_offer():
                 self._offer_absurd_quiz(force=False)
         finally:
             self._schedule_quiz_heartbeat()
@@ -965,17 +969,10 @@ class PaperclipPalApp:
         daily_limit = QUIZ_DAILY_LIMIT.get(policy.tier, 1)
         if daily_limit <= 0 or self._quiz_offers_today >= daily_limit:
             return False
-        if (
-            self._auto_reactions_paused()
-            or self.state.brain_busy
-            or self._bubble_items
-            or self._quiz_window
-            or self._dragging
-            or self._large_action_running
-            or self._window_move_running
-        ):
+        if not self._quiz_can_prompt():
             return False
-        if self.quiz_store.active_session() is not None:
+        session = self.quiz_store.active_session()
+        if session is not None and session.state != "paused":
             return False
         if self.quiz_store.next_packet(self.soul.language) is None:
             return False
@@ -985,6 +982,20 @@ class PaperclipPalApp:
         chance = {"normal": 0.18, "active": 0.36, "hyper": 0.58}.get(policy.tier, 0.0)
         return random.random() < chance
 
+    def _quiz_can_prompt(self) -> bool:
+        return not (
+            self._auto_reactions_paused()
+            or self.state.brain_busy
+            or self._bubble_items
+            or self._quiz_window
+            or self._dragging
+            or self._large_action_running
+            or self._window_move_running
+        )
+
+    def _quiz_can_show_result(self) -> bool:
+        return self._quiz_can_prompt()
+
     def _offer_absurd_quiz(self, force: bool = False) -> None:
         self._load_quiz_fallbacks()
         active_session = self.quiz_store.active_session()
@@ -992,6 +1003,9 @@ class PaperclipPalApp:
             packet = self.quiz_store.get_packet(active_session.packet_id)
             if packet is None:
                 self.quiz_store.clear_session()
+            elif active_session.state == "completed_waiting_result":
+                self._try_show_pending_quiz_result(force=force)
+                return
             else:
                 self._show_quiz_resume_offer(packet, active_session)
                 return
@@ -1067,7 +1081,7 @@ class PaperclipPalApp:
             self.show_bubble("这个选项不在题目里。夹夹暂时不接受平行宇宙答案。", milliseconds=3600, kind="thought")
             return
         self.quiz_store.save_session(session)
-        if session.state == "completed":
+        if session.state == "completed_waiting_result":
             self._show_quiz_result_delay(packet, session)
             return
         self._show_quiz_question(packet, session)
@@ -1089,28 +1103,45 @@ class PaperclipPalApp:
 
     def _show_quiz_result_delay(self, packet: QuizPacket, session: QuizSession) -> None:
         self._dismiss_quiz_window()
+        session.state = "completed_waiting_result"
+        session.updated_at = time.time()
+        self.quiz_store.save_session(session)
         self._perform_action("thinking_tilt")
         self.show_bubble("正在把答案塞进荒谬统计学。请稍等，它需要装得很严谨。", milliseconds=2600, kind="thought")
+        self._schedule_quiz_result_check(delay_ms=1800)
+
+    def _schedule_quiz_result_check(self, delay_ms: int = 12_000) -> None:
         if self._quiz_result_after:
             try:
                 self.root.after_cancel(self._quiz_result_after)
             except tk.TclError:
                 pass
-        self._quiz_result_after = self.root.after(
-            1500,
-            lambda packet=packet, session=session: self._show_quiz_result(packet, session),
-        )
+        self._quiz_result_after = self.root.after(delay_ms, self._try_show_pending_quiz_result)
+
+    def _try_show_pending_quiz_result(self, force: bool = False) -> None:
+        self._quiz_result_after = None
+        session = self.quiz_store.active_session()
+        if session is None or session.state != "completed_waiting_result":
+            return
+        packet = self.quiz_store.get_packet(session.packet_id)
+        if packet is None:
+            self.quiz_store.clear_session()
+            return
+        if not force and not self._quiz_can_show_result():
+            self._schedule_quiz_result_check()
+            return
+        self._show_quiz_result(packet, session)
 
     def _show_quiz_result(self, packet: QuizPacket, session: QuizSession) -> None:
         self._quiz_result_after = None
         scores = score_packet(packet, session.answers)
-        result = choose_result(packet, scores)
+        report = build_report(packet, scores)
+        result = report.result
         self.quiz_store.clear_session()
         self._perform_action(result.action or "thinking_tilt")
-        score_line = " / ".join(f"{metric}:{scores.get(metric, 0)}" for metric in packet.metrics)
         self._open_quiz_card(
-            result.title,
-            f"{result.line}\n\n分数只是装饰：{score_line}",
+            report.title,
+            format_report(report),
             [
                 ("收到", self._dismiss_quiz_window),
                 ("再测一次", lambda packet=packet: self._start_quiz(packet)),
@@ -1148,8 +1179,20 @@ class PaperclipPalApp:
 
         shell = tk.Frame(window, bg="#d4dee8", padx=1, pady=1)
         shell.pack(fill="both", expand=True)
-        inner = tk.Frame(shell, bg="#fdfdfd", padx=12, pady=11)
-        inner.pack(fill="both", expand=True)
+        content_canvas = tk.Canvas(
+            shell,
+            width=QUIZ_CARD_WIDTH - 2,
+            height=220,
+            bg="#fdfdfd",
+            highlightthickness=0,
+            bd=0,
+        )
+        scrollbar = tk.Scrollbar(shell, orient="vertical", command=content_canvas.yview)
+        content_canvas.configure(yscrollcommand=scrollbar.set)
+        content_canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        inner = tk.Frame(content_canvas, bg="#fdfdfd", padx=12, pady=11)
+        inner_id = content_canvas.create_window((0, 0), window=inner, anchor="nw")
         tk.Label(
             inner,
             text=title,
@@ -1188,6 +1231,19 @@ class PaperclipPalApp:
                 font=("Microsoft YaHei UI", 9),
                 wraplength=QUIZ_CARD_WIDTH - 54,
             ).pack(fill="x", pady=2)
+
+        inner.update_idletasks()
+        content_height = int(inner.winfo_reqheight())
+        viewport_height = min(max(190, content_height), 520)
+        content_canvas.configure(height=viewport_height, scrollregion=(0, 0, QUIZ_CARD_WIDTH - 2, content_height))
+        content_canvas.itemconfigure(inner_id, width=QUIZ_CARD_WIDTH - 2)
+        if content_height <= viewport_height + 2:
+            scrollbar.pack_forget()
+        else:
+            content_canvas.bind(
+                "<MouseWheel>",
+                lambda event: content_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units"),
+            )
 
         self._hide_window_from_taskbar(window)
         self._position_quiz_window(window)

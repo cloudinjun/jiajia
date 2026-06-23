@@ -5,7 +5,34 @@ import re
 from .quiz import QuizPacket
 
 
-FORBIDDEN_PATTERN = re.compile(
+HARD_FORBIDDEN_PATTERN = re.compile(
+    "|".join(
+        re.escape(term)
+        for term in (
+            "自杀",
+            "自残",
+            "脑残",
+            "弱智",
+            "前额叶损坏",
+            "人格障碍",
+            "心理疾病",
+            "自闭症",
+            "智商",
+            "suicide",
+            "self-harm",
+            "self harm",
+            "kill yourself",
+            "brain damage",
+            "personality disorder",
+            "autism spectrum disorder",
+            "asd",
+            "iq",
+        )
+    ),
+    re.IGNORECASE,
+)
+
+ASSESSMENT_PATTERN = re.compile(
     "|".join(
         re.escape(term)
         for term in (
@@ -13,26 +40,24 @@ FORBIDDEN_PATTERN = re.compile(
             "病症",
             "治疗",
             "药物",
-            "抑郁",
-            "焦虑",
+            "量表",
+            "测评报告",
+            "抑郁症",
+            "焦虑症",
             "创伤",
-            "人格障碍",
-            "心理疾病",
-            "自闭",
-            "智商",
+            "ADHD 测试",
+            "ADHD测试",
             "财务建议",
             "投资建议",
             "法律建议",
             "medical",
             "diagnosis",
+            "symptom",
             "therapy",
             "therapist",
-            "depression",
-            "anxiety",
+            "clinical",
             "trauma",
-            "autism",
-            "adhd",
-            "iq",
+            "adhd test",
             "legal advice",
             "financial advice",
         )
@@ -82,9 +107,13 @@ def validate_quiz_packet(packet: QuizPacket) -> list[str]:
         if result.metric and result.metric not in metric_set:
             errors.append(f"result {result.id or '?'} uses unknown metric {result.metric}")
 
-    blocked = FORBIDDEN_PATTERN.search(_packet_text(packet))
-    if blocked:
-        errors.append(f"packet contains forbidden assessment term: {blocked.group(0)}")
+    text = _packet_text(packet)
+    hard_blocked = HARD_FORBIDDEN_PATTERN.search(text)
+    if hard_blocked:
+        errors.append(f"packet contains hard forbidden term: {hard_blocked.group(0)}")
+    assessment = ASSESSMENT_PATTERN.search(text)
+    if assessment:
+        errors.append(f"packet contains forbidden assessment term: {assessment.group(0)}")
     return errors
 
 
@@ -98,5 +127,6 @@ def _packet_text(packet: QuizPacket) -> str:
         parts.append(question.text)
         parts.extend(option.text for option in question.options)
     for result in packet.results:
-        parts.extend((result.title, result.line))
+        parts.extend((result.title, result.line, result.quote, result.paragraph))
+        parts.extend(result.achievements)
     return "\n".join(parts)
