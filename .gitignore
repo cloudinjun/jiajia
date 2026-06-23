@@ -8,6 +8,7 @@ claude_account_status.json
 openai_billing_status.json
 gemini_usage_status.json
 settings.json
+python_pal/quiz_store.json
 memory/
 .env
 .env.*

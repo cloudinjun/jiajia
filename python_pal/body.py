@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ctypes
+from datetime import date
 from pathlib import Path
 import json
 import math
@@ -11,6 +12,7 @@ import threading
 import time
 import tkinter as tk
 import tkinter.font as tkfont
+from typing import Callable
 
 from .activity import ActivityPolicy, policy_for_frequency
 from .actions import ACTION_LABELS, ACTION_MENU_GROUPS
@@ -33,6 +35,18 @@ from .hardware_status import HardwareSnapshot, HardwareStatusMonitor
 from .interruptibility import Interruptibility, assess_interruptibility
 from .openai_billing import OpenAIBillingMonitor, OpenAIBillingStatus
 from .performance import PERFORMANCE_PHRASES, phrase_for_reaction
+from .quiz import (
+    QuizPacket,
+    QuizSession,
+    QuizStore,
+    build_report,
+    current_question,
+    format_report,
+    load_quiz_packets,
+    record_answer,
+    score_packet,
+)
+from .quiz_safety import validate_quiz_packet
 from .soul import Soul
 from .state import PalState, Reaction
 from .world import MoodSnapshot, WorldState
@@ -69,6 +83,15 @@ BUBBLE_PAGE_MAX_MS = 8200
 BUBBLE_PAGE_CHAR_MS = 92
 BUBBLE_FONT = ("Microsoft YaHei UI", 11)
 THOUGHT_FONT = ("Microsoft YaHei UI", 10, "italic")
+QUIZ_FIRST_HEARTBEAT_MS = 90_000
+QUIZ_INTERVAL_MS = {
+    "quiet": 60 * 60 * 1000,
+    "normal": 30 * 60 * 1000,
+    "active": 16 * 60 * 1000,
+    "hyper": 9 * 60 * 1000,
+}
+QUIZ_DAILY_LIMIT = {"quiet": 0, "normal": 1, "active": 2, "hyper": 3}
+QUIZ_CARD_WIDTH = 360
 BubbleStyle = tuple[bool, str, str, str]
 BUBBLE_STYLES: dict[str, BubbleStyle] = {
     "speech": (False, "#fdfdfd", "#d4dee8", "#202932"),
@@ -400,6 +423,8 @@ class PaperclipPalApp:
         self.hardware_status = HardwareStatusMonitor()
         self.openai_billing = OpenAIBillingMonitor(project_root / "settings.json")
         self.event_log = EventLog(project_root / "memory" / "event_log.jsonl")
+        self.quiz_store = QuizStore(project_root / "python_pal" / "quiz_store.json")
+        self._last_quiz_debug = ""
         self.state = PalState()
         self.decision = DecisionEngine()
         self.animation_player = AnimationPlayer(load_animation_manifest(project_root / "python_pal" / "animations.yaml"))
@@ -494,6 +519,12 @@ class PaperclipPalApp:
         self._chat_window: tk.Toplevel | None = None
         self._chat_entry: tk.Entry | None = None
         self._chat_thread: threading.Thread | None = None
+        self._quiz_window: tk.Toplevel | None = None
+        self._quiz_after: str | None = None
+        self._quiz_result_after: str | None = None
+        self._last_quiz_offer_at: float = 0.0
+        self._quiz_offer_day: date = date.today()
+        self._quiz_offers_today: int = 0
         self._last_chat_context_debug = ""
         self._last_codex_status_event = ""
         self._last_codex_status: CodexStatus = CodexStatus()
@@ -546,6 +577,7 @@ class PaperclipPalApp:
         self._refresh_identity_decorations()
         self._bind_events()
         self._install_menu()
+        self._load_quiz_fallbacks()
         self.root.after(50, self._animate)
         self.root.after(120, self._poll_global_mouse)
         self.root.after(100, self._poll_brain)
@@ -563,6 +595,7 @@ class PaperclipPalApp:
         self.root.after(VISION_FIRST_REFRESH_MS, self._refresh_eyes)
         self.root.after(2000, self._schedule_micro)
         self.root.after(3000, self._schedule_companion)
+        self._schedule_quiz_heartbeat(first=True)
         self.root.after(650, lambda: self.show_bubble("你看起来很忙。主要是在避免开始。", 5200))
 
     def run(self) -> None:
@@ -703,6 +736,7 @@ class PaperclipPalApp:
 
         action_menu = tk.Menu(self.menu, tearoff=False)
         action_menu.add_command(label="Boredom line", command=lambda: self._ask_brain("bored"))
+        action_menu.add_command(label="Absurd quiz / 小测验", command=lambda: self._offer_absurd_quiz(force=True))
         action_menu.add_separator()
         for group_label, action_ids in ACTION_MENU_GROUPS:
             group_menu = tk.Menu(action_menu, tearoff=False)
@@ -789,6 +823,8 @@ class PaperclipPalApp:
             "_status_badge_after",
             "_micro_after",
             "_companion_after",
+            "_quiz_after",
+            "_quiz_result_after",
         ):
             after_id = getattr(self, attr, None)
             if after_id:
@@ -800,6 +836,11 @@ class PaperclipPalApp:
         if self._chat_window and self._chat_window.winfo_exists():
             try:
                 self._chat_window.destroy()
+            except tk.TclError:
+                pass
+        if self._quiz_window and self._quiz_window.winfo_exists():
+            try:
+                self._quiz_window.destroy()
             except tk.TclError:
                 pass
         try:
@@ -878,6 +919,353 @@ class PaperclipPalApp:
                 pass
         self._chat_window = None
         self._chat_entry = None
+
+    def _load_quiz_fallbacks(self) -> None:
+        loaded = 0
+        errors: list[str] = []
+        try:
+            packets = load_quiz_packets(self.project_root / "python_pal" / "quizzes.yaml")
+        except Exception as exc:
+            self._last_quiz_debug = f"fallback load failed: {exc}"
+            return
+        for packet in packets:
+            packet_errors = validate_quiz_packet(packet)
+            if packet_errors:
+                errors.append(f"{packet.id or '<missing>'}: {'; '.join(packet_errors[:3])}")
+                continue
+            self.quiz_store.upsert_packet(packet)
+            loaded += 1
+        self._last_quiz_debug = f"loaded {loaded} quiz packet(s)"
+        if errors:
+            self._last_quiz_debug += "; rejected: " + " | ".join(errors)
+
+    def _schedule_quiz_heartbeat(self, first: bool = False) -> None:
+        if self._quiz_after:
+            try:
+                self.root.after_cancel(self._quiz_after)
+            except tk.TclError:
+                pass
+        policy = self._activity_policy()
+        delay = QUIZ_FIRST_HEARTBEAT_MS if first else QUIZ_INTERVAL_MS.get(policy.tier, QUIZ_INTERVAL_MS["normal"])
+        self._quiz_after = self.root.after(delay, self._quiz_heartbeat)
+
+    def _quiz_heartbeat(self) -> None:
+        self._quiz_after = None
+        try:
+            pending = self.quiz_store.active_session()
+            if pending and pending.state == "completed_waiting_result":
+                self._try_show_pending_quiz_result()
+            elif self._quiz_should_offer():
+                self._offer_absurd_quiz(force=False)
+        finally:
+            self._schedule_quiz_heartbeat()
+
+    def _quiz_should_offer(self) -> bool:
+        today = date.today()
+        if today != self._quiz_offer_day:
+            self._quiz_offer_day = today
+            self._quiz_offers_today = 0
+        session = self.quiz_store.active_session()
+        if session is not None:
+            return session.state == "paused" and self._quiz_can_prompt()
+        policy = self._activity_policy()
+        daily_limit = QUIZ_DAILY_LIMIT.get(policy.tier, 1)
+        if daily_limit <= 0 or self._quiz_offers_today >= daily_limit:
+            return False
+        if not self._quiz_can_prompt():
+            return False
+        if self.quiz_store.next_packet(self.soul.language) is None:
+            return False
+        interval = QUIZ_INTERVAL_MS.get(policy.tier, QUIZ_INTERVAL_MS["normal"]) / 1000
+        if time.time() - self._last_quiz_offer_at < interval:
+            return False
+        chance = {"normal": 0.18, "active": 0.36, "hyper": 0.58}.get(policy.tier, 0.0)
+        return random.random() < chance
+
+    def _quiz_can_prompt(self) -> bool:
+        return not (
+            self._auto_reactions_paused()
+            or self.state.brain_busy
+            or self._bubble_items
+            or self._quiz_window
+            or self._dragging
+            or self._large_action_running
+            or self._window_move_running
+        )
+
+    def _quiz_can_show_result(self) -> bool:
+        return self._quiz_can_prompt()
+
+    def _offer_absurd_quiz(self, force: bool = False) -> None:
+        self._load_quiz_fallbacks()
+        active_session = self.quiz_store.active_session()
+        if active_session is not None:
+            packet = self.quiz_store.get_packet(active_session.packet_id)
+            if packet is None:
+                self.quiz_store.clear_session()
+            elif active_session.state == "completed_waiting_result":
+                self._try_show_pending_quiz_result(force=force)
+                return
+            else:
+                self._show_quiz_resume_offer(packet, active_session)
+                return
+
+        packet = self.quiz_store.next_packet(self.soul.language)
+        if packet is None:
+            self.show_bubble("我还没有可用的小测验。题库空得很有态度。", milliseconds=3600, kind="thought")
+            return
+        if not force:
+            self._last_quiz_offer_at = time.time()
+            self._quiz_offers_today += 1
+        self._perform_action("thinking_tilt")
+        self._open_quiz_card(
+            packet.title,
+            f"{packet.subtitle}\n\n夹夹可以问你 {len(packet.questions)} 个很不严肃的问题。",
+            [
+                ("开始", lambda packet=packet: self._start_quiz(packet)),
+                ("稍后", self._dismiss_quiz_window),
+                ("今天别考我", self._dismiss_quiz_today),
+            ],
+        )
+
+    def _show_quiz_resume_offer(self, packet: QuizPacket, session: QuizSession) -> None:
+        self._open_quiz_card(
+            packet.title,
+            f"上次的小测验停在第 {session.current_index + 1} 题。它没有忘，主要是 JSON 没忘。",
+            [
+                ("继续", lambda packet=packet, session=session: self._resume_quiz(packet, session)),
+                ("重新开始", lambda packet=packet: self._start_quiz(packet)),
+                ("放弃", self._abandon_quiz),
+            ],
+        )
+
+    def _start_quiz(self, packet: QuizPacket) -> None:
+        session = QuizSession.start(packet)
+        self.quiz_store.save_session(session)
+        self._perform_action("peek")
+        self._show_quiz_question(packet, session)
+
+    def _resume_quiz(self, packet: QuizPacket, session: QuizSession) -> None:
+        session.state = "active"
+        session.updated_at = time.time()
+        self.quiz_store.save_session(session)
+        self._show_quiz_question(packet, session)
+
+    def _show_quiz_question(self, packet: QuizPacket, session: QuizSession) -> None:
+        question = current_question(packet, session)
+        if question is None:
+            self._show_quiz_result_delay(packet, session)
+            return
+        total = len(packet.questions)
+        body = f"{session.current_index + 1}/{total}\n{question.text}"
+        buttons: list[tuple[str, Callable[[], None]]] = []
+        for option in question.options:
+            label = f"{option.id.upper()}. {option.text}"
+            buttons.append((label, lambda option_id=option.id: self._handle_quiz_answer(option_id)))
+        buttons.extend([("暂停", self._pause_quiz), ("放弃", self._abandon_quiz)])
+        self._open_quiz_card(packet.title, body, buttons)
+
+    def _handle_quiz_answer(self, option_id: str) -> None:
+        session = self.quiz_store.active_session()
+        if session is None:
+            self._dismiss_quiz_window()
+            return
+        packet = self.quiz_store.get_packet(session.packet_id)
+        if packet is None:
+            self.quiz_store.clear_session()
+            self._dismiss_quiz_window()
+            return
+        try:
+            session = record_answer(packet, session, option_id)
+        except ValueError:
+            self.show_bubble("这个选项不在题目里。夹夹暂时不接受平行宇宙答案。", milliseconds=3600, kind="thought")
+            return
+        self.quiz_store.save_session(session)
+        if session.state == "completed_waiting_result":
+            self._show_quiz_result_delay(packet, session)
+            return
+        self._show_quiz_question(packet, session)
+
+    def _pause_quiz(self) -> None:
+        session = self.quiz_store.active_session()
+        if session is not None:
+            session.state = "paused"
+            session.updated_at = time.time()
+            self.quiz_store.save_session(session)
+        self._dismiss_quiz_window()
+        self.show_bubble("先暂停。题目会待在本地 JSON 里，像一只很小的备案。", milliseconds=3600, kind="thought")
+
+    def _abandon_quiz(self) -> None:
+        self.quiz_store.clear_session()
+        self._dismiss_quiz_window()
+        self._perform_action("sulk")
+        self.show_bubble("放弃成功。夹夹尊重逃生路线。", milliseconds=3200, kind="thought")
+
+    def _show_quiz_result_delay(self, packet: QuizPacket, session: QuizSession) -> None:
+        self._dismiss_quiz_window()
+        session.state = "completed_waiting_result"
+        session.updated_at = time.time()
+        self.quiz_store.save_session(session)
+        self._perform_action("thinking_tilt")
+        self.show_bubble("正在把答案塞进荒谬统计学。请稍等，它需要装得很严谨。", milliseconds=2600, kind="thought")
+        self._schedule_quiz_result_check(delay_ms=1800)
+
+    def _schedule_quiz_result_check(self, delay_ms: int = 12_000) -> None:
+        if self._quiz_result_after:
+            try:
+                self.root.after_cancel(self._quiz_result_after)
+            except tk.TclError:
+                pass
+        self._quiz_result_after = self.root.after(delay_ms, self._try_show_pending_quiz_result)
+
+    def _try_show_pending_quiz_result(self, force: bool = False) -> None:
+        self._quiz_result_after = None
+        session = self.quiz_store.active_session()
+        if session is None or session.state != "completed_waiting_result":
+            return
+        packet = self.quiz_store.get_packet(session.packet_id)
+        if packet is None:
+            self.quiz_store.clear_session()
+            return
+        if not force and not self._quiz_can_show_result():
+            self._schedule_quiz_result_check()
+            return
+        self._show_quiz_result(packet, session)
+
+    def _show_quiz_result(self, packet: QuizPacket, session: QuizSession) -> None:
+        self._quiz_result_after = None
+        scores = score_packet(packet, session.answers)
+        report = build_report(packet, scores)
+        result = report.result
+        self.quiz_store.clear_session()
+        self._perform_action(result.action or "thinking_tilt")
+        self._open_quiz_card(
+            report.title,
+            format_report(report),
+            [
+                ("收到", self._dismiss_quiz_window),
+                ("再测一次", lambda packet=packet: self._start_quiz(packet)),
+            ],
+        )
+
+    def _dismiss_quiz_today(self) -> None:
+        policy = self._activity_policy()
+        self._quiz_offers_today = QUIZ_DAILY_LIMIT.get(policy.tier, 1)
+        self._dismiss_quiz_window()
+        self.show_bubble("今天不考。夹夹把试卷折起来了，姿态很专业。", milliseconds=3200, kind="thought")
+
+    def _dismiss_quiz_window(self) -> None:
+        if self._quiz_window:
+            try:
+                self._quiz_window.destroy()
+            except tk.TclError:
+                pass
+        self._quiz_window = None
+
+    def _open_quiz_card(
+        self,
+        title: str,
+        body: str,
+        buttons: list[tuple[str, Callable[[], None]]],
+    ) -> None:
+        self._dismiss_quiz_window()
+        window = tk.Toplevel(self.root)
+        self._quiz_window = window
+        window.overrideredirect(True)
+        window.attributes("-topmost", True)
+        window.configure(bg="#d4dee8")
+        window.bind("<Escape>", lambda _event: self._dismiss_quiz_window())
+        window.protocol("WM_DELETE_WINDOW", self._dismiss_quiz_window)
+
+        shell = tk.Frame(window, bg="#d4dee8", padx=1, pady=1)
+        shell.pack(fill="both", expand=True)
+        content_canvas = tk.Canvas(
+            shell,
+            width=QUIZ_CARD_WIDTH - 2,
+            height=220,
+            bg="#fdfdfd",
+            highlightthickness=0,
+            bd=0,
+        )
+        scrollbar = tk.Scrollbar(shell, orient="vertical", command=content_canvas.yview)
+        content_canvas.configure(yscrollcommand=scrollbar.set)
+        content_canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        inner = tk.Frame(content_canvas, bg="#fdfdfd", padx=12, pady=11)
+        inner_id = content_canvas.create_window((0, 0), window=inner, anchor="nw")
+        tk.Label(
+            inner,
+            text=title,
+            bg="#fdfdfd",
+            fg="#202932",
+            anchor="w",
+            justify="left",
+            font=("Microsoft YaHei UI", 10, "bold"),
+            wraplength=QUIZ_CARD_WIDTH - 36,
+        ).pack(fill="x")
+        tk.Label(
+            inner,
+            text=body,
+            bg="#fdfdfd",
+            fg="#3a4652",
+            anchor="w",
+            justify="left",
+            font=("Microsoft YaHei UI", 9),
+            wraplength=QUIZ_CARD_WIDTH - 36,
+        ).pack(fill="x", pady=(7, 8))
+        for label, command in buttons:
+            tk.Button(
+                inner,
+                text=label,
+                command=command,
+                anchor="w",
+                justify="left",
+                relief="flat",
+                bd=0,
+                padx=9,
+                pady=5,
+                bg="#eef2f7",
+                fg="#202932",
+                activebackground="#dfe7f0",
+                activeforeground="#202932",
+                font=("Microsoft YaHei UI", 9),
+                wraplength=QUIZ_CARD_WIDTH - 54,
+            ).pack(fill="x", pady=2)
+
+        inner.update_idletasks()
+        content_height = int(inner.winfo_reqheight())
+        viewport_height = min(max(190, content_height), 520)
+        content_canvas.configure(height=viewport_height, scrollregion=(0, 0, QUIZ_CARD_WIDTH - 2, content_height))
+        content_canvas.itemconfigure(inner_id, width=QUIZ_CARD_WIDTH - 2)
+        if content_height <= viewport_height + 2:
+            scrollbar.pack_forget()
+        else:
+            content_canvas.bind(
+                "<MouseWheel>",
+                lambda event: content_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units"),
+            )
+
+        self._hide_window_from_taskbar(window)
+        self._position_quiz_window(window)
+        window.deiconify()
+        window.lift()
+
+    def _position_quiz_window(self, window: tk.Toplevel) -> None:
+        try:
+            window.update_idletasks()
+            width = QUIZ_CARD_WIDTH
+            left, top, right, bottom = self._desktop_bounds()
+            max_height = max(190, bottom - top - 16)
+            height = min(max(190, int(window.winfo_reqheight())), max_height)
+            x = self.root.winfo_x() + PAL_CENTER_X - width / 2
+            y = self.root.winfo_y() + PAL_PAD_Y + PAL_HEIGHT + 12
+            if y + height > bottom - 8:
+                y = self.root.winfo_y() + PAL_PAD_Y - height - 12
+            x = min(max(left + 8, x), max(left + 8, right - width - 8))
+            y = min(max(top + 8, y), max(top + 8, bottom - height - 8))
+            window.geometry(_geometry_with_size(width, height, x, y))
+        except tk.TclError:
+            return
 
     def _handle_chat_message(self, message: str) -> None:
         message = " ".join(message.split())
