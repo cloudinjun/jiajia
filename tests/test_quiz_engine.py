@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 import inspect
 import tempfile
@@ -98,6 +99,23 @@ class QuizEngineTests(unittest.TestCase):
         blocked = ("brain", "ollama", "respond", "_ask_brain", "chat_brain")
         for term in blocked:
             self.assertNotIn(term, source.lower())
+
+    def test_paused_session_offer_bypasses_daily_limit(self) -> None:
+        packet = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")[0]
+        session = QuizSession.start(packet)
+        session.state = "paused"
+
+        class StoreStub:
+            def active_session(self) -> QuizSession:
+                return session
+
+        app = PaperclipPalApp.__new__(PaperclipPalApp)
+        app.quiz_store = StoreStub()
+        app._quiz_offer_day = date.today()
+        app._quiz_offers_today = 999
+        app._quiz_can_prompt = lambda: True
+
+        self.assertTrue(app._quiz_should_offer())
 
 
 if __name__ == "__main__":

@@ -965,14 +965,14 @@ class PaperclipPalApp:
         if today != self._quiz_offer_day:
             self._quiz_offer_day = today
             self._quiz_offers_today = 0
+        session = self.quiz_store.active_session()
+        if session is not None:
+            return session.state == "paused" and self._quiz_can_prompt()
         policy = self._activity_policy()
         daily_limit = QUIZ_DAILY_LIMIT.get(policy.tier, 1)
         if daily_limit <= 0 or self._quiz_offers_today >= daily_limit:
             return False
         if not self._quiz_can_prompt():
-            return False
-        session = self.quiz_store.active_session()
-        if session is not None and session.state != "paused":
             return False
         if self.quiz_store.next_packet(self.soul.language) is None:
             return False
