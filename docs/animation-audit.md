@@ -52,6 +52,10 @@ Scores use a 10-point scale:
 | `retreat_to_corner` | 8 | Clear focus/quiet mode transition. | After retreating, switch to a lower-energy idle profile. |
 | `drop_in` | 7.5 | Clear return / re-entry. | Add landing squash and innocent look-up. |
 
+## Identity decoration note
+
+The identity accessories should be redesigned from detailed identity briefs, not from generic icon needs. See `docs/identity-design-bible.md` for the accessory silhouette map and the rule that circular props must avoid the eye area.
+
 ## Current optimization focus
 
 The first optimization pass should refine signature readability rather than rewrite the renderer:
@@ -61,3 +65,4 @@ The first optimization pass should refine signature readability rather than rewr
 3. Distinguish `error_shake` from generic `shake` with guilty/warning expression.
 4. Make `tiny_celebrate` and `celebrate` differ by scale and tail behavior.
 5. Add runtime eye/brow poses for `wide`, `sleepy`, and `asleep` so expressions can read without adding a mouth.
+6. Redesign identity decorations from `character_brief`, `visual_signature`, and `accessory_design` before adding more shapes.

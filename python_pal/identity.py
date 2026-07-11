@@ -18,7 +18,11 @@ class IdentityPack:
     display_name: str
     purpose: str
     roast_angle: str = ""
+    character_brief: str = ""
     visual_formula: str = ""
+    visual_signature: str = ""
+    accessory_design: str = ""
+    avoid_visuals: tuple[str, ...] = ()
     color_accent: str = ""
     default_mood: str = "smirk"
     fallback_action: str = "blink"
@@ -39,8 +43,16 @@ class IdentityPack:
         ]
         if self.roast_angle:
             bits.append(f"吐槽视角: {self.roast_angle}")
+        if self.character_brief:
+            bits.append(f"身份设定: {self.character_brief}")
         if self.visual_formula:
             bits.append(f"视觉边界: {self.visual_formula}")
+        if self.visual_signature:
+            bits.append(f"第一眼轮廓: {self.visual_signature}")
+        if self.accessory_design:
+            bits.append(f"配饰设计: {self.accessory_design}")
+        if self.avoid_visuals:
+            bits.append(f"视觉禁区: {', '.join(self.avoid_visuals)}")
         bits.append(
             "动作倾向: "
             f"mood={self.default_mood}, action={self.fallback_action}, "
@@ -160,7 +172,11 @@ def _parse_pack(raw: dict[str, Any]) -> IdentityPack:
         display_name=str(raw.get("display_name") or pack_id),
         purpose=str(raw.get("purpose") or ""),
         roast_angle=str(raw.get("roast_angle") or ""),
+        character_brief=str(raw.get("character_brief") or ""),
         visual_formula=str(raw.get("visual_formula") or ""),
+        visual_signature=str(raw.get("visual_signature") or ""),
+        accessory_design=str(raw.get("accessory_design") or ""),
+        avoid_visuals=tuple(str(item).strip() for item in _list(raw.get("avoid_visuals")) if str(item).strip()),
         color_accent=_key(raw.get("color_accent")),
         default_mood=_key(raw.get("default_mood")) or "smirk",
         fallback_action=_key(raw.get("fallback_action")) or "blink",
@@ -209,7 +225,10 @@ def _fallback_pack() -> IdentityPack:
         display_name="Default Pal",
         purpose="保持夹夹本体的乖巧嘴欠气质。",
         roast_angle="只戳行为，不戳人。",
+        character_brief="不扮演职业身份，是桌面上赖着不走的小文具同居人。",
         visual_formula="同一只回形针，不加嘴和四肢。",
+        visual_signature="干净轮廓、圆眼、眉毛负责全部人格。",
+        accessory_design="长期不挂身份道具，只允许冷箭和装无辜短效。",
         default_mood="smirk",
         fallback_action="blink",
         fallback_animation="idle_breathe",
