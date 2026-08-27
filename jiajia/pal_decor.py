@@ -13,7 +13,6 @@ import re
 import time
 import tkinter as tk
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
@@ -39,6 +38,35 @@ class AppearanceState:
     phase: str = "plain"
     language_mode: str = "zh-CN"
 
+
+
+def reaction_decoration_cues(event: str, bubble: str) -> tuple[tuple[str, int], ...]:
+    """Temporary decorations a reaction has actually EARNED.
+
+    Only stated causes remain: hardware heat, quota, an imminent reset, a named
+    failure. The mood- and action-triggered captions that used to live here
+    (smug -> annotation circle, sleepy -> Z, dance -> stage, peek -> curtain)
+    were the old decoration layer re-adding prop captions from the side after
+    props became opt-in — the prop was doing the acting again. Note there is no
+    mood or action parameter: a feeling is not a cause.
+    """
+    event = (event or "").lower()
+    bubble = (bubble or "").lower()
+    cues: list[tuple[str, int]] = []
+    if event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_"):
+        # heat alone carries "hot"; the fan joins only in an explicit hot scene
+        cues.append(("heat_puffs", 4200))
+    if event.startswith((
+        "codex_usage", "claude_usage", "openai_billing",
+        "chat_usage", "chat_claude_usage", "chat_openai_billing", "demo_usage",
+    )) or bubble.startswith("usage_"):
+        cues.append(("usage_bar", 4200))
+    if "reset_soon" in event or "reset_wait" in event:
+        cues.append(("reset_clock", 4200))
+    if any(key in event for key in ("test_failed", "crash", "exception", "error")):
+        # the evidence mark: a named failure, not a feeling about one
+        cues.append(("bug_marker", 4200))
+    return tuple(cues)
 
 class DecorMixin:
     """Identity decorations and costume props."""
@@ -78,7 +106,6 @@ class DecorMixin:
             phase="equipped",
             language_mode="en",
         )
-        self._draw_gentleman_cane()
         self._draw_britclip_bow_tie()
         self._draw_bowler_hat(*self._gentleman_hat_head_anchor(), scale=1.18)
         self._raise_face_over_costume()
@@ -198,6 +225,11 @@ class DecorMixin:
         definition = self.decorations.get(decoration_id)
         if not definition:
             return
+        # one scene, one temporary prop. Stacked temporaries shared a single
+        # "clear all" timer, so whichever expired first wiped every prop on
+        # screen; and until run ownership covers decorations, two at once
+        # cannot exit independently anyway.
+        self._clear_decorations("temporary")
         self._draw_decoration(definition, lifetime="temporary")
         self._decoration_after.append(self.root.after(milliseconds, lambda: self._clear_decorations("temporary")))
 
@@ -227,10 +259,9 @@ class DecorMixin:
     def _show_sleep_blanket(self) -> None:
         if self._sleep_blanket_visible:
             return
-        decoration_ids = ["draft_blanket"]
-        if self._should_show_sleep_cap():
-            decoration_ids.append("sleepy_cap")
-        self._set_decorations(decoration_ids, lifetime="state")
+        # deep sleep keeps the blanket only — the paper is the relationship;
+        # a nightcap on top was mascot cliché
+        self._set_decorations(["draft_blanket"], lifetime="state")
         self._sleep_blanket_visible = True
 
     def _hide_sleep_blanket(self) -> None:
@@ -238,10 +269,6 @@ class DecorMixin:
             return
         self._clear_decorations("state")
         self._sleep_blanket_visible = False
-
-    def _should_show_sleep_cap(self) -> bool:
-        hour = datetime.now().hour
-        return hour >= 22 or hour < 7
 
     def _cancel_delayed_decoration_cues(self) -> None:
         for after_id in self._delayed_decoration_after:
@@ -420,9 +447,36 @@ class DecorMixin:
 
     def _draw_gentleman_static_props(self) -> list[int]:
         items: list[int] = []
-        items.extend(self._draw_gentleman_cane())
         items.extend(self._draw_britclip_bow_tie())
         return items
+
+    def _flourish_gentleman_cane(self, hold_ms: int = 1600) -> None:
+        """The cane appears for one gesture, then is put away.
+
+        As part of the persistent costume it said "British" a third time (after
+        the hat and the tie) and parked the tail as a support hand, muting the
+        cat-tail subtext. Episodic, it punctuates: a cane tap, a polite bow,
+        the suit-up's final beat — then it is gone.
+        """
+        if self.appearance.costume_id != "britclip":
+            return
+        items = self._draw_gentleman_cane()
+        if not items:
+            return
+
+        def put_away() -> None:
+            for item in items:
+                try:
+                    self.canvas.delete(item)
+                except tk.TclError:
+                    pass
+                if item in self._gentleman_prop_items:
+                    self._gentleman_prop_items.remove(item)
+                for bucket in self._decoration_items.values():
+                    if item in bucket:
+                        bucket.remove(item)
+
+        self._prop_anim_after.append(self.root.after(hold_ms, put_away))
 
     def _draw_decoration(self, definition: DecorationDefinition, lifetime: str = "identity") -> None:
         x, y = self._decoration_anchor(definition)
@@ -849,21 +903,37 @@ class DecorMixin:
                     self.canvas.addtag_withtag("under_brow_decoration", item)
             self._decoration_items.setdefault(lifetime, []).extend(items)
             self.canvas.tag_raise("decoration")
-            self._animate_decoration_entrance(items, pulse=definition.pulse)
+            self._animate_decoration_entrance(
+                items,
+                pulse=definition.pulse,
+                soft=lifetime in {"identity", "costume", "state"},
+            )
             if self.canvas.find_withtag("under_brow_decoration"):
                 self.canvas.tag_lower("under_brow_decoration", "brow")
                 self.canvas.tag_raise("brow")
 
-    def _animate_decoration_entrance(self, items: list[int], *, pulse: bool = False) -> None:
+    def _animate_decoration_entrance(
+        self, items: list[int], *, pulse: bool = False, soft: bool = False
+    ) -> None:
+        """Bring a decoration in.
+
+        Every decoration used to play the same four-beat sticker pop
+        (0.72 -> 1.16 -> 0.96 -> 1.04 -> 1.0), which made the terminal, the red
+        pen and the ledger all read as the same notification badge. A worn,
+        persistent object (soft=True) now just settles into place; only a
+        temporary, event-driven prop keeps an arrival bounce, and a smaller one.
+        Object-specific mechanics (a pen uncapping, a screen lighting up) are a
+        separate, per-object job — this is merely no longer pretending to be it.
+        """
         bbox = self.canvas.bbox(*items)
         if not bbox:
             return
         cx = (bbox[0] + bbox[2]) / 2
         cy = (bbox[1] + bbox[3]) / 2
-        current = [0.72]
+        current = [0.94 if soft else 0.8]
         for item in items:
             self.canvas.scale(item, cx, cy, current[0], current[0])
-        frames = ((1.16, 46), (0.96, 58), (1.04, 64), (1.0, 72))
+        frames = ((1.01, 70), (1.0, 90)) if soft else ((1.08, 52), (0.98, 60), (1.0, 70))
 
         def step(index: int = 0) -> None:
             if index >= len(frames):
@@ -964,33 +1034,8 @@ class DecorMixin:
         )
 
     def _maybe_show_reaction_decoration(self, reaction: Reaction) -> None:
-        event = (reaction.event or "").lower()
-        bubble = (reaction.bubble or "").lower()
-        if event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_"):
-            self._show_temporary_decoration("heat_puffs", 4200)
-            self._show_temporary_decoration("paper_fan", 3800)
-        if event.startswith(("codex_usage", "claude_usage", "openai_billing", "chat_usage", "chat_claude_usage", "chat_openai_billing", "demo_usage")) or bubble.startswith("usage_"):
-            self._show_temporary_decoration("usage_bar", 4200)
-        if "reset_soon" in event or "reset_wait" in event:
-            self._show_temporary_decoration("reset_clock", 4200)
-        if reaction.performance in {"cold_arrow_then_innocent", "roast_and_scoot"} or reaction.mood in {"smirk", "smug"}:
-            self._show_temporary_decoration("annotation_circle", 2600)
-        if reaction.action in {"hide", "oops_innocent_combo", "inner_cover_oops"} or reaction.performance in {"cold_arrow_then_innocent", "fake_innocent"}:
-            self._show_temporary_decoration("paper_oops_cover", 3200)
-        if reaction.performance == "cheesy_love_cringe":
-            self._show_temporary_decoration("paper_oops_cover", 3600)
-        if reaction.action in {"dance", "celebrate", "happy_bounce"} or reaction.performance in {"tiny_celebrate", "holding_laugh"}:
-            self._show_temporary_decoration("paper_stage", 3600)
-        if reaction.action == "flop":
-            self._show_temporary_decoration("paper_pillow", 4200)
-        if reaction.action == "peek":
-            self._show_temporary_decoration("paper_peek_curtain", 3600)
-        if reaction.mood in {"sleepy", "sulky"}:
-            self._show_temporary_decoration("z_symbol", 3200)
-        if any(key in event for key in ("error", "blocked", "critical", "overloaded")):
-            self._show_temporary_decoration("tiny_warning", 4200)
-        if any(key in event for key in ("error", "blocked", "test_failed", "crash", "exception")):
-            self._show_temporary_decoration("bug_marker", 4200)
+        for decoration_id, milliseconds in reaction_decoration_cues(reaction.event, reaction.bubble):
+            self._show_temporary_decoration(decoration_id, milliseconds)
 
     def _run_british_gentleman_suit_up(self) -> None:
         if self._dragging:
@@ -1007,7 +1052,7 @@ class DecorMixin:
         self._set_eye_pose("side_eye")
         self._set_brow_pose("proud")
         self._prop_anim_after.append(self.root.after(1050, self._draw_britclip_bow_tie))
-        self._prop_anim_after.append(self.root.after(1750, self._draw_gentleman_cane))
+        self._prop_anim_after.append(self.root.after(1750, self._flourish_gentleman_cane))
         hat_start = self._gentleman_tail_anchor()
         hat_end = self._gentleman_hat_head_anchor()
         hat_items = self._draw_bowler_hat(*hat_start, scale=1.22)

@@ -49,6 +49,7 @@ from .care import CareEngine
 from .particles import ParticleEmitter
 from .language import LANGUAGE_OPTIONS, language_label, normalize_language, soul_path_for_language
 from .performance import PERFORMANCE_PHRASES, phrase_for_reaction
+from .performance_run import RunRegistry
 from .quiz import (
     QuizPacket,
     QuizSession,
@@ -110,6 +111,7 @@ from .pal_motion import (  # re-exported: action layer + GIF renderer read these
     tail_hand_pose, tail_oscillation_pose, tail_posture_pose,
 )
 from .prop_shapes import (
+    scenario_prop_cue,
     ACTION_FACE_SCRIPTS,
     ACTION_PROP_CUES,
     EYE_FX_SHAPES,
@@ -494,6 +496,9 @@ class JiajiaApp(
         self._last_openai_billing_announcement_at = 0.0
         self._openai_billing_thread: threading.Thread | None = None
         self._performance_after: list[str] = []
+        # which run owns which visual channel; see performance_run.py
+        self._runs = RunRegistry()
+        self._performance_run = None
         self._expression_after: list[str] = []
         self._last_animation_debug = "not played yet"
         self._last_idle_animation_debug = "idle animation not selected yet"
@@ -2432,6 +2437,7 @@ class JiajiaApp(
 
     def _apply_reaction(self, reaction: Reaction, force: bool = False) -> None:
         plan = self._resolve_visual_state_plan(reaction)
+        self._last_visual_plan = plan
         if self._should_defer_visual_reaction(reaction, plan, force):
             return
         self._pending_visual_reaction = None
@@ -2518,15 +2524,39 @@ class JiajiaApp(
         self._flash_hardware_tint(level, milliseconds=11_000)
 
     def _run_performance_phrase(self, name: str, reaction: Reaction, state: str = "") -> None:
+        plan = getattr(self, "_last_visual_plan", None)
+        run = self._runs.begin(
+            name,
+            priority=getattr(plan, "priority", 0),
+            interruptible=getattr(plan, "interruptible", True),
+            lifecycle=getattr(plan, "lifecycle", ""),
+        )
+        self._performance_run = run
+
+        def owned(*channels: str):
+            """Wrap a channel write so a superseded run cannot perform it."""
+            def decorate(fn):
+                def guarded(*args, **kwargs):
+                    if not self._runs.is_current(run):
+                        return None
+                    self._runs.claim(run, *channels)
+                    return fn(*args, **kwargs)
+                return guarded
+            return decorate
+
+        # _perform_action drives several channels at once, which is exactly why
+        # a stale callback used to be able to reach so far into a new phrase
         callbacks = AnimationCallbacks(
             after=lambda delay, callback: self.root.after(delay, callback),
-            action=self._perform_action,
+            action=owned("body", "tail", "inner", "bend", "prop")(self._perform_action),
             bubble=self._show_reaction_line,
-            eyes=self._set_eye_pose,
-            brows=self._set_brow_pose,
-            reset_expression=self._reset_expression_pose,
+            eyes=owned("face")(self._set_eye_pose),
+            brows=owned("face")(self._set_brow_pose),
+            reset_expression=owned("face")(self._reset_expression_pose),
             stop_cursor_follow=self._stop_mouse_follow,
             duration_of=self._animation_duration_ms,
+            still_current=lambda: self._runs.is_current(run),
+            scenario_prop=owned("prop")(self._raise_scenario_prop),
         )
         after_ids = self.animation_player.play(
             name,
@@ -2635,15 +2665,56 @@ class JiajiaApp(
     def _schedule_performance_action(self, action: str, delay_ms: int) -> None:
         self._performance_after.append(self.root.after(delay_ms, lambda: self._perform_action(action)))
 
+    def _raise_scenario_prop(self, name: str) -> None:
+        """Bring in a prop the action does not carry by default.
+
+        Props were unbound from actions because a prop attached to every action
+        does the acting. This is the other half: a scenario that has actually
+        earned one names it, and only then does it appear.
+        """
+        cue = scenario_prop_cue(name)
+        if cue:
+            self._start_action_prop(cue, name)
+
     def _cancel_performance_phrase(self) -> None:
+        """Stop the current phrase and undo only the channels it still owns.
+
+        This used to cancel the queued callbacks, the expression and the inner
+        gesture, and leave the body, window move, tail, bend and prop it had
+        started running underneath the next performance. It also could not tell
+        whether a channel had since been taken over by a newer run, so tearing
+        one down risked damaging the phrase that replaced it.
+        """
         for after_id in self._performance_after:
             try:
                 self.root.after_cancel(after_id)
             except tk.TclError:
                 pass
         self._performance_after.clear()
-        self._cancel_expression_after(reset=True)
-        self._cancel_inner_gesture(reset=True)
+
+        run = getattr(self, "_performance_run", None)
+        channels = self._runs.cancel(run) if run is not None else set()
+        self._performance_run = None
+        if run is None:
+            # no run recorded (older path): fall back to the previous behaviour
+            self._cancel_expression_after(reset=True)
+            self._cancel_inner_gesture(reset=True)
+            return
+
+        if "face" in channels:
+            self._cancel_expression_after(reset=True)
+        if "inner" in channels:
+            self._cancel_inner_gesture(reset=True)
+        if "body" in channels:
+            self._cancel_large_action()
+        if "window" in channels:
+            self._cancel_window_move()
+        if "tail" in channels:
+            self._cancel_tail_wag(reset=False)
+        if "bend" in channels:
+            self._cancel_bend()
+        if "prop" in channels:
+            self._clear_action_prop()
 
 
 

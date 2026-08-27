@@ -57,7 +57,7 @@ identities:
     allowed_moods: [suspicious, smirk, focused, guilty]
     core_animations: [audit_scan, clipboard_judgement, soft_nudge, audit_done]
     triggers: [rapid_switching, idle_staring, blank_document, todo_visible, browser_research, event_idle, event_ambient]
-    visual_addons: [tiny_checklist, audit_clipboard]
+    visual_addons: [audit_clipboard]
     animations:
       idle: audit_scan
       alert: judgement_pause
@@ -83,7 +83,7 @@ identities:
     allowed_moods: [thinking, suspicious, done, startled, guilty]
     core_animations: [agent_listening, agent_running, agent_stuck, agent_error, agent_done_smug]
     triggers: [app_codex, codex_thinking, codex_reading, codex_working, codex_editing, codex_running, codex_testing, codex_waiting_user, codex_done, codex_error, codex_blocked, claude_active]
-    visual_addons: [tiny_terminal, agent_code_badge]
+    visual_addons: [tiny_terminal]
     animations:
       idle: agent_listen
       alert: agent_stuck_stare
@@ -137,7 +137,7 @@ identities:
     fallback_action: scan
     preferred_performance: suspicious_observe
     triggers: [usage_low, usage_critical, usage_reset_wait, codex_usage_watch, codex_usage_low, codex_usage_critical, codex_usage_reset_soon, codex_usage_refilled, battery_low, reset_clock]
-    visual_addons: [tiny_ledger, budget_coin]
+    visual_addons: [tiny_ledger]
     animations:
       idle: usage_bar_peek
       warning: low_budget_sag
@@ -163,7 +163,7 @@ identities:
     allowed_moods: [innocent, focused, sleepy]
     core_animations: [quiet_breathe, slow_blink, look_away_respectfully, tiny_support_bob]
     triggers: [long_focus, deep_work, comfort_mode, privacy_sensitive, focus_mode, quiet_mode, user_dismissed]
-    visual_addons: [quiet_moon]
+    visual_addons: []
     animations:
       idle: quiet_companion
       recovery: fake_innocent
@@ -204,7 +204,7 @@ identities:
     fallback_action: scan
     preferred_performance: suspicious_observe
     triggers: [codex_error, codex_blocked, error, blocked, test_failed, crash, exception]
-    visual_addons: [tiny_magnifier, bug_marker]
+    visual_addons: [tiny_magnifier]
     animations:
       idle: inspect_corpse
       alert: error_autopsy
@@ -228,7 +228,7 @@ identities:
     allowed_moods: [smirk, smug, suspicious, guilty]
     core_animations: [roast_charge, cold_arrow_heavy, red_pen_circle, smug_but_caught, apology_fake]
     triggers: [design_review, deck_review, app_figma, app_powerpoint, visual_design, layout]
-    visual_addons: [red_pen, critic_palette]
+    visual_addons: [red_pen]
     animations:
       idle: layout_side_eye
       alert: red_pen_circle
@@ -248,7 +248,7 @@ identities:
     fallback_action: patrol
     preferred_performance: suspicious_observe
     triggers: [rapid_switching, browser_research, many_tabs, many_windows, window_clutter]
-    visual_addons: [tiny_lock, tab_stack]
+    visual_addons: [tab_stack]
     animations:
       idle: window_patrol
       alert: block_tab
@@ -289,7 +289,7 @@ identities:
     fallback_action: flop
     preferred_performance: fake_sulk
     triggers: [critical, usage_critical, gpu_temp_critical, codex_error, overheated, repeated_poke]
-    visual_addons: [bandage_mark]
+    visual_addons: []
     animations:
       idle: low_power_idle
       critical: meltdown

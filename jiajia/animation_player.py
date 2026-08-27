@@ -23,6 +23,12 @@ class AnimationCallbacks:
     # resolve aliases and read the frame tables; defaults to 0 so a caller that
     # does not provide one simply falls back to the declared durations.
     duration_of: Callable[[str], int] = lambda _action: 0
+    # Whether this playthrough is still the current one. The chain asks before
+    # every step, so a preempted phrase stops scheduling instead of finishing
+    # into a pal that has moved on.
+    still_current: Callable[[], bool] = lambda: True
+    # Raise a catalogue prop for a scenario that has earned one.
+    scenario_prop: Callable[[str], None] = lambda _name: None
 
 
 @dataclass(frozen=True)
@@ -61,18 +67,20 @@ def _step_advance(step, scheduled: bool, callbacks: AnimationCallbacks) -> int:
     """How long to wait before starting the next step.
 
     A declared duration_ms always wins, because that is an explicit directorial
-    choice. Otherwise, if the step awaits its action, ask how long the action
-    actually takes rather than assuming the author guessed right — that guess
-    is what let the next step cut into a running one.
+    choice. Otherwise, if the step asks to wait for its action, look up how long
+    that action really runs rather than trusting a hand-guessed number — the
+    guess is what let the next step cut into a running one.
+
+    This waits for the action's *expected* duration; nothing reports actual
+    completion yet. The manifest key is named accordingly.
     """
     if step.duration_ms:
         return step.duration_ms
-    if step.await_action and step.action:
+    if step.wait_action_duration and step.action:
         real = max(0, int(callbacks.duration_of(step.action)))
         if real:
             return max(0, real - max(0, step.overlap_ms))
-    return 0 if not scheduled else 0
-
+    return 0
 
 class AnimationPlayer:
     def __init__(self, manifest: AnimationManifest) -> None:
@@ -132,31 +140,59 @@ class AnimationPlayer:
         if definition.locks_cursor_follow:
             callbacks.stop_cursor_follow()
 
+        steps = list(definition.sequence)
         after_ids: list[str] = []
-        elapsed = 0
-        for step in definition.sequence:
-            if step.pause_ms:
-                elapsed += step.pause_ms
-                continue
+        # a rough total for the debug panel; the chain does not depend on it
+        elapsed = sum(
+            (step.pause_ms or _step_advance(step, True, callbacks)) for step in steps
+        )
 
+        def fire(step) -> bool:
+            """Apply one step's channel writes. True if it started anything."""
             scheduled = False
             if step.action:
-                after_ids.append(callbacks.after(elapsed, lambda action=step.action: callbacks.action(action)))
+                callbacks.action(step.action)
                 scheduled = True
             if step.eyes:
-                after_ids.append(callbacks.after(elapsed, lambda eyes=step.eyes: callbacks.eyes(eyes)))
+                callbacks.eyes(step.eyes)
                 scheduled = True
             if step.brows:
-                after_ids.append(callbacks.after(elapsed, lambda brows=step.brows: callbacks.brows(brows)))
+                callbacks.brows(step.brows)
                 scheduled = True
             if step.bubble == "speak":
-                after_ids.append(callbacks.after(elapsed, lambda r=reaction: callbacks.bubble(r)))
+                callbacks.bubble(reaction)
+                scheduled = True
+            if step.scenario_prop:
+                callbacks.scenario_prop(step.scenario_prop)
                 scheduled = True
             if step.reset == "expression":
-                after_ids.append(callbacks.after(elapsed, callbacks.reset_expression))
+                callbacks.reset_expression()
                 scheduled = True
+            return scheduled
 
-            elapsed += _step_advance(step, scheduled, callbacks)
+        def run_from(index: int) -> None:
+            if not callbacks.still_current():
+                return
+            cursor = index
+            while cursor < len(steps):
+                step = steps[cursor]
+                if step.pause_ms:
+                    after_ids.append(
+                        callbacks.after(step.pause_ms, lambda i=cursor + 1: run_from(i))
+                    )
+                    return
+                scheduled = fire(step)
+                delay = _step_advance(step, scheduled, callbacks)
+                if delay > 0:
+                    after_ids.append(
+                        callbacks.after(delay, lambda i=cursor + 1: run_from(i))
+                    )
+                    return
+                cursor += 1
+
+        # the first step runs on the next tick, so the caller can register the
+        # run and claim channels before anything writes to them
+        after_ids.append(callbacks.after(0, lambda: run_from(0)))
 
         self.last_debug = AnimationDebug(
             event=event,

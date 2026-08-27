@@ -31,7 +31,7 @@ action also uses runtime-only canvas props (paper, hat, cane). `expression`
 |---|---|---|---|
 | `thinking_tilt` | ![thinking_tilt](thinking_tilt.gif) | full | 歪着想一想，适合思考和吐槽前的停顿。 |
 | `sleepy_sag` | ![sleepy_sag](sleepy_sag.gif) | full | 慢慢塌下去，眼皮越来越重，不会惊醒。适合困、无聊、加载太久。 |
-| `alarm_jolt` | ![alarm_jolt](alarm_jolt.gif) | expression | 打盹到一半被闹钟吵醒：瞳孔缩一下、惊慌、不耐烦，然后重新犯困。 |
+| `alarm_jolt` | ![alarm_jolt](alarm_jolt.gif) | full | 打盹到一半被闹钟吵醒：瞳孔缩一下、惊慌、不耐烦，然后重新犯困。 |
 | `flop` | ![flop](flop.gif) | full | 整只纸夹趴下，适合累了、无语、放弃一秒。 |
 | `melt` | ![melt](melt.gif) | full | Melt into a low readable puddle, hold for a beat, then recover; use for overload, embarrassment, or complete dramatic collapse. |
 | `stretch` | ![stretch](stretch.gif) | full | 伸懒腰，适合从 idle 醒来或准备开工。 |

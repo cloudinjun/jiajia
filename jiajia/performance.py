@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
+
+from .action_timing import action_duration_ms
+from .animation_manifest import load_animation_manifest
 
 
 @dataclass(frozen=True)
@@ -18,126 +22,56 @@ class PerformancePhrase:
 # tests/test_performance_timing.py enforces the floor.
 MIN_READABLE_FRACTION = 0.45
 
-PERFORMANCE_PHRASES: dict[str, PerformancePhrase] = {
-    "cold_arrow_then_innocent": PerformancePhrase(
-        pre_actions=(
-            ("micro_focus_pause", 180),
-            ("thinking_tilt", 760),
-            ("micro_side_eye", 280),
-            ("micro_brow_judge", 180),
-        ),
-        line_delay_ms=160,
-        post_actions=(
-            # judge/side_eye carries over from pre_actions for 700ms — dead air
-            ("micro_snap_innocent", 700),
-            ("slow_blink", 620),
-        ),
-    ),
-    "smug_but_caught": PerformancePhrase(
-        pre_actions=(
-            ("smug_sway", 620),
-            ("micro_holding_laugh", 300),
-        ),
-        line_delay_ms=80,
-        post_actions=(
-            ("micro_caught_guilty", 90),
-            ("micro_guilty_dart", 560),
-            ("micro_snap_innocent", 1240),
-            ("slow_blink", 560),
-        ),
-    ),
-    "fake_sulk": PerformancePhrase(
-        pre_actions=(
-            # one sulk, played through. It used to be started twice, which
-            # restarted the rain cloud instead of letting the mood linger.
-            ("sulk", 900),
-            ("micro_peek_up", 300),
-        ),
-        line_delay_ms=120,
-        post_actions=(
-            ("micro_soft_reset", 320),
-            ("blink", 160),
-        ),
-    ),
-    "suspicious_observe": PerformancePhrase(
-        pre_actions=(
-            ("micro_brow_judge", 160),
-            ("scan", 700),
-            ("micro_side_eye", 260),
-            ("thinking_tilt", 620),
-        ),
-        line_delay_ms=120,
-        post_actions=(
-            # hold the scrutiny for 640ms before letting go
-            ("slow_blink", 640),
-            ("micro_soft_reset", 900),
-        ),
-    ),
-    "thought_roast_smug": PerformancePhrase(
-        pre_actions=(
-            # the body carries this one; the tail sway was being cut to 7%,
-            # so it is gone rather than flickered
-            ("smug_sway", 640),
-            ("micro_brow_judge", 140),
-        ),
-        line_delay_ms=90,
-        post_actions=(
-            ("inner_side_smirk", 380),
-            ("micro_holding_laugh", 220),
-            ("slow_blink", 640),
-        ),
-    ),
-    "grand_dame_whisper_roast": PerformancePhrase(
-        pre_actions=(
-            ("micro_focus_pause", 140),
-            ("thinking_tilt", 700),
-            ("paper_whisper_fan", 420),
-            ("micro_side_eye", 220),
-        ),
-        line_delay_ms=120,
-        post_actions=(
-            # one recovery beat, played out, instead of tail + combo + blink
-            ("oops_innocent_combo", 820),
-            ("slow_blink", 1000),
-        ),
-    ),
-    "quiet_companion": PerformancePhrase(
-        pre_actions=(
-            ("micro_soften", 160),
-            ("sleepy_sag", 620),
-        ),
-        line_delay_ms=80,
-        post_actions=(
-            ("blink", 220),
-            ("nod", 340),
-            ("micro_soft_reset", 240),
-        ),
-    ),
-    "tiny_celebrate": PerformancePhrase(
-        pre_actions=(
-            ("micro_tiny_proud", 100),
-            ("happy_bounce", 340),
-        ),
-        line_delay_ms=80,
-        post_actions=(
-            ("micro_snap_innocent", 120),
-            ("nod", 340),
-        ),
-    ),
-    "cheesy_love_cringe": PerformancePhrase(
-        pre_actions=(
-            # was five body actions at 12-24% each: tissue, pen twirl, alert
-            # sign, halo, halo. Now one covered-mouth delivery, then one cringe.
-            ("inner_cover_oops", 420),
-        ),
-        line_delay_ms=90,
-        post_actions=(
-            ("shake", 460),
-            ("micro_caught_guilty", 200),
-            ("slow_blink", 520),
-        ),
-    ),
-}
+# ── the phrase table is DERIVED, not authored ────────────────────────────
+# animations.yaml is the choreography. It used to be duplicated here as a second
+# hand-timed table, and because _run_performance_phrase asks the manifest first
+# and returns as soon as it scheduled anything, this copy was the one nobody
+# saw — re-timing it fixed nothing on screen. Deriving it means the fallback
+# path plays the same beats as the real one, and there is only one place to edit.
+
+def _phrase_from_definition(definition: object) -> PerformancePhrase:
+    """Flatten a manifest sequence into the fallback runner's shape.
+
+    The manifest carries eye/brow/pause steps the fallback runner has no channel
+    for; only the action beats and the line position survive the trip.
+    """
+    pre: list[tuple[str, int]] = []
+    post: list[tuple[str, int]] = []
+    line_delay = 0
+    spoken = False
+    for step in getattr(definition, "sequence", ()):
+        if getattr(step, "bubble", "") == "speak":
+            spoken = True
+            line_delay = int(getattr(step, "duration_ms", 0) or 0)
+            continue
+        action = getattr(step, "action", "")
+        if not action:
+            continue
+        declared = int(getattr(step, "duration_ms", 0) or 0)
+        if declared:
+            beat = declared
+        elif getattr(step, "wait_action_duration", False):
+            overlap = int(getattr(step, "overlap_ms", 0) or 0)
+            beat = max(0, action_duration_ms(action) - overlap)
+        else:
+            beat = 0
+        (post if spoken else pre).append((action, beat))
+    return PerformancePhrase(tuple(pre), line_delay, tuple(post))
+
+
+def _load_phrases() -> dict[str, PerformancePhrase]:
+    manifest_path = Path(__file__).resolve().parent / "animations.yaml"
+    try:
+        manifest = load_animation_manifest(manifest_path)
+    except Exception:  # noqa: BLE001 - a missing manifest must not break import
+        return {}
+    return {
+        name: _phrase_from_definition(definition)
+        for name, definition in manifest.performances.items()
+    }
+
+
+PERFORMANCE_PHRASES: dict[str, PerformancePhrase] = _load_phrases()
 
 
 def phrase_for_reaction(mood: str, action: str, bubble: str) -> str:

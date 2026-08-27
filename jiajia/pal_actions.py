@@ -35,6 +35,7 @@ from .pal_motion import (
     BodyBend, InnerPose, PropFrames, TailPose,
     tail_hand_pose, tail_oscillation_pose, tail_posture_pose,
 )
+from .action_timing import action_duration_ms
 from .prop_shapes import (
     ACTION_FACE_SCRIPTS, ACTION_PROP_CUES, GRIP_POINTS, PROP_SHAPES, SHAPE_FX,
     apply_shape_fx, build_prop_timeline, inertia_step, prop_cue_duration_ms,
@@ -70,43 +71,13 @@ class ActionMixin:
         step()
 
     def _animation_duration_ms(self, action_or_name: str) -> int:
-        resolved = self.animation_resolver.resolve(action_or_name)
-        action = resolved.action or action_or_name
-        frames = ACTION_FRAMES.get(action)
-        if frames:
-            return sum(frame[-1] for frame in frames)
-        cue = ACTION_PROP_CUES.get(action)
-        if cue and cue.get("held") and cue.get("tail_style") == "wag":
-            return prop_cue_duration_ms(action) + 160
-        osc = TAIL_OSCILLATIONS.get(action)
-        if osc:
-            return round(float(osc["cycles"]) / float(osc["freq"]) * 1000) + 160
-        posture = TAIL_POSTURES.get(action)
-        if posture:
-            return round((_POSTURE_ENTER_S + _POSTURE_EXIT_S) * 1000) + int(posture["hold_ms"]) + 180
-        tail_frames = TAIL_MOTION_FRAMES.get(action)
-        if tail_frames:
-            return sum(frame[-1] for frame in tail_frames) + 140
-        inner_frames = INNER_GESTURE_FRAMES.get(action)
-        if inner_frames:
-            return sum(frame[-1] for frame in inner_frames) + 130
-        if action == "oops_innocent_combo":
-            return 1500
-        if action in {"britclip_enter", "british_gentleman_suit_up"}:
-            return 3200
-        if action == "britclip_exit":
-            return 2300
-        if action == "hat_tip_oops":
-            return 950
-        if action == "scan":
-            return SCAN_LOOK_HOLD_MS * len(SCAN_LOOK_TARGETS)
-        if action == "wiggle":
-            return sum(f[2] for f in WIGGLE_FRAMES)
-        if action == "blink":
-            return 150
-        if action in MOVE_IDLE_ACTIONS:
-            return MOVE_ACTION_DURATIONS.get(action, 760)
-        return 0
+        """How long this action runs. See jiajia.action_timing for the table.
+
+        Kept as a method because callers hold an app, but the logic lives in one
+        module now so the phrase audit and the tests cannot drift from what the
+        runtime actually waits for.
+        """
+        return action_duration_ms(action_or_name, self.animation_resolver)
 
     def _prepare_action_acting(self, action: str) -> None:
         cue = ACTION_ACTING_CUES.get(action)
@@ -178,10 +149,12 @@ class ActionMixin:
             self._set_brow_pose("proud")
             return
         if action == "cane_tap":
+            # the tap is the one moment the cane exists
+            self._flourish_gentleman_cane()
             self._run_tail_motion("tail_tip_flick")
-            self._emit_particles("dust")
             return
         if action == "polite_bow":
+            self._flourish_gentleman_cane(hold_ms=1200)
             self._run_large_action(ACTION_FRAMES["nod"], "polite_bow")
             return
         if action in MOVE_IDLE_ACTIONS:

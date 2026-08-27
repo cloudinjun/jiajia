@@ -76,6 +76,19 @@ TAIL_NEUTRAL_POSE: TailPose = (0.0, 0.0, 0.0, 0.0, 0.0)
 INNER_NEUTRAL_POSE: InnerPose = (0.0, 0.0, 0.0, 0.0)
 
 ACTION_FRAMES: dict[str, ActionFrames] = {
+    # dozing, then the alarm: one sharp snap up, then sinking back
+    # because being woken does not make you awake
+    "alarm_jolt": (
+        (0, 6, 1.02, 0.94, 200),
+        (0, 9, 1.03, 0.92, 200),
+        (0, -8, 0.94, 1.12, 130),
+        (0, -4, 0.98, 1.06, 160),
+        (0, 2, 1.01, 0.98, 240),
+        (0, 5, 1.02, 0.96, 400),
+        (0, 3, 1.01, 0.97, 300),
+        (0, 0, 1.0, 1.0, 200),
+    ),
+
     # ── agent state signatures ───────────────────────────────────
     # One state, one readable movement. These used to alias onto
     # patrol/scan/thinking_tilt, so eight configured states showed up
@@ -403,22 +416,20 @@ IDENTITY_STATE_CUES: dict[str, dict[str, object]] = {
     "thermal_technician": {"mood": "startled", "action": "shake", "decoration": "heat_puffs", "eyes": "round", "brows": "guilty", "hold_ms": 4800},
     "usage_accountant": {"mood": "focused", "action": "scan", "decoration": "usage_bar", "eyes": "side_eye", "brows": "soft", "hold_ms": 4400},
     "focus_companion": {"mood": "innocent", "action": "blink", "eyes": "soft", "brows": "soft", "hold_ms": 3600},
-    "sleepy_clip": {"mood": "sleepy", "action": "sleepy_sag", "decoration": "z_symbol", "eyes": "sleepy_slit", "brows": "droop", "hold_ms": 9000},
-    "bug_coroner": {"mood": "suspicious", "action": "scan", "decoration": "tiny_warning", "eyes": "side_eye", "brows": "judge", "hold_ms": 4600},
-    "critic_clip": {"mood": "smirk", "action": "thinking_tilt", "decoration": "annotation_circle", "eyes": "side_eye", "brows": "judge", "hold_ms": 3600},
+    "sleepy_clip": {"mood": "sleepy", "action": "sleepy_sag", "eyes": "sleepy_slit", "brows": "droop", "hold_ms": 9000},
+    "bug_coroner": {"mood": "suspicious", "action": "scan", "eyes": "side_eye", "brows": "judge", "hold_ms": 4600},
+    "critic_clip": {"mood": "smirk", "action": "thinking_tilt", "eyes": "side_eye", "brows": "judge", "hold_ms": 3600},
     "tab_warden": {"mood": "suspicious", "action": "patrol", "decoration": "tab_bar", "eyes": "side_eye", "brows": "judge", "hold_ms": 4400},
     "gremlin_clip": {"mood": "smug", "action": "smug_sway", "eyes": "side_eye", "brows": "proud", "hold_ms": 3600},
-    "meltdown_clip": {"mood": "sulky", "action": "melt", "decoration": "tiny_warning", "eyes": "peek_up", "brows": "sulk", "hold_ms": 5200},
+    "meltdown_clip": {"mood": "sulky", "action": "melt", "eyes": "peek_up", "brows": "sulk", "hold_ms": 5200},
 }
 
-ACTION_DECORATION_CUES: dict[str, tuple[str, int]] = {
-    "sleepy_sag": ("z_symbol", 4200),
-    "flop": ("paper_pillow", 4200),
-    "hide": ("paper_oops_cover", 3600),
-    "dance": ("paper_stage", 4200),
-    "celebrate": ("paper_stage", 4400),
-    "shake": ("paper_fan", 3200),
-}
+# Action-triggered caption decorations used to live here (sleepy_sag -> Z,
+# dance -> stage, hide -> cover paper...). That was the props-are-opt-in
+# decision being bypassed from a third location: the prop did the acting again.
+# A decoration now needs a stated cause (see pal_decor.reaction_decoration_cues)
+# or an explicit performance step; an action alone earns nothing.
+ACTION_DECORATION_CUES: dict[str, tuple[str, int]] = {}
 
 PAPER_PROP_ACTIONS: dict[str, PaperPropCue] = {
     "paper_blanket": {

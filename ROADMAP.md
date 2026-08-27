@@ -13,9 +13,10 @@ built; see "What has shipped" for what is already done.*
 | Identity packs | 11 zh only | 12 zh + 12 en |
 | Animation actions | 28 visible | 78, each with a checked-in GIF |
 | Performance phrases | 6 | 9 primary choreographies |
-| Phrase beats cut below readability | 20 | 0 |
+| Phrase beats cut below readability (live manifest) | 25 | 0 |
 | Actions carrying a prop by default | 52 of 68 | 7 of 78 |
-| Tests | 23 | 73 |
+| Identity props per identity | up to 2, vendor SVG | at most 1, native drawing |
+| Tests | 23 | 100 |
 
 ### What has shipped
 
@@ -101,8 +102,8 @@ What shipped:
 - **`blink` is a blink again** — neutral brows, no gaze, 260ms. The skit lives
   on as `fake_innocent_blink`.
 - **`sleepy_sag` is a one-way slide**, no panic beat. The alarm skit lives on as
-  `alarm_jolt`, which keeps its clock because the alarm *is* the event, and is
-  now what `waking` plays.
+  `alarm_jolt`, which keeps its clock because the alarm *is* the event. (Which
+  scenario plays it was settled in the third pass below.)
 - **`tail_alert_snap` rebuilt** as anticipation → commit → hold → delayed tip
   shudder → damped release that stops short of neutral: 425 → 1160ms,
   774 → 256px/s, 67 → 283ms hold, same 62px of travel. `jump`, `spin_jump` and
@@ -127,21 +128,14 @@ gestures were rebuilt under `INNER_MID_LIMIT = 5.0`, keeping tip amplitude
 (that is where the expression lives) and cutting the bow: `inner_facepalm` went
 from mid 13 to 4, `inner_shy_retract` 13 to 5.
 
-**The sequencer can wait.** `AnimationStep` gained `await_action` and
-`overlap_ms`, and `AnimationCallbacks` gained `duration_of`, wired to the
-existing `_animation_duration_ms`. A declared `duration_ms` still wins, because
-that is a directorial choice; otherwise an awaiting step advances by the
-action's real length minus any deliberate overlap, instead of a hand-guessed
-number that was usually too small.
-
-**The phrases were re-timed against measurement.** 20 of the phrase steps had
-been getting under 45% of their action, the worst at 5% — `grand_dame_whisper_roast`
-started a 2513ms tail sway and cut it after 120ms. Face-only micro actions are
-exempt (an expression reads on frame one and holds); body, tail and inner-wire
-actions are not. Beats a phrase could not afford were dropped rather than
-stretched, so `cheesy_love_cringe` went from five body actions at 12-24% each to
-two played through, and `fake_sulk` stopped starting `sulk` twice. Now 0 steps
-fall below the floor.
+**The sequencer gained the plumbing — and it went to the wrong table.**
+`AnimationStep` gained the wait flag and `overlap_ms`, `AnimationCallbacks`
+gained `duration_of`, and the phrase table in `performance.py` was re-timed
+against real durations. All correct, and all invisible: `_run_performance_phrase`
+asks the manifest first and returns the moment it scheduled anything, so for
+every primary phrase `performance.py` is unreachable. The re-timing changed
+nothing on screen and the suite stayed green, because the tests imported the
+same unreachable table. Corrected in the next pass — see below.
 
 **Agent states move for themselves.** Eight configured states resolved onto four
 existing actions, so the config implied more behaviour than a viewer saw. Each
@@ -163,6 +157,122 @@ and that no phrase restarts a body action; `test_action_semantics.py` gained the
 inner-wire rule and a fingerprint check that no two agent states — and none of
 them versus `patrol`/`thinking_tilt` — share a motion profile.
 
+### One choreography source, and who owns the channels (2026-08-26, third pass)
+
+The previous pass fixed the wrong copy. `animations.yaml` is what runs;
+`performance.py` was a second, hand-timed choreography that the runtime only
+consults when the manifest has nothing, which for the primary phrases is never.
+Auditing and re-timing that copy proved nothing about playback.
+
+Measured against real durations, the **live** manifest had **25** problems, not
+the 20 found in the dead table: `grand_dame_whisper_roast` starting a 2513ms
+tail sway and cutting it at 120ms (5%), `fake_sulk` starting `sulk` twice,
+`thought_roast_smug` starting `inner_side_smirk` twice.
+
+**7A — one source.**
+- All 13 affected phrase sequences re-timed *in the manifest*. Beats a phrase
+  could not afford were dropped rather than stretched. `scripts/audit_phrases.py`
+  reports **0 problems**, and it reads `animations.yaml`.
+- `duration_ms` always wins over the wait flag, so adding the flag without
+  removing the duration is a silent no-op. A test now fails on that combination.
+- The duration oracle moved to `jiajia/action_timing.py`. It had lived only as
+  an app method, so every caller outside a window faked an app object its own
+  way. Verified identical to the original across all 78 actions.
+- `performance.py` no longer authors choreography: `PERFORMANCE_PHRASES` is
+  **derived** from the manifest, so the fallback plays the same beats and there
+  is one place to edit. A test fails if the two drift.
+- The timing tests load `animations.yaml` directly, plus a test that fails if
+  the manifest ever stops being the path that runs — the mistake that made the
+  previous tests worthless.
+
+**7B — run and channel ownership.** `jiajia/performance_run.py` adds a
+`PerformanceRun` (run id, priority, interruptible, lifecycle, owned channels)
+over a fixed channel set: body, window, tail, inner, bend, face, prop, blink.
+Every channel write from a phrase is attributed to its run and refused if that
+run has been superseded. `_cancel_performance_phrase` used to cancel the queued
+callbacks, the expression and the inner gesture, leaving body, window, tail,
+bend and prop running underneath the next phrase; it now tears down exactly the
+channels its run still holds, and never one a newer run has taken over.
+Priority and interruptibility are **not** re-invented — `VisualStatePlan`
+already decides those, and the run just carries them. Costume, identity
+decorations and status badges are deliberately not channels, so a finishing
+phrase cannot strip them.
+
+**7C — partial, and named honestly.** `play()` no longer queues the whole phrase
+up front; each step schedules only the next and checks first whether its run is
+still current, so a preempted phrase stops instead of finishing into a pal that
+has moved on. It is still *duration-estimated*: nothing reports actual
+completion yet. The manifest key is therefore `wait_action_duration`, not
+`await_action` — it waits for how long the action is expected to take. Real
+completion signalling needs action handles and is not done.
+
+Also settled here: `waking` was playing `tiny_celebrate` (waking up read as a
+small victory) with `alarm_jolt` reachable only as a fallback. Now three
+separate things — `wake_soft` (stretch) for waking, `wake_startled`
+(`alarm_jolt`) for an alarm, `tiny_celebrate` for finishing something. And the
+scenario prop layer has one real caller: `agent_stuck_stare` raises the
+magnifier via `scenario_prop`, because inspecting a stuck agent is when a
+magnifier is motivated rather than decorative.
+
+Tests 73 → 88.
+
+### Accessories: an object is a behaviour or a readout (2026-08-26, fourth pass)
+
+A third external audit, on accessories and the legacy asset sheets. Verified
+claim by claim before acting; all held, and one more bypass turned up that the
+audit had not named.
+
+| Claim | Verified |
+|---|---|
+| Vendor SVGs pre-empt every native drawing | 16 `asset:` pointers; `_draw_decoration` takes the asset branch before any `shape ==` branch, so the native terminal/clipboard/ledger/red-pen drawings never ran |
+| Every decoration plays the same sticker pop | `0.72 → 1.16 → 0.96 → 1.04 → 1.0`, verbatim |
+| The reaction layer re-adds prop captions | smug → annotation circle, sleepy/sulky → Z, dance → stage, peek → curtain, flop → pillow — mood- and action-keyed, bypassing props-opt-in |
+| Seven identities wear two same-meaning props | checklist+clipboard, terminal+code badge, ledger+coin, magnifier+bug marker, pen+palette, lock+tabs, plus moon and bandage |
+| Temporaries share one clear-all timer | first expiry wiped every temporary at once |
+| The Britclip cane is wardrobe | drawn in static equip, static props and the suit-up timer; `cane_tap` played a tail flick and never touched a cane |
+
+The unnamed third bypass: `ACTION_DECORATION_CUES` in pal_motion mapped actions
+straight to caption decorations (sleepy_sag → Z, dance → stage, hide → cover),
+consumed by the idle scheduler — the same caption system from yet another door.
+`IDENTITY_STATE_CUES` also handed out Z / warning / annotation-circle as
+ambient captions.
+
+What shipped (P0):
+
+- **Reactions decorate only for stated causes.** `reaction_decoration_cues(event,
+  bubble)` is a pure function with no mood or action parameter — a feeling is
+  not a cause. Kept: hardware → heat, usage → bar, reset-soon → clock, named
+  failure → evidence mark. The hardware heat+fan stack is gone (one temperature,
+  one prop). `ACTION_DECORATION_CUES` is empty with the reasoning attached, and
+  the identity ambience captions are removed.
+- **Identity props draw native.** All 28 `asset:`/`asset_scale:` lines stripped
+  from identity props; every worn shape has a native branch (test-enforced).
+  Vendor icons remain on disk as reference only.
+- **One persistent object per identity.** Retired: coin (quota is not money),
+  palette (the critic is not a painter), lock (reads as security), code badge
+  and checklist (duplicates), moon (focus is not sleep), bandage (a meltdown is
+  not a cute injury), nightcap (the blanket is the relationship). The
+  thermometer moved from beside the face (read as a monocle) to a side mount.
+  bug_coroner wears the magnifier; the evidence mark appears only on a named
+  failure event.
+- **One temporary at a time.** A new temporary replaces the previous one and its
+  timer, until decorations join run ownership.
+- **Worn objects settle; only event props bounce.** The universal four-beat pop
+  is gone: persistent decorations ease in (0.94 → 1.0), temporaries keep a
+  smaller arrival bounce. Per-object mechanics (pen uncaps, screen lights up)
+  are the P1 job this no longer pretends to be.
+- **The cane is punctuation.** Removed from the persistent costume (hat + tie
+  already say British twice); `_flourish_gentleman_cane` brings it in for
+  `cane_tap`, `polite_bow` and the suit-up's final beat, then puts it away.
+
+Archived by decision, not built: the 36-profession skin sheet (uniforms bury the
+wire silhouette; hats bury the brows; floating tools imply hands — only the
+prop *verbs* get extracted), the transport/fantasy paper variants, and the old
+moustached Britclip storyboard. The 36-emotion sheets stay as pose vocabulary
+only.
+
+Tests 88 → 100 (`tests/test_decorations.py`).
+
 ### Known gaps
 
 - **The library still teaches props faster than it teaches the body.** The
@@ -171,11 +281,23 @@ them versus `patrol`/`thinking_tilt` — share a motion profile.
   hook is too weak to read as a question at desktop size, and `tail_bristle` is
   a constant-width line that cannot express fur volume. These need drawing work,
   not decoupling.
-- **Channel ownership is still unowned.** `await_action` stops a step starting
-  on top of a running one, but body, tail, inner wire, face and prop still hold
-  separate timers, and a new action can still cancel a previous one's channel
-  mid-motion. The remaining piece is explicit ownership and an interruption
-  policy, not the waiting.
+- **Props have no verbs yet.** P0 removed the caption layer; the seven
+  character prop performances (clipboard tick-and-stamp, terminal boot-and-jam,
+  side gauge, receipt pull, magnifier-then-evidence, red pen uncap-circle-recap,
+  tab stack) are P1 and unbuilt. Until then the kept props are honest but
+  static.
+- **Paper props barely move.** Body keyframes cover 7–16% of each paper
+  action's declared duration (`paper_oops_cover`: 280ms of 4200), and the paper
+  itself has no fold/roll/flutter channels. The audit's acceptance line is
+  25–40% visible object change; the five-rig consolidation (cover / fan /
+  sleep / document / flight) is P2.
+- **Sequencing waits for an estimate, not for completion.** Steps chain and
+  respect run ownership, but the runtime still has no signal that an action has
+  actually ended. Closing that needs actions to return a handle that reports
+  completion; until then `wait_action_duration` is named for what it does.
+- **Ownership covers phrases, not idle motion.** Ambient, idle and micro
+  behaviour still write to channels without a run, deliberately — gating them
+  would need the same treatment and has not been done.
 - **The agent signatures are conservative in the body.** They are distinct by
   measurement and clearly so on the face, but body travel is 0-14px on a ~200px
   figure, so `tool_working` and `paper_editing` lean on the face more than the

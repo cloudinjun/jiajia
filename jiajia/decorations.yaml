@@ -9,8 +9,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: terminal_box
-    asset: jiajia/assets/decorations/iconpark/icons/terminal.svg
-    asset_scale: 0.82
     pulse: false
 
   status_dot:
@@ -31,20 +29,16 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: checklist
-    asset: jiajia/assets/decorations/iconpark/icons/checklist.svg
-    asset_scale: 0.74
     pulse: false
 
   thermometer_icon:
-    anchor: upper_left
-    dx: -10
-    dy: 26
+    anchor: right_side
+    dx: 4
+    dy: -2
     color: "#d86b6b"
     lifetime: identity
     role: identity_prop
     shape_type: thermometer
-    asset: jiajia/assets/decorations/iconpark/icons/thermometer.svg
-    asset_scale: 0.72
     pulse: false
 
   heat_tint:
@@ -75,8 +69,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: ledger
-    asset: jiajia/assets/decorations/iconpark/icons/chart-histogram.svg
-    asset_scale: 0.72
     pulse: false
 
   usage_bar:
@@ -97,8 +89,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: red_pen
-    asset: jiajia/assets/decorations/iconpark/icons/pencil.svg
-    asset_scale: 0.72
     pulse: false
 
   annotation_circle:
@@ -141,8 +131,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: magnifier
-    asset: jiajia/assets/decorations/iconpark/icons/search.svg
-    asset_scale: 0.70
     pulse: false
 
   stamp:
@@ -165,8 +153,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: lock
-    asset: jiajia/assets/decorations/iconpark/icons/lock.svg
-    asset_scale: 0.70
     pulse: false
 
   tab_bar:
@@ -187,8 +173,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: code_badge
-    asset: jiajia/assets/decorations/iconpark/icons/code-computer.svg
-    asset_scale: 0.70
     pulse: false
 
   audit_clipboard:
@@ -199,8 +183,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: clipboard
-    asset: jiajia/assets/decorations/iconpark/icons/list-success.svg
-    asset_scale: 0.72
     pulse: false
 
   budget_coin:
@@ -211,8 +193,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: coin
-    asset: jiajia/assets/vendor/lucide/selected/badge-percent.svg
-    asset_scale: 1.35
     pulse: false
 
   reset_clock:
@@ -233,8 +213,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: moon
-    asset: jiajia/assets/decorations/iconpark/icons/moon.svg
-    asset_scale: 0.64
     pulse: false
 
   sleepy_cap:
@@ -345,8 +323,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: bug_mark
-    asset: jiajia/assets/decorations/iconpark/icons/bug.svg
-    asset_scale: 0.68
     pulse: false
 
   critic_palette:
@@ -367,8 +343,6 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: tab_stack
-    asset: jiajia/assets/vendor/tabler-icons/selected/browser.svg
-    asset_scale: 1.32
     pulse: false
 
   bandage_mark:
@@ -379,6 +353,4 @@ decorations:
     lifetime: identity
     role: identity_prop
     shape_type: bandage
-    asset: jiajia/assets/decorations/iconpark/icons/error.svg
-    asset_scale: 0.66
     pulse: false
