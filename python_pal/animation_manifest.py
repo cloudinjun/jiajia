@@ -43,6 +43,7 @@ class LogicalState:
     minimum_ms: int = 0
     priority: int = 0
     interruptible: bool = True
+    aliases: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -79,6 +80,15 @@ class AnimationManifest:
     rules: tuple[StateRule, ...] = ()
     performances: dict[str, PerformanceDefinition] = field(default_factory=dict)
     agent_visuals: dict[str, AgentStateVisual] = field(default_factory=dict)
+    state_aliases: dict[str, str] = field(default_factory=dict)
+
+    def canonical_state(self, state: str) -> str:
+        key = _key(state)
+        if not key:
+            return "idle"
+        if key in self.state_aliases:
+            return self.state_aliases[key]
+        return key if key in self.states else "idle"
 
     def state_for_reaction(self, mood: str, action: str, bubble: str) -> str:
         mood = _key(mood)
@@ -86,15 +96,15 @@ class AnimationManifest:
         bubble = _key(bubble)
         for rule in self.rules:
             if rule.matches(mood, action, bubble):
-                return rule.state
-        return mood if mood in self.states else "idle"
+                return self.canonical_state(rule.state)
+        return self.canonical_state(mood)
 
     def performance_for_state(self, state: str) -> str:
-        logical_state = self.states.get(_key(state))
+        logical_state = self.states.get(self.canonical_state(state))
         return logical_state.performance if logical_state else ""
 
     def fallback_action_for_state(self, state: str) -> str:
-        logical_state = self.states.get(_key(state))
+        logical_state = self.states.get(self.canonical_state(state))
         return logical_state.fallback_action if logical_state else "idle"
 
     def performance(self, name: str) -> PerformanceDefinition | None:
@@ -116,6 +126,7 @@ def load_animation_manifest(path: Path) -> AnimationManifest:
             minimum_ms=_int(_dict(raw).get("minimum_ms"), 0),
             priority=_int(_dict(raw).get("priority"), 0),
             interruptible=bool(_dict(raw).get("interruptible", True)),
+            aliases=tuple(_key_list(_dict(raw).get("aliases"))),
         )
         for name, raw in _dict(data.get("logical_states")).items()
     }
@@ -133,6 +144,7 @@ def load_animation_manifest(path: Path) -> AnimationManifest:
         rules=rules,
         performances=performances,
         agent_visuals=agent_visuals,
+        state_aliases=_state_aliases(states),
     )
 
 
@@ -209,6 +221,14 @@ def _key(value: object) -> str:
 
 def _key_list(value: object) -> list[str]:
     return [_key(item) for item in _list(value) if _key(item)]
+
+
+def _state_aliases(states: dict[str, LogicalState]) -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    for name, state in states.items():
+        for alias in state.aliases:
+            aliases[alias] = name
+    return aliases
 
 
 def _int(value: object, fallback: int) -> int:

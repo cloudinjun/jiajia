@@ -23,13 +23,48 @@ procedural_assets:
 
 logical_states:
   idle:
+    aliases: [standby, neutral, quiet]
     performance: ""
     fallback_action: idle
     meaning: normal quiet standby
     lifecycle: loop
     minimum_ms: 1000
     priority: 0
+  typing:
+    aliases: [input, listening, composing, user_typing]
+    performance: typing_focus
+    fallback_action: blink
+    meaning: user is entering a prompt or the pal is listening without interrupting
+    lifecycle: loop
+    minimum_ms: 1000
+    priority: 12
+  thinking:
+    aliases: [think, waiting, loading, processing, working, running]
+    performance: thinking_loop
+    fallback_action: thinking_tilt
+    meaning: model, agent, or status check is active
+    lifecycle: loop
+    minimum_ms: 1400
+    priority: 18
+  success:
+    aliases: [done, finished, complete, completed, refilled, recovery]
+    performance: tiny_celebrate
+    fallback_action: happy_bounce
+    meaning: task completed, quota recovered, or status improved
+    lifecycle: oneshot_return
+    minimum_ms: 1800
+    priority: 24
+  sleep:
+    aliases: [sleeping, asleep, sleepy, sulky, sulk, low_power]
+    performance: sleep_loop
+    fallback_action: sleepy_sag
+    meaning: low energy, quiet mode, or dramatic collapse
+    lifecycle: transition_to_state
+    target_state: sleep
+    minimum_ms: 2200
+    priority: 12
   suspicious:
+    aliases: [audit, judging, observe]
     performance: suspicious_observe
     fallback_action: thinking_tilt
     meaning: noticed avoidance or odd context

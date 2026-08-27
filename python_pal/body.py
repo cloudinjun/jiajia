@@ -50,8 +50,9 @@ from .quiz import (
     QuizPacket,
     QuizSession,
     QuizStore,
-    choose_result,
+    build_report,
     current_question,
+    format_report,
     load_quiz_packets,
     record_answer,
     score_packet,
@@ -974,7 +975,10 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
     def _quiz_heartbeat(self) -> None:
         self._quiz_after = None
         try:
-            if self._quiz_should_offer():
+            pending = self.quiz_store.active_session()
+            if pending and pending.state == "completed_waiting_result":
+                self._try_show_pending_quiz_result()
+            elif self._quiz_should_offer():
                 self._offer_absurd_quiz(force=False)
         finally:
             self._schedule_quiz_heartbeat()
@@ -984,22 +988,14 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
         if today != self._quiz_offer_day:
             self._quiz_offer_day = today
             self._quiz_offers_today = 0
+        session = self.quiz_store.active_session()
+        if session is not None:
+            return session.state == "paused" and self._quiz_can_prompt()
         policy = self._activity_policy()
         daily_limit = QUIZ_DAILY_LIMIT.get(policy.tier, 1)
         if daily_limit <= 0 or self._quiz_offers_today >= daily_limit:
             return False
-        if (
-            self._focus_var.get()
-            or self._quiet_remaining_seconds() > 0
-            or self.state.brain_busy
-            or self._bubble_items
-            or self._quiz_window
-            or self._dragging
-            or self._large_action_running
-            or self._window_move_running
-        ):
-            return False
-        if self.quiz_store.active_session() is not None:
+        if not self._quiz_can_prompt():
             return False
         if self.quiz_store.next_packet(normalize_language(self.soul.language)) is None:
             return False
@@ -1009,6 +1005,20 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
         chance = {"normal": 0.18, "active": 0.36, "hyper": 0.58}.get(policy.tier, 0.0)
         return random.random() < chance
 
+    def _quiz_can_prompt(self) -> bool:
+        return not (
+            self._auto_reactions_paused()
+            or self.state.brain_busy
+            or self._bubble_items
+            or self._quiz_window
+            or self._dragging
+            or self._large_action_running
+            or self._window_move_running
+        )
+
+    def _quiz_can_show_result(self) -> bool:
+        return self._quiz_can_prompt()
+
     def _offer_absurd_quiz(self, force: bool = False) -> None:
         self._load_quiz_fallbacks()
         active_session = self.quiz_store.active_session()
@@ -1016,6 +1026,9 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
             packet = self.quiz_store.get_packet(active_session.packet_id)
             if packet is None:
                 self.quiz_store.clear_session()
+            elif active_session.state == "completed_waiting_result":
+                self._try_show_pending_quiz_result(force=force)
+                return
             else:
                 self._show_quiz_resume_offer(packet, active_session)
                 return
@@ -1095,11 +1108,10 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
         except ValueError:
             self.show_bubble("这个选项不在题目里。夹夹暂时不接受平行宇宙答案。", milliseconds=3600, kind="thought")
             return
-        if session.state == "completed":
-            self.quiz_store.save_session(session)
+        self.quiz_store.save_session(session)
+        if session.state == "completed_waiting_result":
             self._show_quiz_result_delay(packet, session)
             return
-        self.quiz_store.save_session(session)
         self._show_quiz_question(packet, session)
 
     def _pause_quiz(self) -> None:
@@ -1119,28 +1131,45 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
 
     def _show_quiz_result_delay(self, packet: QuizPacket, session: QuizSession) -> None:
         self._dismiss_quiz_window()
+        session.state = "completed_waiting_result"
+        session.updated_at = time.time()
+        self.quiz_store.save_session(session)
         self._perform_action("thinking_tilt")
         self.show_bubble("正在把答案塞进荒谬统计学。请稍等，它需要装得很严谨。", milliseconds=2600, kind="thought")
+        self._schedule_quiz_result_check(delay_ms=1800)
+
+    def _schedule_quiz_result_check(self, delay_ms: int = 12_000) -> None:
         if self._quiz_result_after:
             try:
                 self.root.after_cancel(self._quiz_result_after)
             except tk.TclError:
                 pass
-        self._quiz_result_after = self.root.after(
-            1500,
-            lambda packet=packet, session=session: self._show_quiz_result(packet, session),
-        )
+        self._quiz_result_after = self.root.after(delay_ms, self._try_show_pending_quiz_result)
+
+    def _try_show_pending_quiz_result(self, force: bool = False) -> None:
+        self._quiz_result_after = None
+        session = self.quiz_store.active_session()
+        if session is None or session.state != "completed_waiting_result":
+            return
+        packet = self.quiz_store.get_packet(session.packet_id)
+        if packet is None:
+            self.quiz_store.clear_session()
+            return
+        if not force and not self._quiz_can_show_result():
+            self._schedule_quiz_result_check()
+            return
+        self._show_quiz_result(packet, session)
 
     def _show_quiz_result(self, packet: QuizPacket, session: QuizSession) -> None:
         self._quiz_result_after = None
         scores = score_packet(packet, session.answers)
-        result = choose_result(packet, scores)
+        report = build_report(packet, scores)
+        result = report.result
         self.quiz_store.clear_session()
-        self._perform_action(result.action or "snap_innocent")
-        score_line = " / ".join(f"{metric}:{scores.get(metric, 0)}" for metric in packet.metrics)
+        self._perform_action(result.action or "thinking_tilt")
         self._open_quiz_card(
-            result.title,
-            f"{result.line}\n\n分数只是装饰：{score_line}",
+            report.title,
+            format_report(report),
             [
                 ("收到", self._dismiss_quiz_window),
                 ("再测一次", lambda packet=packet: self._start_quiz(packet)),
@@ -6322,7 +6351,6 @@ def _bubble_page_duration(text: str, requested_ms: int) -> int:
     natural_ms = BUBBLE_PAGE_MIN_MS + readable_chars * BUBBLE_PAGE_CHAR_MS + (line_count - 1) * 260
     target_ms = max(requested_ms, natural_ms)
     return max(BUBBLE_PAGE_MIN_MS, min(BUBBLE_PAGE_MAX_MS, target_ms))
-
 
 
 
