@@ -14,6 +14,7 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 
+import jiajia
 from jiajia import claude_account_usage, claude_usage, codex_usage, openai_billing
 from jiajia.actions import action_descriptions, action_prompt
 from jiajia.activity import POLICIES, policy_for_frequency
@@ -30,7 +31,7 @@ from jiajia.quiz import build_report, format_report, load_quiz_packets
 from jiajia.soul import load_soul
 
 CJK = re.compile(r"[㐀-䶿一-鿿　-〿！-～]")
-PACKAGE_ROOT = Path(__file__).resolve().parents[1] / "jiajia"
+PACKAGE_ROOT = Path(jiajia.__file__).resolve().parent
 
 
 def cjk_in(text: str) -> str:
