@@ -169,8 +169,8 @@ Offline is a supported mode, not a degraded one.
 
 ## Evaluation
 
-100 tests, 9 suites. The interesting ones do not check functions — they check
-that design intent survives changes.
+123 tests across 11 suites, plus 183 scored behavior checks. The interesting
+ones do not check functions — they check that design intent survives changes.
 
 **Design-intent tests** ([`test_action_semantics.py`](tests/test_action_semantics.py))
 turn the animation authoring guide into assertions:
@@ -194,9 +194,19 @@ hashes keyframe data into a manifest. Retiming an action without re-rendering it
 GIF fails the build, so the 78 published previews cannot drift from the code
 that produces them.
 
-**Behavior evaluation set** ([`eval/`](eval/README.md)) — annotated scenarios
-scoring the resolver against ground truth on interruption appropriateness,
-privacy compliance and semantic fit.
+**Fault injection** ([`test_brain_fallback.py`](tests/test_brain_fallback.py))
+replaces the network seam and asserts one invariant across every way a local
+model fails — refused connection, timeout, prose instead of JSON, a truncated
+object, a leaked `<think>` block, wrong types, a hallucinated action name, the
+wrong language. In all of them the pal still says something, and the action it
+picked is one the renderer knows.
+
+**Behavior evaluation set** ([`eval/`](eval/README.md)) — 183 checks over 114
+annotated scenarios, scored on interruption appropriateness, privacy
+compliance, semantic fit and recovery. Expectations are written from the design
+intent rather than from the implementation, so a disagreement is a finding in
+either direction. It found four dead entries in the alias table on its first
+run.
 
 ## Demo
 
@@ -274,7 +284,10 @@ Run the checks:
 ```powershell
 python -m compileall -q jiajia scripts tests
 python -m unittest discover -s tests
+python eval\run_eval.py
 python scripts\generate_action_gifs.py --check
+python -m ruff check .
+python -m mypy
 ```
 
 ## Repository map

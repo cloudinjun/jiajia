@@ -19,7 +19,7 @@ class QuizOption:
     scores: dict[str, int] = field(default_factory=dict)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "QuizOption":
+    def from_dict(cls, data: dict[str, Any]) -> QuizOption:
         return cls(
             id=str(data.get("id") or "").strip(),
             text=str(data.get("text") or "").strip(),
@@ -34,7 +34,7 @@ class QuizQuestion:
     options: list[QuizOption] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "QuizQuestion":
+    def from_dict(cls, data: dict[str, Any]) -> QuizQuestion:
         options = [
             QuizOption.from_dict(item)
             for item in _list_of_dicts(data.get("options"))
@@ -59,7 +59,7 @@ class QuizResultTemplate:
     mood: str = "smirk"
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "QuizResultTemplate":
+    def from_dict(cls, data: dict[str, Any]) -> QuizResultTemplate:
         return cls(
             id=str(data.get("id") or "").strip(),
             metric=str(data.get("metric") or "").strip(),
@@ -87,7 +87,7 @@ class QuizPacket:
     created_at: float = field(default_factory=time.time)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "QuizPacket":
+    def from_dict(cls, data: dict[str, Any]) -> QuizPacket:
         metrics = [str(item).strip() for item in _list(data.get("metrics")) if str(item).strip()]
         return cls(
             id=str(data.get("id") or "").strip(),
@@ -120,11 +120,11 @@ class QuizSession:
     updated_at: float = field(default_factory=time.time)
 
     @classmethod
-    def start(cls, packet: QuizPacket) -> "QuizSession":
+    def start(cls, packet: QuizPacket) -> QuizSession:
         return cls(id=uuid.uuid4().hex[:12], packet_id=packet.id)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "QuizSession":
+    def from_dict(cls, data: dict[str, Any]) -> QuizSession:
         answers = {
             str(key): str(value)
             for key, value in dict(data.get("answers") or {}).items()

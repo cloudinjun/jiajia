@@ -461,7 +461,10 @@ def build_timeline(action: str) -> tuple[list[Pose], str]:
             body = body_track(action, frames)
     elif action in _COSTUME_BODY_FRAMES:
         body = body_track(action, _COSTUME_BODY_FRAMES[action], B._ease_out_sine)
-        tail_motion = tail_motion or ("tail_alert_snap" if action == "britclip_enter" else "tail_alert_snap")
+        # NOTE: both costume directions currently snap the same way. The sibling
+        # line below branches on direction, so this one probably meant to as well;
+        # collapsed to the behavior that actually ships rather than inventing one.
+        tail_motion = tail_motion or "tail_alert_snap"
         inner_gesture = inner_gesture or ("inner_side_smirk" if action == "britclip_enter" else "inner_shy_retract")
         coverage = "body"  # hat / bow tie / cane are runtime canvas items
     elif action in {"tip_hat", "hat_tip_oops", "bow_tie_check", "cane_tap"}:

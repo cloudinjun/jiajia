@@ -22,9 +22,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from jiajia.animation_manifest import load_animation_manifest  # noqa: E402
-from jiajia.body import JiajiaApp  # noqa: E402
-from jiajia.performance import MIN_READABLE_FRACTION  # noqa: E402
+from jiajia.animation_manifest import load_animation_manifest
+from jiajia.body import JiajiaApp
+from jiajia.performance import MIN_READABLE_FRACTION
 
 MANIFEST_PATH = ROOT / "jiajia" / "animations.yaml"
 
@@ -41,7 +41,7 @@ def real_duration_ms(action: str) -> int:
     """How long the action actually runs. 0 means face-only or unknown."""
     try:
         return int(JiajiaApp._animation_duration_ms(_DurationProbe(), action))
-    except Exception:  # noqa: BLE001 - unknown names simply are not body actions
+    except Exception:
         return 0
 
 

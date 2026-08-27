@@ -45,6 +45,26 @@ _FIXED_MS: dict[str, int] = {
 _DEFAULT_RESOLVER = AnimationResolver()
 
 
+
+def _as_float(value: object, default: float = 0.0) -> float:
+    """Read a number out of an authored table without trusting it.
+
+    The motion tables are hand-edited data, so a malformed cell should fall
+    back to a sane duration rather than raising in the middle of a performance.
+    """
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return default
+
+
+def _as_int(value: object, default: int = 0) -> int:
+    try:
+        return int(value)  # type: ignore[call-overload]
+    except (TypeError, ValueError):
+        return default
+
+
 def action_duration_ms(action_or_name: str, resolver: AnimationResolver | None = None) -> int:
     """Milliseconds the action runs for. 0 means face-only or unknown.
 
@@ -65,11 +85,13 @@ def action_duration_ms(action_or_name: str, resolver: AnimationResolver | None =
 
     osc = TAIL_OSCILLATIONS.get(action)
     if osc:
-        return round(float(osc["cycles"]) / float(osc["freq"]) * 1000) + 160
+        freq = _as_float(osc.get("freq"))
+        if freq:
+            return round(_as_float(osc.get("cycles")) / freq * 1000) + 160
 
     posture = TAIL_POSTURES.get(action)
     if posture:
-        return round((_POSTURE_ENTER_S + _POSTURE_EXIT_S) * 1000) + int(posture["hold_ms"]) + 180
+        return round((_POSTURE_ENTER_S + _POSTURE_EXIT_S) * 1000) + _as_int(posture.get("hold_ms")) + 180
 
     tail_frames = TAIL_MOTION_FRAMES.get(action)
     if tail_frames:

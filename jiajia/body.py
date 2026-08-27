@@ -14,7 +14,8 @@ import threading
 import time
 import tkinter as tk
 import tkinter.font as tkfont
-from typing import Callable, NotRequired, TypedDict
+from typing import ClassVar, NotRequired, TypedDict
+from collections.abc import Callable
 
 from .activity import ActivityPolicy, policy_for_frequency
 from .actions import ACTION_LABELS, ACTION_MENU_GROUPS
@@ -193,8 +194,6 @@ VISION_BUSY_RETRY_MS = 5 * 60 * 1000
 LINE_BANK_FIRST_MAINTENANCE_MS = 15 * 60 * 1000
 LINE_BANK_REFRESH_MS = 6 * 60 * 60 * 1000
 LINE_BANK_BUSY_RETRY_MS = 10 * 60 * 1000
-ActionFrame = tuple[float, float, float, float, int]
-ActionFrames = tuple[ActionFrame, ...]
 
 
 @dataclass(frozen=True)
@@ -1430,7 +1429,7 @@ class JiajiaApp(
             ),
         )
 
-    _POKE_ESCALATION = [
+    _POKE_ESCALATION: ClassVar[list[tuple[int, str]]] = [
         (1, "poke"),
         (3, "poke"),        # normal poke for first 3
         (5, "repeated_poke"),  # escalate at 5+
@@ -1462,7 +1461,7 @@ class JiajiaApp(
             self._wiggle()
 
         self._start_mouse_follow(1600, force=True)
-        new_achievements = self.pal_stats.record_poke(self._poke_count)
+        self.pal_stats.record_poke(self._poke_count)
         self._save_stats()
         if force or self.state.can_speak(4):
             self._ask_brain(event)
@@ -2414,7 +2413,7 @@ class JiajiaApp(
             self._apply_reaction(reaction, force=force)
 
     # (eye_style, brow_style, show_cheek_blush)
-    _MOOD_EXPRESSION: dict[str, tuple[str, str, bool]] = {
+    _MOOD_EXPRESSION: ClassVar[dict[str, tuple[str, str, bool]]] = {
         "smirk": ("smug_half", "smug_arch", False),
         "smug": ("side_eye", "smug_arch", True),
         "suspicious": ("suspicious_slit", "skeptical", False),
@@ -2848,7 +2847,7 @@ class JiajiaApp(
             self.set_chin_mode("idle")
 
     # (dx, dy, pupil_scale, eye_openness)
-    _EYE_MAP: dict[str, tuple[float, float, float, float]] = {
+    _EYE_MAP: ClassVar[dict[str, tuple[float, float, float, float]]] = {
         "round": (0.0, 0.0, 1.0, 1.0),
         "side_eye": (-3.1, 0.35, 0.85, 0.78),
         "soft": (0.0, 0.4, 0.82, 0.75),
@@ -2868,7 +2867,7 @@ class JiajiaApp(
         "curious": (1.15, -0.30, 1.04, 0.94),
         "startled_dot": (0.0, -0.40, 0.72, 1.0),
     }
-    _BROW_MAP: dict[str, tuple[tuple[float, float, float], tuple[float, float, float]]] = {
+    _BROW_MAP: ClassVar[dict[str, tuple[tuple[float, float, float], tuple[float, float, float]]]] = {
         "neutral": ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
         "soft": ((0.0, -1.0, 0.0), (0.0, -0.7, 0.0)),
         "judge": ((-0.6, 2.4, -0.12), (0.4, 1.7, 0.12)),
@@ -3049,16 +3048,14 @@ class JiajiaApp(
                 drift = math.sin(self._chin_idle_phase * 0.8) * amp
                 self._settle_chin_pose((drift, 0.0, -drift * 0.25, 0.0), 0.36)
                 # spontaneous hand micro-gesture (wave/fidget) in high-energy idle
-                if self._anim_tick % 300 == 0 and self.mood.energy > 0.6:
-                    if random.random() < 0.15:
-                        gesture = random.choice(["inner_wave", "inner_fidget", "inner_thumbs_up"])
-                        self._run_inner_gesture(gesture)
+                if self._anim_tick % 300 == 0 and self.mood.energy > 0.6 and random.random() < 0.15:
+                    gesture = random.choice(["inner_wave", "inner_fidget", "inner_thumbs_up"])
+                    self._run_inner_gesture(gesture)
         # idle micro-expressions: small gaze checks often enough to feel alive, not noisy.
-        if self._anim_tick % 90 == 0 and not self._large_action_running and self._doze_stage == 0:
-            if random.random() < 0.25:
-                dx = random.uniform(-0.9, 0.9)
-                dy = random.uniform(-0.45, 0.35)
-                self._animate_look((dx, dy))
+        if self._anim_tick % 90 == 0 and not self._large_action_running and self._doze_stage == 0 and random.random() < 0.25:
+            dx = random.uniform(-0.9, 0.9)
+            dy = random.uniform(-0.45, 0.35)
+            self._animate_look((dx, dy))
         # expression tweening
         if self._expr_tweener.is_tweening:
             brow_result = self._expr_tweener.tick_brows()
@@ -3554,8 +3551,8 @@ def _codex_usage_reaction(status: CodexUsageStatus, manual: bool = False) -> Rea
         ),
         "refilled": (
             (
-                f"回血了。Codex 又能继续装作很能干。",
-                f"额度回来了。理性也可以顺便回来一点。",
+                "回血了。Codex 又能继续装作很能干。",
+                "额度回来了。理性也可以顺便回来一点。",
             ),
             "done",
             ("happy_bounce", "nod", "smug_sway"),
@@ -3692,8 +3689,8 @@ def _claude_account_usage_reaction(status: ClaudeAccountUsageStatus, manual: boo
         ),
         "refilled": (
             (
-                f"回血了。Claude 账号额度恢复，可以继续聊。",
-                f"额度回来了。Claude 又可以正常营业。",
+                "回血了。Claude 账号额度恢复，可以继续聊。",
+                "额度回来了。Claude 又可以正常营业。",
             ),
             "done",
             ("happy_bounce", "nod", "smug_sway"),
@@ -4512,9 +4509,7 @@ def _is_short_wrapped_line(line: str) -> bool:
         return False
     if len(stripped) <= 2:
         return True
-    if len(stripped) <= 4 and not any(char.isspace() for char in stripped):
-        return True
-    return False
+    return bool(len(stripped) <= 4 and not any(char.isspace() for char in stripped))
 
 
 def _bubble_page_duration(text: str, requested_ms: int) -> int:

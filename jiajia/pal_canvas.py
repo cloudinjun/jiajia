@@ -9,17 +9,16 @@ Bubble shape primitives live here too — they are pure canvas geometry.
 """
 from __future__ import annotations
 
-import math
 import time
 import tkinter as tk
 
 from .pal_geometry import (
     BODY_CURVES, BODY_START, BROW, CHEEK_BLUSH, EYE_WHITE, LEFT_BROW_CURVES,
-    LEFT_BROW_START, PAL_CENTER_X, PAL_HEIGHT, PAL_PAD_X, PAL_PAD_Y, PAL_SCALE,
-    PAL_SCALE_PIVOT_Y, PAL_WIDTH, PUPIL, RIGHT_BROW_CURVES, RIGHT_BROW_START,
+    LEFT_BROW_START, PAL_CENTER_X, PAL_HEIGHT, PAL_PAD_Y, PAL_SCALE,
+    PAL_SCALE_PIVOT_Y, PUPIL, RIGHT_BROW_CURVES, RIGHT_BROW_START,
     TAIL_LONG_CURVES, TAIL_LONG_START, TAIL_SHORT_CURVES, TAIL_SHORT_START,
     WIRE, _brow_pose_coords, _clamp, _ease_out_cubic, _oval_bounds,
-    _path_coords, _per_tick, _scale_coords, _smoothstep, _source_point,
+    _path_coords, _per_tick, _scale_coords, _source_point,
 )
 from .pal_motion import TAIL_TIP_LAG_MS, InnerPose
 from .prop_shapes import EYE_FX_SHAPES, FACE_DECALS
@@ -460,7 +459,7 @@ class CanvasMixin:
             per_eye[0] = smile
         elif wink == "r":
             per_eye[1] = smile
-        for side, (item, prims) in enumerate(zip(pupil_items, per_eye)):
+        for _side, (item, prims) in enumerate(zip(pupil_items, per_eye, strict=False)):
             if prims is None:
                 continue
             try:
@@ -485,7 +484,7 @@ class CanvasMixin:
         sx, sy = (abs(v) or 1.0 for v in self._pal_scale)
         dx, dy = self._pupil_look
         item_iter = iter(self._eye_fx_items)
-        for bounds, prims in zip(self._pupil_bounds.values(), per_eye):
+        for bounds, prims in zip(self._pupil_bounds.values(), per_eye, strict=False):
             if prims is None:
                 continue
             b = self._actor_oval_bounds(bounds, dx=dx, dy=dy)

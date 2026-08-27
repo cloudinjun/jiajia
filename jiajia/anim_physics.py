@@ -241,9 +241,9 @@ class ExpressionTweener:
         target_right: tuple[float, float, float],
     ) -> None:
         n = self.tween_frames
-        for ch, s, e in zip(self._brow_left, current_left, target_left):
+        for ch, s, e in zip(self._brow_left, current_left, target_left, strict=False):
             ch.start, ch.end, ch.frame, ch.total_frames = s, e, 0, n
-        for ch, s, e in zip(self._brow_right, current_right, target_right):
+        for ch, s, e in zip(self._brow_right, current_right, target_right, strict=False):
             ch.start, ch.end, ch.frame, ch.total_frames = s, e, 0, n
 
     def transition_pupils(
@@ -252,7 +252,7 @@ class ExpressionTweener:
         target: tuple[float, float, float],
     ) -> None:
         n = self.tween_frames
-        for ch, s, e in zip(self._pupil, current, target):
+        for ch, s, e in zip(self._pupil, current, target, strict=False):
             ch.start, ch.end, ch.frame, ch.total_frames = s, e, 0, n
 
     def tick_brows(self) -> tuple[tuple[float, float, float], tuple[float, float, float]] | None:

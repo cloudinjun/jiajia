@@ -116,7 +116,7 @@ class MoodEngine:
                 candidates.append((action, action_weight * zone_weight))
         if not candidates:
             return None
-        actions, ws = zip(*candidates)
+        actions, ws = zip(*candidates, strict=False)
         return random.choices(actions, weights=ws, k=1)[0]
 
     def micro_interval_ms(self) -> int:

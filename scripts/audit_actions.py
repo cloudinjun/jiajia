@@ -22,7 +22,6 @@ from jiajia.actions import ACTION_LABELS
 from jiajia.prop_shapes import (
     ACTION_FACE_SCRIPTS,
     ACTION_PROP_CUES,
-    build_prop_timeline,
     prop_cue_duration_ms,
 )
 
@@ -165,7 +164,7 @@ def main() -> int:
             body_ms = body_duration_ms(action)
         except Exception:
             body_ms = 0
-        motion, kind = tail_motion_for(action)
+        motion, _kind = tail_motion_for(action)
         model = tail_model(motion)
         script = ACTION_FACE_SCRIPTS.get(action, ())
         face_ms = script[-1][0] if script else 0

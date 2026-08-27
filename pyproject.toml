@@ -65,11 +65,24 @@ ignore = [
   "E501",    # long lines: keyframe tables read better wide
   "B008",    # function call in default arg: used deliberately for dataclass factories
   "SIM108",  # ternary-instead-of-if: hurts readability in pose math
+  "SIM105",  # contextlib.suppress: try/except/pass around optional imports is clearer
+  # This is a bilingual project. Full-width CJK punctuation in Chinese strings
+  # is correct, not a homoglyph mistake, and these rules flag every line of it.
+  "RUF001",
+  "RUF002",
+  "RUF003",
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["B011"]          # assert False is fine in tests
-"scripts/*" = ["B905"]        # zip without strict= in one-shot generators
+"tests/*" = ["B011", "F401"]   # assert False is fine; bare imports probe optional deps
+"scripts/*" = ["B905", "E402"]  # zip strict / sys.path setup before imports
+"eval/*" = ["E402"]           # sys.path setup before imports
+# body.py re-exports motion tables, pose helpers and geometry constants that the
+# offline GIF renderer reads as `B.<NAME>`. They look unused to a static pass
+# but removing them breaks scripts/generate_action_gifs.py. The real fix is for
+# the renderer to import from pal_motion/pal_geometry directly; until then this
+# is a known and deliberate exception rather than an oversight.
+"jiajia/body.py" = ["F401"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -92,3 +105,6 @@ files = [
 ]
 ignore_missing_imports = true
 disallow_untyped_defs = true
+# Report only on the files above. Following imports would drag the Tk
+# rendering layer back in, which is exactly the scope this excludes.
+follow_imports = "silent"

@@ -56,7 +56,7 @@ class BrainFaultInjectionTest(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def _install(self, responder) -> None:
-        def wrapped(path, payload, timeout):  # noqa: ANN001 - test seam
+        def wrapped(path, payload, timeout):
             self.calls += 1
             return responder(path, payload, timeout)
 

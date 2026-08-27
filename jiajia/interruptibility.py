@@ -105,6 +105,4 @@ def _looks_like_focused_input(activity: EarContext) -> bool:
         return False
     if activity.app_category not in {"codex", "editor", "terminal", "browser", "design"}:
         return False
-    if activity.window_switches_per_minute >= 4:
-        return False
-    return True
+    return not activity.window_switches_per_minute >= 4
