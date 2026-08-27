@@ -22,3 +22,12 @@ Thumbs.db
 
 # Generated local scratch
 .codex_tmp/
+
+# Local design exploration exports; keep them on disk, do not publish them.
+python_pal/assets/paperclip/ChatGPT Image*.png
+python_pal/assets/paperclip/Gemini_Generated_Image*.png
+python_pal/assets/paperclip/ChatGPT paperclip_pal_36_emotions_assets/
+python_pal/assets/paperclip/ChatGPT paperclip_professions_36_package/
+python_pal/assets/paperclip/ChatGPT_Pro_paperclip_paper_uses_36_package*.zip
+python_pal/assets/paperclip/ChatGpt_Pro_paperclip_draftpaper_36_uses_package*.zip
+python_pal/assets/paperclip/paperclip_pal_melting_keyframes_package.zip

@@ -70,7 +70,7 @@ Before making a repository, ZIP, screenshot, or demo public:
 
 ```powershell
 git status --short
-rg -n "(sk-|AIza|ghp_|github_pat|OPENAI_ADMIN_KEY|GEMINI_API_KEY|GOOGLE_API_KEY|ANTHROPIC|password|secret|token)" -S .
+git grep -n -E "sk-|AIza|ghp_|github_pat|OPENAI_ADMIN_KEY=|GEMINI_API_KEY=|GOOGLE_API_KEY=|ANTHROPIC_API_KEY="
 ```
 
 Review any match before publishing.

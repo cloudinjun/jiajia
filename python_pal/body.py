@@ -76,6 +76,9 @@ from .pal_geometry import (  # re-exported: scripts and mixins read these here
     _source_point,
 )
 from .pal_actions import ActionMixin
+from .pal_decor import AppearanceState, DecorMixin
+from .pal_idle import IdleMixin
+from .pal_panels import PanelMixin
 from .pal_canvas import (
     HARDWARE_TINTS, CanvasMixin, _rounded_polygon, _rounded_rect,
     _speech_bubble, _thought_bubble,
@@ -138,15 +141,6 @@ BUBBLE_PAGE_MAX_MS = 8200
 BUBBLE_PAGE_CHAR_MS = 92
 BUBBLE_FONT = ("Microsoft YaHei UI", 11)
 THOUGHT_FONT = ("Microsoft YaHei UI", 10, "italic")
-QUIZ_FIRST_HEARTBEAT_MS = 90_000
-QUIZ_INTERVAL_MS = {
-    "quiet": 60 * 60 * 1000,
-    "normal": 30 * 60 * 1000,
-    "active": 16 * 60 * 1000,
-    "hyper": 9 * 60 * 1000,
-}
-QUIZ_DAILY_LIMIT = {"quiet": 0, "normal": 1, "active": 2, "hyper": 3}
-QUIZ_CARD_WIDTH = 360
 BubbleStyle = tuple[bool, str, str, str]
 BUBBLE_STYLES: dict[str, BubbleStyle] = {
     "speech": (False, "#fdfdfd", "#d4dee8", "#202932"),
@@ -181,13 +175,6 @@ STATUS_BADGES: dict[str, tuple[str, str, str]] = {
     "error": ("!", "#d65b4a", "triangle"),
     "sleeping": ("Z", "#a8a8a8", "circle"),
 }
-BLINK_MIN_MS = 3200
-BLINK_MAX_MS = 8200
-LOOK_MIN_MS = 1200
-LOOK_MAX_MS = 3600
-MOUSE_FOLLOW_TICK_MS = 75
-MOUSE_FOLLOW_COOLDOWN_MS = 1800
-MOUSE_FOLLOW_NEAR_RADIUS = 150
 CODEX_STATUS_POLL_MS = 2500
 CODEX_USAGE_POLL_MS = 60_000
 CLAUDE_STATUS_POLL_MS = 8000
@@ -201,9 +188,6 @@ VISION_BUSY_RETRY_MS = 5 * 60 * 1000
 LINE_BANK_FIRST_MAINTENANCE_MS = 15 * 60 * 1000
 LINE_BANK_REFRESH_MS = 6 * 60 * 60 * 1000
 LINE_BANK_BUSY_RETRY_MS = 10 * 60 * 1000
-AMBIENT_MIN_MS = 18_000
-AMBIENT_MAX_MS = 45_000
-AMBIENT_COOLDOWN_SECONDS = 50
 ActionFrame = tuple[float, float, float, float, int]
 ActionFrames = tuple[ActionFrame, ...]
 
@@ -218,27 +202,6 @@ class VisualStatePlan:
     priority: int
     interruptible: bool
     source: str
-
-
-@dataclass
-class AppearanceState:
-    costume_id: str = ""
-    phase: str = "plain"
-    language_mode: str = "zh-CN"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -306,7 +269,9 @@ class AppearanceState:
 
 
 
-class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
+class PaperclipPalApp(
+    WindowMixin, CanvasMixin, ActionMixin, DecorMixin, PanelMixin, IdleMixin,
+):
     def __init__(self, soul: Soul, project_root: Path) -> None:
         self.project_root = project_root
         self.soul = soul
@@ -871,514 +836,34 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
             pass
         self.root.destroy()
 
-    def _open_chat_input(self) -> None:
-        if self._chat_window and self._chat_window.winfo_exists():
-            self._chat_window.lift()
-            if self._chat_entry:
-                self._chat_entry.focus_set()
-            return
 
-        self._perform_action("thinking_tilt")
-        self._start_mouse_follow(1100, force=True)
-        window = tk.Toplevel(self.root)
-        self._chat_window = window
-        window.overrideredirect(True)
-        window.attributes("-topmost", True)
-        window.configure(bg="#d4dee8")
-        window.bind("<Escape>", lambda _event: self._close_chat_input())
-        window.protocol("WM_DELETE_WINDOW", self._close_chat_input)
 
-        shell = tk.Frame(window, bg="#d4dee8", padx=1, pady=1)
-        shell.pack(fill="both", expand=True)
-        inner = tk.Frame(shell, bg="#fdfdfd", padx=9, pady=8)
-        inner.pack(fill="both", expand=True)
-        entry = tk.Entry(
-            inner,
-            width=34,
-            relief="flat",
-            bd=0,
-            bg="#fdfdfd",
-            fg="#202932",
-            insertbackground="#202932",
-            font=("Microsoft YaHei UI", 10),
-        )
-        entry.pack(fill="x")
-        entry.bind("<Return>", self._submit_chat_from_entry)
-        self._chat_entry = entry
-        self._position_chat_input()
-        self._hide_window_from_taskbar(window)
-        window.deiconify()
-        window.lift()
-        entry.focus_set()
 
-    def _position_chat_input(self) -> None:
-        if not self._chat_window:
-            return
-        self.root.update_idletasks()
-        width = 286
-        height = 38
-        left, top, right, bottom = self._desktop_bounds()
-        x = self.root.winfo_x() + PAL_CENTER_X - width / 2
-        y = self.root.winfo_y() + PAL_PAD_Y + PAL_HEIGHT + 12
-        x = min(max(left + 8, x), max(left + 8, right - width - 8))
-        if y + height > bottom - 8:
-            y = self.root.winfo_y() + PAL_PAD_Y - height - 10
-        y = min(max(top + 8, y), max(top + 8, bottom - height - 8))
-        self._chat_window.geometry(_geometry_with_size(width, height, x, y))
 
-    def _submit_chat_from_entry(self, _event: tk.Event | None = None) -> None:
-        if not self._chat_entry:
-            return
-        message = self._chat_entry.get().strip()
-        self._close_chat_input()
-        self._handle_chat_message(message)
 
-    def _close_chat_input(self) -> None:
-        if self._chat_window:
-            try:
-                self._chat_window.destroy()
-            except tk.TclError:
-                pass
-        self._chat_window = None
-        self._chat_entry = None
 
-    def _load_quiz_fallbacks(self) -> None:
-        loaded = 0
-        errors: list[str] = []
-        try:
-            packets = load_quiz_packets(self.project_root / "python_pal" / "quizzes.yaml")
-        except Exception as exc:
-            self._last_quiz_debug = f"fallback load failed: {exc}"
-            return
-        for packet in packets:
-            packet_errors = validate_quiz_packet(packet)
-            if packet_errors:
-                errors.append(f"{packet.id or '<missing>'}: {'; '.join(packet_errors[:3])}")
-                continue
-            self.quiz_store.upsert_packet(packet)
-            loaded += 1
-        if errors:
-            self._last_quiz_debug = f"loaded {loaded} quiz packet(s); rejected: " + " | ".join(errors)
-        else:
-            self._last_quiz_debug = f"loaded {loaded} quiz packet(s)"
 
-    def _schedule_quiz_heartbeat(self, first: bool = False) -> None:
-        if self._quiz_after:
-            try:
-                self.root.after_cancel(self._quiz_after)
-            except tk.TclError:
-                pass
-        policy = self._activity_policy()
-        delay = QUIZ_FIRST_HEARTBEAT_MS if first else QUIZ_INTERVAL_MS.get(policy.tier, QUIZ_INTERVAL_MS["normal"])
-        self._quiz_after = self.root.after(delay, self._quiz_heartbeat)
 
-    def _quiz_heartbeat(self) -> None:
-        self._quiz_after = None
-        try:
-            pending = self.quiz_store.active_session()
-            if pending and pending.state == "completed_waiting_result":
-                self._try_show_pending_quiz_result()
-            elif self._quiz_should_offer():
-                self._offer_absurd_quiz(force=False)
-        finally:
-            self._schedule_quiz_heartbeat()
 
-    def _quiz_should_offer(self) -> bool:
-        today = date.today()
-        if today != self._quiz_offer_day:
-            self._quiz_offer_day = today
-            self._quiz_offers_today = 0
-        session = self.quiz_store.active_session()
-        if session is not None:
-            return session.state == "paused" and self._quiz_can_prompt()
-        policy = self._activity_policy()
-        daily_limit = QUIZ_DAILY_LIMIT.get(policy.tier, 1)
-        if daily_limit <= 0 or self._quiz_offers_today >= daily_limit:
-            return False
-        if not self._quiz_can_prompt():
-            return False
-        if self.quiz_store.next_packet(normalize_language(self.soul.language)) is None:
-            return False
-        interval = QUIZ_INTERVAL_MS.get(policy.tier, QUIZ_INTERVAL_MS["normal"]) / 1000
-        if time.time() - self._last_quiz_offer_at < interval:
-            return False
-        chance = {"normal": 0.18, "active": 0.36, "hyper": 0.58}.get(policy.tier, 0.0)
-        return random.random() < chance
 
-    def _quiz_can_prompt(self) -> bool:
-        return not (
-            self._auto_reactions_paused()
-            or self.state.brain_busy
-            or self._bubble_items
-            or self._quiz_window
-            or self._dragging
-            or self._large_action_running
-            or self._window_move_running
-        )
 
-    def _quiz_can_show_result(self) -> bool:
-        return self._quiz_can_prompt()
 
-    def _offer_absurd_quiz(self, force: bool = False) -> None:
-        self._load_quiz_fallbacks()
-        active_session = self.quiz_store.active_session()
-        if active_session is not None:
-            packet = self.quiz_store.get_packet(active_session.packet_id)
-            if packet is None:
-                self.quiz_store.clear_session()
-            elif active_session.state == "completed_waiting_result":
-                self._try_show_pending_quiz_result(force=force)
-                return
-            else:
-                self._show_quiz_resume_offer(packet, active_session)
-                return
 
-        packet = self.quiz_store.next_packet(normalize_language(self.soul.language))
-        if packet is None:
-            self.show_bubble("我还没有可用的小测验。题库空得很有态度。", milliseconds=3600, kind="thought")
-            return
-        if not force:
-            self._last_quiz_offer_at = time.time()
-            self._quiz_offers_today += 1
-        self._perform_action("thinking_tilt")
-        self._open_quiz_card(
-            packet.title,
-            f"{packet.subtitle}\n\n夹夹可以问你 {len(packet.questions)} 个很不严肃的问题。",
-            [
-                ("开始", lambda packet=packet: self._start_quiz(packet)),
-                ("稍后", self._dismiss_quiz_window),
-                ("今天别考我", self._dismiss_quiz_today),
-            ],
-        )
 
-    def _show_quiz_resume_offer(self, packet: QuizPacket, session: QuizSession) -> None:
-        self._open_quiz_card(
-            packet.title,
-            f"上次的小测验停在第 {session.current_index + 1} 题。它没有忘，主要是 JSON 没忘。",
-            [
-                ("继续", lambda packet=packet, session=session: self._resume_quiz(packet, session)),
-                ("重新开始", lambda packet=packet: self._start_quiz(packet)),
-                ("放弃", self._abandon_quiz),
-            ],
-        )
 
-    def _start_quiz(self, packet: QuizPacket) -> None:
-        session = QuizSession.start(packet)
-        self.quiz_store.save_session(session)
-        self._perform_action("fake_innocent")
-        self._show_quiz_question(packet, session)
 
-    def _resume_quiz(self, packet: QuizPacket, session: QuizSession) -> None:
-        session.state = "active"
-        session.updated_at = time.time()
-        self.quiz_store.save_session(session)
-        self._show_quiz_question(packet, session)
 
-    def _show_quiz_question(self, packet: QuizPacket, session: QuizSession) -> None:
-        question = current_question(packet, session)
-        if question is None:
-            self._show_quiz_result_delay(packet, session)
-            return
-        total = len(packet.questions)
-        body = f"{session.current_index + 1}/{total}\n{question.text}"
-        buttons: list[tuple[str, Callable[[], None]]] = []
-        for option in question.options:
-            label = f"{option.id.upper()}. {option.text}"
-            buttons.append((label, lambda option_id=option.id: self._handle_quiz_answer(option_id)))
-        buttons.extend(
-            [
-                ("暂停", self._pause_quiz),
-                ("放弃", self._abandon_quiz),
-            ]
-        )
-        self._open_quiz_card(packet.title, body, buttons)
 
-    def _handle_quiz_answer(self, option_id: str) -> None:
-        session = self.quiz_store.active_session()
-        if session is None:
-            self._dismiss_quiz_window()
-            return
-        packet = self.quiz_store.get_packet(session.packet_id)
-        if packet is None:
-            self.quiz_store.clear_session()
-            self._dismiss_quiz_window()
-            return
-        try:
-            session = record_answer(packet, session, option_id)
-        except ValueError:
-            self.show_bubble("这个选项不在题目里。夹夹暂时不接受平行宇宙答案。", milliseconds=3600, kind="thought")
-            return
-        self.quiz_store.save_session(session)
-        if session.state == "completed_waiting_result":
-            self._show_quiz_result_delay(packet, session)
-            return
-        self._show_quiz_question(packet, session)
 
-    def _pause_quiz(self) -> None:
-        session = self.quiz_store.active_session()
-        if session is not None:
-            session.state = "paused"
-            session.updated_at = time.time()
-            self.quiz_store.save_session(session)
-        self._dismiss_quiz_window()
-        self.show_bubble("先暂停。题目会待在本地 JSON 里，像一只很小的备案。", milliseconds=3600, kind="thought")
 
-    def _abandon_quiz(self) -> None:
-        self.quiz_store.clear_session()
-        self._dismiss_quiz_window()
-        self._perform_action("fake_sulk")
-        self.show_bubble("放弃成功。夹夹尊重逃生路线。", milliseconds=3200, kind="thought")
 
-    def _show_quiz_result_delay(self, packet: QuizPacket, session: QuizSession) -> None:
-        self._dismiss_quiz_window()
-        session.state = "completed_waiting_result"
-        session.updated_at = time.time()
-        self.quiz_store.save_session(session)
-        self._perform_action("thinking_tilt")
-        self.show_bubble("正在把答案塞进荒谬统计学。请稍等，它需要装得很严谨。", milliseconds=2600, kind="thought")
-        self._schedule_quiz_result_check(delay_ms=1800)
 
-    def _schedule_quiz_result_check(self, delay_ms: int = 12_000) -> None:
-        if self._quiz_result_after:
-            try:
-                self.root.after_cancel(self._quiz_result_after)
-            except tk.TclError:
-                pass
-        self._quiz_result_after = self.root.after(delay_ms, self._try_show_pending_quiz_result)
 
-    def _try_show_pending_quiz_result(self, force: bool = False) -> None:
-        self._quiz_result_after = None
-        session = self.quiz_store.active_session()
-        if session is None or session.state != "completed_waiting_result":
-            return
-        packet = self.quiz_store.get_packet(session.packet_id)
-        if packet is None:
-            self.quiz_store.clear_session()
-            return
-        if not force and not self._quiz_can_show_result():
-            self._schedule_quiz_result_check()
-            return
-        self._show_quiz_result(packet, session)
 
-    def _show_quiz_result(self, packet: QuizPacket, session: QuizSession) -> None:
-        self._quiz_result_after = None
-        scores = score_packet(packet, session.answers)
-        report = build_report(packet, scores)
-        result = report.result
-        self.quiz_store.clear_session()
-        self._perform_action(result.action or "thinking_tilt")
-        self._open_quiz_card(
-            report.title,
-            format_report(report),
-            [
-                ("收到", self._dismiss_quiz_window),
-                ("再测一次", lambda packet=packet: self._start_quiz(packet)),
-            ],
-        )
 
-    def _dismiss_quiz_today(self) -> None:
-        policy = self._activity_policy()
-        self._quiz_offers_today = QUIZ_DAILY_LIMIT.get(policy.tier, 1)
-        self._dismiss_quiz_window()
-        self.show_bubble("今天不考。夹夹把试卷折起来了，姿态很专业。", milliseconds=3200, kind="thought")
 
-    def _dismiss_quiz_window(self) -> None:
-        if self._quiz_window:
-            try:
-                self._quiz_window.destroy()
-            except tk.TclError:
-                pass
-        self._quiz_window = None
 
-    def _open_quiz_card(
-        self,
-        title: str,
-        body: str,
-        buttons: list[tuple[str, Callable[[], None]]],
-    ) -> None:
-        self._dismiss_quiz_window()
-        window = tk.Toplevel(self.root)
-        self._quiz_window = window
-        window.overrideredirect(True)
-        window.attributes("-topmost", True)
-        window.configure(bg="#d4dee8")
-        window.bind("<Escape>", lambda _event: self._dismiss_quiz_window())
-        window.protocol("WM_DELETE_WINDOW", self._dismiss_quiz_window)
 
-        shell = tk.Frame(window, bg="#d4dee8", padx=1, pady=1)
-        shell.pack(fill="both", expand=True)
-        inner = tk.Frame(shell, bg="#fdfdfd", padx=12, pady=11)
-        inner.pack(fill="both", expand=True)
-        tk.Label(
-            inner,
-            text=title,
-            bg="#fdfdfd",
-            fg="#202932",
-            anchor="w",
-            justify="left",
-            font=("Microsoft YaHei UI", 10, "bold"),
-            wraplength=QUIZ_CARD_WIDTH - 36,
-        ).pack(fill="x")
-        tk.Label(
-            inner,
-            text=body,
-            bg="#fdfdfd",
-            fg="#3a4652",
-            anchor="w",
-            justify="left",
-            font=("Microsoft YaHei UI", 9),
-            wraplength=QUIZ_CARD_WIDTH - 36,
-        ).pack(fill="x", pady=(7, 8))
-        for label, command in buttons:
-            tk.Button(
-                inner,
-                text=label,
-                command=command,
-                anchor="w",
-                justify="left",
-                relief="flat",
-                bd=0,
-                padx=9,
-                pady=5,
-                bg="#eef2f7",
-                fg="#202932",
-                activebackground="#dfe7f0",
-                activeforeground="#202932",
-                font=("Microsoft YaHei UI", 9),
-                wraplength=QUIZ_CARD_WIDTH - 54,
-            ).pack(fill="x", pady=2)
-
-        self._hide_window_from_taskbar(window)
-        self._position_quiz_window(window)
-        window.deiconify()
-        window.lift()
-
-    def _position_quiz_window(self, window: tk.Toplevel) -> None:
-        try:
-            window.update_idletasks()
-            width = QUIZ_CARD_WIDTH
-            height = min(max(190, int(window.winfo_reqheight())), 520)
-            left, top, right, bottom = self._pal_monitor_bounds()
-            x = self.root.winfo_x() + PAL_CENTER_X - width / 2
-            y = self.root.winfo_y() + PAL_PAD_Y + PAL_HEIGHT + 12
-            if y + height > bottom - 8:
-                y = self.root.winfo_y() + PAL_PAD_Y - height - 12
-            x = min(max(left + 8, x), max(left + 8, right - width - 8))
-            y = min(max(top + 8, y), max(top + 8, bottom - height - 8))
-            window.geometry(_geometry_with_size(width, height, x, y))
-        except tk.TclError:
-            return
-
-    def _handle_chat_message(self, message: str) -> None:
-        message = " ".join(message.split())
-        if not message:
-            return
-        self.chat_session.add("user", message)
-        context = self._build_chat_context()
-        command = detect_chat_command(message)
-        if self._handle_chat_command(command, context):
-            return
-        if self.state.brain_busy:
-            self.show_bubble("我还在想上一句。一个小文具同时多线程，听起来就很危险。", milliseconds=4200, kind="thought")
-            self._perform_action("thinking_tilt")
-            return
-
-        self.state.brain_busy = True
-        self._start_chat_wait_feedback()
-        history = self.chat_session.history()
-
-        def worker() -> None:
-            reaction = self.chat_brain.respond(message, context, history)
-            reaction.event = reaction.event or "chat"
-            if reaction.line:
-                self.chat_session.add("assistant", reaction.line)
-            self.queue.put(reaction)
-
-        self._chat_thread = threading.Thread(target=worker, daemon=True)
-        self._chat_thread.start()
-
-    def _handle_chat_command(self, command: str, context: dict[str, object]) -> bool:
-        if not command:
-            return False
-        if command == "quiet_30m":
-            self._quiet_for(30 * 60)
-            self.chat_session.add("assistant", "好，我折起来 30 分钟。")
-            return True
-        if command == "focus_on":
-            if not self._focus_var.get():
-                self._focus_var.set(True)
-                self._toggle_focus_mode()
-                self.chat_session.add("assistant", "专注模式开启。")
-                return True
-            reaction = Reaction(True, "已经在专注模式了。夹夹正在低存在感地盯着。", "focused", "blink", "thought", "quiet_companion", event="chat_focus_on")
-            self.chat_session.add("assistant", reaction.line)
-            self._apply_reaction(reaction)
-            return True
-        if command == "focus_off":
-            if self._focus_var.get():
-                self._focus_var.set(False)
-                self._toggle_focus_mode()
-                self.chat_session.add("assistant", "专注模式关闭。")
-                return True
-            reaction = Reaction(True, "专注模式本来就没开。夹夹只是看起来很克制。", "innocent", "blink", "thought", "quiet_companion", event="chat_focus_off")
-            self.chat_session.add("assistant", reaction.line)
-            self._apply_reaction(reaction)
-            return True
-        if command.startswith("frequency_"):
-            label = {
-                "frequency_quiet": "安静",
-                "frequency_normal": "正常",
-                "frequency_active": "活泼",
-                "frequency_hyper": "多动",
-            }[command]
-            self._set_frequency(label)
-            reaction = Reaction(
-                True,
-                f"活跃度切到 {label}。存在感已重新校准，听起来很正规。",
-                "smirk" if label in {"活泼", "多动"} else "innocent",
-                "happy_bounce" if label == "多动" else "blink",
-                "thought",
-                "tiny_celebrate" if label == "多动" else "quiet_companion",
-                event=f"chat_{command}",
-            )
-            self.chat_session.add("assistant", reaction.line)
-            self._apply_reaction(reaction)
-            return True
-        if command == "morning_digest":
-            line = self.event_log.digest(mark_read=False)
-            reaction = Reaction(True, line, "thinking", "scan", "speech", "suspicious_observe", event="chat_morning_digest")
-            self.chat_session.add("assistant", reaction.line)
-            self._apply_reaction(reaction)
-            return True
-
-        reaction = local_status_reaction(command, context)
-        if reaction:
-            self.chat_session.add("assistant", reaction.line)
-            self._apply_reaction(reaction)
-            return True
-        return False
-
-    def _build_chat_context(self) -> dict[str, object]:
-        world = self._world_state()
-        policy = self._activity_policy()
-        interruptibility = self._interruptibility(world)
-        context = build_chat_context(
-            world,
-            activity_mode=self._freq_var.get(),
-            activity_tier=policy.tier,
-            focus_mode=bool(self._focus_var.get()),
-            quiet_remaining_seconds=self._quiet_remaining_seconds(),
-        )
-        context.update(interruptibility.as_context())
-        context["alive"] = self.alive.as_context()
-        context["language_mode"] = normalize_language(self.soul.language)
-        context["appearance"] = {
-            "costume_id": self.appearance.costume_id,
-            "phase": self.appearance.phase,
-            "language_mode": self.appearance.language_mode,
-        }
-        self._last_chat_context_debug = json.dumps(context, ensure_ascii=False, indent=2)
-        return context
 
 
 
@@ -1446,185 +931,18 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
         else:
             self._refresh_identity_decorations()
 
-    def _sync_language_costume(self, play_enter: bool = False) -> None:
-        language = normalize_language(self.soul.language)
-        self.appearance.language_mode = language
-        if language == "en":
-            if play_enter:
-                self._enter_britclip_costume()
-            else:
-                self._equip_britclip_static()
-            return
-        if self.appearance.costume_id == "britclip":
-            if play_enter:
-                self._exit_britclip_costume()
-            else:
-                self._clear_gentleman_props()
-                self.appearance = AppearanceState(language_mode=language)
 
-    def _enter_britclip_costume(self) -> None:
-        self._clear_non_costume_decorations()
-        self._perform_action("britclip_enter")
 
-    def _exit_britclip_costume(self) -> None:
-        if self.appearance.costume_id == "britclip" or self._gentleman_prop_items:
-            self._perform_action("britclip_exit")
-            return
-        self._perform_action("micro_snap_innocent")
-        self.appearance = AppearanceState(language_mode=normalize_language(self.soul.language))
 
-    def _equip_britclip_static(self) -> None:
-        self._clear_non_costume_decorations()
-        self._clear_gentleman_props()
-        self.appearance = AppearanceState(
-            costume_id="britclip",
-            phase="equipped",
-            language_mode="en",
-        )
-        self._draw_gentleman_cane()
-        self._draw_britclip_bow_tie()
-        self._draw_bowler_hat(*self._gentleman_hat_head_anchor(), scale=1.18)
-        self._raise_face_over_costume()
-        self._set_brow_pose("proud")
-        self._set_eye_pose("side_eye")
 
-    def _redraw_costume_static(self) -> None:
-        if self.appearance.costume_id == "britclip":
-            phase = self.appearance.phase
-            self._equip_britclip_static()
-            self.appearance.phase = phase if phase != "plain" else "equipped"
 
-    def _set_identity(self, identity_id: str) -> None:
-        key = self._valid_identity_id(identity_id)
-        self._identity_var.set(key)
-        self._save_identity_setting(key)
-        if key == "auto":
-            self._active_identity_id = ""
-            self._hide_sleep_blanket()
-        self._refresh_identity_decorations()
-        if key == "auto":
-            self.show_bubble("身份切回 Auto。夹夹会按场景换班。", milliseconds=2600, kind="thought")
-            return
-        pack = self.brain.identities.get(key)
-        self._play_identity_state_cue(pack.id, pack.default_mood)
-        self.show_bubble(f"身份切到 {pack.display_name}。", milliseconds=2600, kind="thought")
 
-    def _play_identity_state_cue(self, identity_id: str, default_mood: str = "idle") -> None:
-        self._cancel_delayed_decoration_cues()
-        if identity_id != "sleepy_clip":
-            self._hide_sleep_blanket()
-        cue = IDENTITY_STATE_CUES.get(identity_id, {})
-        mood = str(cue.get("mood") or default_mood or "idle")
-        self.state.mood = mood
-        self.mood.push_mood(mood)
-        self._last_identity_idle_action_at = 0.0
-        action = str(cue.get("action") or "")
-        action_delay = 0
-        if action:
-            self._play_idle_animation(action, source="identity_switch")
-            action_delay = self._animation_duration_ms(action)
-        hold_ms = int(cue.get("hold_ms") or 3200)
-        expression_delay = max(80, action_delay + 40)
-        decoration = str(cue.get("decoration") or "")
-        if decoration:
-            self._queue_temporary_decoration(decoration, hold_ms, delay_ms=expression_delay)
-        eyes = str(cue.get("eyes") or "")
-        brows = str(cue.get("brows") or "")
-        if eyes or brows:
-            def apply_expression() -> None:
-                if brows:
-                    self._set_brow_pose(brows)
-                if eyes:
-                    self._set_eye_pose(eyes)
-                self._schedule_expression_reset(hold_ms)
 
-            self._expression_after.append(self.root.after(expression_delay, apply_expression))
-    def _current_identity_pack(self, reaction: Reaction | None = None):
-        key = self._identity_var.get()
-        if key and key != "auto":
-            return self.brain.identities.get(key)
-        if reaction is None and self._active_identity_id:
-            return self.brain.identities.get(self._active_identity_id)
-        return self.brain.identities.get(self._identity_id_for_reaction(reaction))
 
-    def _identity_id_for_reaction(self, reaction: Reaction | None = None) -> str:
-        if reaction and reaction.decision_reason:
-            match = re.search(r"\bidentity=([a-z0-9_]+)", reaction.decision_reason)
-            if match:
-                return match.group(1)
-        if self._focus_var.get() or self._quiet_remaining_seconds() > 0:
-            return "focus_companion"
-        if reaction:
-            event = (reaction.event or "").lower()
-            bubble = (reaction.bubble or "").lower()
-            if event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_"):
-                return "thermal_technician"
-            if event.startswith(("codex_usage", "claude_usage", "openai_billing", "chat_usage", "chat_claude_usage", "chat_openai_billing", "demo_usage")) or bubble.startswith("usage_"):
-                return "usage_accountant"
-            if event.startswith(("codex_", "claude_", "chat_codex", "chat_claude", "demo_codex")) or bubble.startswith(("codex_", "claude_")):
-                return "agent_supervisor"
-            if reaction.mood in {"sleepy", "sulky"}:
-                return "sleepy_clip"
-        return "default_pal"
 
-    def _refresh_identity_decorations(self, reaction: Reaction | None = None) -> None:
-        pack = self._current_identity_pack(reaction)
-        self._active_identity_id = pack.id
-        if self.appearance.costume_id == "britclip":
-            self._active_identity_addons = ()
-            self._clear_decorations("identity")
-            if pack.id != "sleepy_clip" and self._doze_stage < 2:
-                self._hide_sleep_blanket()
-            return
-        addons = tuple(addon for addon in pack.visual_addons if self.decorations.get(addon))
-        self._active_identity_addons = addons
-        self._set_decorations(addons, lifetime="identity")
-        if pack.id != "sleepy_clip" and self._doze_stage < 2:
-            self._hide_sleep_blanket()
 
-    def _set_decorations(self, decoration_ids: tuple[str, ...] | list[str], lifetime: str = "identity") -> None:
-        self._clear_decorations(lifetime)
-        for decoration_id in decoration_ids:
-            definition = self.decorations.get(decoration_id)
-            if definition:
-                self._draw_decoration(definition, lifetime=lifetime)
 
-    def _clear_non_costume_decorations(self) -> None:
-        self._cancel_delayed_decoration_cues()
-        for lifetime in ("identity", "state", "temporary"):
-            self._clear_decorations(lifetime)
-        self._active_identity_addons = ()
-        self._sleep_blanket_visible = False
 
-    def _show_temporary_decoration(self, decoration_id: str, milliseconds: int = 2600) -> None:
-        definition = self.decorations.get(decoration_id)
-        if not definition:
-            return
-        self._draw_decoration(definition, lifetime="temporary")
-        self._decoration_after.append(self.root.after(milliseconds, lambda: self._clear_decorations("temporary")))
-
-    def _queue_temporary_decoration(self, decoration_id: str, milliseconds: int = 2600, delay_ms: int = 0) -> None:
-        if delay_ms <= 0:
-            self._show_temporary_decoration(decoration_id, milliseconds)
-            return
-        holder: list[str] = []
-
-        def fire() -> None:
-            if holder and holder[0] in self._delayed_decoration_after:
-                self._delayed_decoration_after.remove(holder[0])
-            if self._large_action_running or self._window_move_running:
-                after_id = self.root.after(80, fire)
-                if holder:
-                    holder[0] = after_id
-                else:
-                    holder.append(after_id)
-                self._delayed_decoration_after.append(after_id)
-                return
-            self._show_temporary_decoration(decoration_id, milliseconds)
-
-        after_id = self.root.after(delay_ms, fire)
-        holder.append(after_id)
-        self._delayed_decoration_after.append(after_id)
 
     def _queue_sleep_blanket(self, delay_ms: int = 9000) -> None:
         holder: list[str] = []
@@ -1639,124 +957,21 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
         holder.append(after_id)
         self._delayed_decoration_after.append(after_id)
 
-    def _show_sleep_blanket(self) -> None:
-        if self._sleep_blanket_visible:
-            return
-        decoration_ids = ["draft_blanket"]
-        if self._should_show_sleep_cap():
-            decoration_ids.append("sleepy_cap")
-        self._set_decorations(decoration_ids, lifetime="state")
-        self._sleep_blanket_visible = True
 
-    def _hide_sleep_blanket(self) -> None:
-        if not self._sleep_blanket_visible:
-            return
-        self._clear_decorations("state")
-        self._sleep_blanket_visible = False
 
-    def _should_show_sleep_cap(self) -> bool:
-        hour = datetime.now().hour
-        return hour >= 22 or hour < 7
 
-    def _cancel_delayed_decoration_cues(self) -> None:
-        for after_id in self._delayed_decoration_after:
-            try:
-                self.root.after_cancel(after_id)
-            except tk.TclError:
-                pass
-        self._delayed_decoration_after.clear()
 
-    def _clear_decorations(self, lifetime: str | None = None) -> None:
-        self._cancel_decoration_animations()
-        lifetimes = (lifetime,) if lifetime else tuple(self._decoration_items)
-        for key in lifetimes:
-            for item in self._decoration_items.get(key, []):
-                try:
-                    self.canvas.delete(item)
-                except tk.TclError:
-                    pass
-            self._decoration_items[key] = []
-            if key == "state":
-                self._sleep_blanket_visible = False
-            if key == "costume":
-                self._gentleman_prop_items.clear()
-                self._gentleman_hat_items.clear()
-        if lifetime is None or lifetime == "temporary":
-            self._clear_melt_puddle()
-            if lifetime is None:
-                self._cancel_delayed_decoration_cues()
-            if lifetime is None or lifetime == "temporary":
-                for after_id in self._decoration_after:
-                    try:
-                        self.root.after_cancel(after_id)
-                    except tk.TclError:
-                        pass
-                self._decoration_after.clear()
-        if lifetime is None:
-            self._cancel_prop_anim_after()
-            self._gentleman_prop_items.clear()
-            self._gentleman_hat_items.clear()
 
-    def _cancel_decoration_animations(self) -> None:
-        for after_id in self._decoration_anim_after:
-            try:
-                self.root.after_cancel(after_id)
-            except tk.TclError:
-                pass
-        self._decoration_anim_after.clear()
 
-    def _cancel_prop_anim_after(self, reset_body: bool = True) -> None:
-        for after_id in self._prop_anim_after:
-            try:
-                self.root.after_cancel(after_id)
-            except tk.TclError:
-                pass
-        self._prop_anim_after.clear()
-        if reset_body:
-            self._set_action_offset(0.0, 0.0)
-            self._set_pal_scale(1.0, 1.0)
 
-    def _clear_gentleman_props(self, cancel_timers: bool = True) -> None:
-        if cancel_timers:
-            self._cancel_prop_anim_after()
-        item_ids = set(self._gentleman_prop_items)
-        for item in item_ids:
-            try:
-                self.canvas.delete(item)
-            except tk.TclError:
-                pass
-        if item_ids:
-            for key, items in self._decoration_items.items():
-                self._decoration_items[key] = [item for item in items if item not in item_ids]
-        self._gentleman_prop_items.clear()
-        self._gentleman_hat_items.clear()
 
-    def _register_gentleman_props(self, items: list[int], *, hat: bool = False, lifetime: str = "costume") -> None:
-        if not items:
-            return
-        self._gentleman_prop_items.extend(items)
-        if hat:
-            self._gentleman_hat_items = list(items)
-        self._decoration_items.setdefault(lifetime, []).extend(items)
-        for item in items:
-            self.canvas.addtag_withtag("decoration", item)
-            self.canvas.addtag_withtag("gentleman_prop", item)
-        self.canvas.tag_raise("decoration")
 
 
 
     def _pal_source_point(self, x: float, y: float) -> tuple[float, float]:
         return self._actor_point(*_source_point(x, y))
 
-    def _gentleman_hat_head_anchor(self) -> tuple[float, float]:
-        return self._pal_source_point(151.0, -8.0)
 
-    def _gentleman_tail_anchor(self) -> tuple[float, float]:
-        if self.tail_wire:
-            bbox = self.canvas.bbox(self.tail_wire)
-            if bbox:
-                return (bbox[2] + 10, bbox[1] + 10)
-        return self._pal_source_point(301.0, 250.726)
 
     def _draw_bowler_hat(self, cx: float, cy: float, scale: float = 1.0) -> list[int]:
         s = scale
@@ -1771,91 +986,10 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
         self._register_gentleman_props(items, hat=True)
         return items
 
-    def _draw_gentleman_whiskers(self) -> list[int]:
-        white = "#fbfaf5"
-        mx, my = self._pal_source_point(150.0, 226.0)
-        items = [
-            self.canvas.create_line(
-                mx - 26, my - 2, mx - 13, my + 8, mx - 2, my + 2,
-                fill=white, width=7.5, smooth=True, splinesteps=10, capstyle=tk.ROUND,
-            ),
-            self.canvas.create_line(
-                mx + 3, my + 2, mx + 16, my + 8, mx + 29, my - 2,
-                fill=white, width=7.5, smooth=True, splinesteps=10, capstyle=tk.ROUND,
-            ),
-        ]
-        items.extend(
-            [
-                self.canvas.create_line(mx - 21, my - 5, mx - 2, my + 2, fill="#ebe6dd", width=2.6, smooth=True, splinesteps=10, capstyle=tk.ROUND),
-                self.canvas.create_line(mx + 3, my + 2, mx + 23, my - 5, fill="#ebe6dd", width=2.6, smooth=True, splinesteps=10, capstyle=tk.ROUND),
-            ]
-        )
-        self._register_gentleman_props(items)
-        return items
 
-    def _draw_gentleman_tie(self) -> list[int]:
-        dark = BROW
-        tie = "#8b3144"
-        tx, ty = self._pal_source_point(151.0, 309.0)
-        items = [
-            self.canvas.create_polygon(tx - 6, ty - 8, tx + 6, ty - 8, tx + 4, ty + 2, tx - 4, ty + 2, fill=dark, outline=""),
-            self.canvas.create_polygon(tx - 5, ty + 1, tx + 5, ty + 1, tx + 8, ty + 27, tx, ty + 36, tx - 8, ty + 27, fill=tie, outline=""),
-        ]
-        self._register_gentleman_props(items)
-        return items
 
-    def _draw_britclip_bow_tie(self) -> list[int]:
-        bow = "#8b3144"
-        knot = BROW
-        tx, ty = self._pal_source_point(151.0, 306.0)
-        items = [
-            self.canvas.create_polygon(
-                tx - 6, ty, tx - 27, ty - 10, tx - 25, ty + 11, tx - 6, ty + 4,
-                fill=bow, outline="",
-            ),
-            self.canvas.create_polygon(
-                tx + 6, ty, tx + 27, ty - 10, tx + 25, ty + 11, tx + 6, ty + 4,
-                fill=bow, outline="",
-            ),
-            self.canvas.create_oval(tx - 7, ty - 6, tx + 7, ty + 8, fill=knot, outline=""),
-        ]
-        self._register_gentleman_props(items)
-        return items
 
-    def _draw_gentleman_cane(self) -> list[int]:
-        cane = "#5f4540"
-        brass = "#9d7a3c"
-        cx, cy = self._pal_source_point(305.0, 336.0)
-        items = [
-            self.canvas.create_line(
-                cx + 4,
-                cy - 43,
-                cx - 13,
-                cy - 43,
-                cx - 17,
-                cy - 31,
-                cx - 6,
-                cy - 24,
-                cx + 5,
-                cy - 30,
-                fill=cane,
-                width=5.0,
-                smooth=True,
-                splinesteps=12,
-                capstyle=tk.ROUND,
-                joinstyle=tk.ROUND,
-            ),
-            self.canvas.create_line(cx + 4, cy - 31, cx + 4, cy + 57, fill=cane, width=5.0, capstyle=tk.ROUND),
-            self.canvas.create_line(cx - 4, cy + 57, cx + 12, cy + 57, fill=brass, width=3.8, capstyle=tk.ROUND),
-        ]
-        self._register_gentleman_props(items)
-        return items
 
-    def _draw_gentleman_static_props(self) -> list[int]:
-        items: list[int] = []
-        items.extend(self._draw_gentleman_cane())
-        items.extend(self._draw_britclip_bow_tie())
-        return items
 
 
     def _prop_items_center(self, items: list[int]) -> tuple[float, float] | None:
@@ -1923,504 +1057,9 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
             tick()
 
 
-    def _draw_decoration(self, definition: DecorationDefinition, lifetime: str = "identity") -> None:
-        x, y = self._decoration_anchor(definition)
-        color = definition.color
-        items: list[int] = []
-        shape = definition.shape_type
-        paper = "#fffdfd"
-        main_w = 3.4
-        detail_w = 2.1
 
-        def line(*coords: float, fill: str = color, width: float = main_w, smooth: bool = False) -> int:
-            return self.canvas.create_line(
-                *coords,
-                fill=fill,
-                width=width,
-                smooth=smooth,
-                splinesteps=10,
-                capstyle=tk.ROUND,
-                joinstyle=tk.ROUND,
-            )
 
-        def card(x1: float, y1: float, x2: float, y2: float, radius: float = 7, fill: str = paper, width: float = main_w) -> int:
-            return _rounded_rect(self.canvas, x1, y1, x2, y2, radius, fill=fill, outline=color, width=width)
 
-        if definition.asset:
-            asset_path = Path(definition.asset)
-            if not asset_path.is_absolute():
-                asset_path = self.project_root / asset_path
-            items.extend(
-                draw_svg_asset(
-                    self.canvas,
-                    asset_path,
-                    x,
-                    y,
-                    scale=max(0.1, definition.asset_scale),
-                    current_color=color,
-                )
-            )
-        elif shape == "terminal_box":
-            items.extend([
-                card(x, y + 1, x + 31, y + 23, 7),
-                self.canvas.create_oval(x + 5, y + 7, x + 8, y + 10, fill=color, outline=""),
-                line(x + 11, y + 11, x + 15, y + 14, x + 11, y + 17, width=detail_w, smooth=True),
-                line(x + 18, y + 17, x + 25, y + 17, width=detail_w),
-            ])
-        elif shape == "status_dot":
-            items.append(self.canvas.create_oval(x, y, x + 10, y + 10, fill=color, outline=paper, width=detail_w))
-        elif shape == "checklist":
-            items.extend([
-                card(x + 1, y, x + 25, y + 30, 6),
-                line(x + 6, y + 9, x + 9, y + 12, x + 15, y + 6, width=detail_w, smooth=True),
-                line(x + 6, y + 20, x + 9, y + 23, x + 15, y + 17, width=detail_w, smooth=True),
-                line(x + 16, y + 12, x + 21, y + 11, width=detail_w),
-                line(x + 16, y + 22, x + 20, y + 21, width=detail_w),
-            ])
-        elif shape == "thermometer":
-            items.extend([
-                line(x + 12, y + 7, x + 12, y + 25, fill=paper, width=8),
-                line(x + 12, y + 7, x + 12, y + 25, width=main_w),
-                self.canvas.create_oval(x + 5, y + 20, x + 19, y + 34, fill=paper, outline=color, width=main_w),
-                line(x + 12, y + 15, x + 12, y + 26, width=detail_w),
-                self.canvas.create_oval(x + 9, y + 26, x + 15, y + 32, fill=color, outline=""),
-            ])
-        elif shape in {"heat_puffs", "heat_wisps"}:
-            for x0, y0, x1, y1, x2, y2 in (
-                (0, 16, 5, 8, 2, 1),
-                (12, 18, 18, 10, 15, 3),
-                (25, 15, 30, 8, 27, 1),
-            ):
-                items.append(
-                    self.canvas.create_line(
-                        x + x0,
-                        y + y0,
-                        x + x1,
-                        y + y1,
-                        x + x2,
-                        y + y2,
-                        smooth=True,
-                        splinesteps=10,
-                        fill=color,
-                        width=detail_w,
-                        capstyle=tk.ROUND,
-                    )
-                )
-        elif shape == "ledger":
-            items.extend([
-                card(x, y + 1, x + 25, y + 29, 6),
-                line(x + 6, y + 7, x + 20, y + 6, width=detail_w),
-                line(x + 7, y + 15, x + 18, y + 14, width=detail_w),
-                line(x + 7, y + 23, x + 15, y + 22, width=detail_w),
-                line(x + 3, y + 4, x + 3, y + 25, width=detail_w),
-            ])
-        elif shape == "mini_bar":
-            percent = self._last_codex_usage_status.usage_remaining_percent
-            width = 30
-            fill_width = round((width - 7) * max(0.1, min(1.0, (percent or 38) / 100)))
-            items.extend([
-                card(x, y, x + width, y + 9, 5, width=detail_w),
-                line(x + 4, y + 4.5, x + 4 + fill_width, y + 4.5, width=3, fill=color),
-            ])
-        elif shape == "red_pen":
-            items.extend([
-                line(x + 1, y + 25, x + 10, y + 15, x + 24, y + 3, width=3, smooth=True),
-                line(x + 19, y + 2, x + 28, y - 4, width=main_w),
-                line(x + 5, y + 28, x + 16, y + 27, width=detail_w),
-            ])
-        elif shape in {"annotation_circle", "annotation_mark"}:
-            items.extend([
-                line(x + 2, y + 24, x + 16, y + 8, x + 27, y + 3, width=3, smooth=True),
-                line(x + 5, y + 30, x + 27, y + 30, width=detail_w),
-                self.canvas.create_arc(x - 4, y + 7, x + 25, y + 31, start=210, extent=95, outline=color, width=detail_w, style=tk.ARC),
-            ])
-        elif shape == "z_mark":
-            items.extend([
-                line(x, y + 4, x + 10, y + 3, x + 2, y + 13, x + 13, y + 12, width=detail_w),
-                line(x + 15, y + 1, x + 23, y, x + 17, y + 8, x + 25, y + 8, width=detail_w),
-            ])
-        elif shape == "warning":
-            items.extend([
-                self.canvas.create_oval(x + 3, y + 3, x + 23, y + 23, fill=paper, outline=color, width=main_w),
-                line(x + 13, y + 8, x + 12, y + 15, width=detail_w),
-                self.canvas.create_oval(x + 11, y + 18, x + 14, y + 21, fill=color, outline=""),
-            ])
-        elif shape == "magnifier":
-            items.extend([
-                self.canvas.create_oval(x, y, x + 17, y + 17, fill="", outline=color, width=main_w),
-                line(x + 13, y + 14, x + 23, y + 24, width=main_w),
-            ])
-        elif shape == "stamp":
-            items.extend([
-                card(x, y + 13, x + 27, y + 25, 4, fill="#fff7f5"),
-                line(x + 8, y + 13, x + 12, y + 2, x + 17, y + 2, x + 21, y + 13, width=detail_w, smooth=True),
-            ])
-        elif shape == "lock":
-            items.extend([
-                self.canvas.create_arc(x + 5, y, x + 21, y + 18, start=0, extent=180, outline=color, width=main_w, style=tk.ARC),
-                card(x + 3, y + 10, x + 24, y + 26, 5, fill="#f9f6ff"),
-            ])
-        elif shape == "tab_bar":
-            for index in range(3):
-                items.append(card(x + index * 8, y + index * 2, x + 18 + index * 8, y + 11 + index * 2, 4, fill="#f9f6ff", width=detail_w))
-        elif shape == "code_badge":
-            items.extend([
-                card(x, y, x + 30, y + 19, 6, fill="#eefbf5", width=detail_w),
-                line(x + 8, y + 7, x + 5, y + 10, x + 8, y + 13, width=detail_w, smooth=True),
-                line(x + 22, y + 7, x + 25, y + 10, x + 22, y + 13, width=detail_w, smooth=True),
-                line(x + 13, y + 14, x + 18, y + 5, width=detail_w),
-            ])
-        elif shape == "clipboard":
-            items.extend([
-                card(x + 2, y + 3, x + 27, y + 34, 5, fill="#f8fff9", width=detail_w),
-                _rounded_rect(self.canvas, x + 9, y, x + 20, y + 7, 3, fill=paper, outline=color, width=detail_w),
-                line(x + 8, y + 15, x + 11, y + 18, x + 17, y + 11, width=detail_w, smooth=True),
-                line(x + 8, y + 26, x + 21, y + 25, width=detail_w),
-            ])
-        elif shape == "coin":
-            items.extend([
-                self.canvas.create_oval(x + 1, y + 1, x + 25, y + 25, fill="#f2f7ff", outline=color, width=main_w),
-                self.canvas.create_text(x + 13, y + 13, text="$", fill=color, font=("Arial", 12, "bold")),
-            ])
-        elif shape == "clock":
-            items.extend([
-                self.canvas.create_oval(x + 1, y + 1, x + 25, y + 25, fill=paper, outline=color, width=main_w),
-                line(x + 13, y + 13, x + 13, y + 6, width=detail_w),
-                line(x + 13, y + 13, x + 19, y + 16, width=detail_w),
-            ])
-        elif shape == "moon":
-            items.extend([
-                self.canvas.create_oval(x + 1, y + 1, x + 25, y + 25, fill="#f7f8ff", outline=color, width=detail_w),
-                self.canvas.create_oval(x + 9, y - 1, x + 29, y + 23, fill=TRANSPARENT, outline=""),
-                line(x + 20, y + 24, x + 25, y + 27, width=detail_w),
-            ])
-        elif shape == "sleep_cap":
-            cap_fill = "#ECECEC"
-            brim_fill = "#F7F7F7"
-            angle = math.radians(12)
-            pivot = (x + 15, y + 18)
-
-            def rotate(px: float, py: float) -> tuple[float, float]:
-                ox, oy = pivot
-                dx = px - ox
-                dy = py - oy
-                return (
-                    ox + dx * math.cos(angle) - dy * math.sin(angle),
-                    oy + dx * math.sin(angle) + dy * math.cos(angle),
-                )
-
-            def rotated_coords(points: list[tuple[float, float]]) -> list[float]:
-                coords: list[float] = []
-                for px, py in points:
-                    rx, ry = rotate(px, py)
-                    coords.extend((rx, ry))
-                return coords
-
-            brim_left = rotate(x + 2, y + 20)
-            brim_right = rotate(x + 27, y + 20)
-            pom_x, pom_y = rotate(x + 33, y + 15)
-            items.extend([
-                self.canvas.create_polygon(
-                    *rotated_coords(
-                        [
-                            (x + 4, y + 18),
-                            (x + 13, y + 5),
-                            (x + 27, y + 9),
-                            (x + 29, y + 17),
-                            (x + 23, y + 20),
-                        ]
-                    ),
-                    fill=cap_fill,
-                    outline=color,
-                    width=main_w,
-                    smooth=True,
-                    splinesteps=10,
-                ),
-                line(*brim_left, *brim_right, fill=color, width=main_w + 7),
-                line(*brim_left, *brim_right, fill=brim_fill, width=main_w + 2),
-                self.canvas.create_oval(pom_x - 5, pom_y - 5, pom_x + 5, pom_y + 5, fill=cap_fill, outline=color, width=main_w),
-            ])
-        elif shape == "draft_blanket":
-            paper_fill = "#fffdfd"
-            line_fill = "#d7dee8"
-            fold_fill = "#f3f5f8"
-            items.extend([
-                self.canvas.create_polygon(
-                    x + 2,
-                    y + 9,
-                    x + 37,
-                    y + 4,
-                    x + 44,
-                    y + 36,
-                    x + 7,
-                    y + 42,
-                    fill=paper_fill,
-                    outline=color,
-                    width=main_w,
-                    smooth=True,
-                    splinesteps=8,
-                ),
-                self.canvas.create_polygon(
-                    x + 31,
-                    y + 5,
-                    x + 38,
-                    y + 12,
-                    x + 34,
-                    y + 16,
-                    fill=fold_fill,
-                    outline=color,
-                    width=detail_w,
-                ),
-                line(x + 9, y + 17, x + 31, y + 14, fill=line_fill, width=detail_w),
-                line(x + 10, y + 25, x + 36, y + 22, fill=line_fill, width=detail_w),
-                line(x + 12, y + 33, x + 28, y + 31, fill=line_fill, width=detail_w),
-            ])
-        elif shape == "paper_surfboard":
-            paper_fill = "#fff4cf"
-            line_fill = "#d7dee8"
-            items.extend([
-                self.canvas.create_polygon(
-                    x + 0, y + 18,
-                    x + 24, y + 6,
-                    x + 58, y + 7,
-                    x + 82, y + 18,
-                    x + 58, y + 30,
-                    x + 20, y + 28,
-                    fill=paper_fill,
-                    outline=color,
-                    width=main_w,
-                    smooth=True,
-                    splinesteps=10,
-                ),
-                line(x + 18, y + 19, x + 62, y + 18, fill=line_fill, width=detail_w),
-                line(x + 62, y + 7, x + 66, y + 29, fill="#7cc7e8", width=detail_w),
-            ])
-        elif shape == "paper_peek_curtain":
-            paper_fill = "#fff4cf"
-            line_fill = "#d7dee8"
-            items.extend([
-                self.canvas.create_polygon(x + 0, y + 0, x + 54, y + 2, x + 50, y + 19, x + 3, y + 20, fill=paper_fill, outline=color, width=main_w),
-                self.canvas.create_polygon(x + 2, y + 34, x + 52, y + 33, x + 56, y + 62, x + 0, y + 60, fill=paper_fill, outline=color, width=main_w),
-                line(x + 8, y + 10, x + 43, y + 9, fill=line_fill, width=detail_w),
-                line(x + 8, y + 44, x + 44, y + 43, fill=line_fill, width=detail_w),
-                line(x + 9, y + 52, x + 39, y + 51, fill=line_fill, width=detail_w),
-            ])
-        elif shape == "paper_fan":
-            paper_fill = "#fff4cf"
-            fold_fill = "#fff9df"
-            pivot = (x + 7, y + 29)
-            blades = [
-                ((x + 6, y + 29), (x + 10, y + 6), (x + 18, y + 27)),
-                ((x + 8, y + 29), (x + 24, y + 2), (x + 23, y + 29)),
-                ((x + 9, y + 30), (x + 40, y + 5), (x + 29, y + 32)),
-                ((x + 9, y + 30), (x + 53, y + 14), (x + 32, y + 35)),
-            ]
-            for index, blade in enumerate(blades):
-                coords = [coord for point in blade for coord in point]
-                items.append(self.canvas.create_polygon(*coords, fill=paper_fill if index % 2 else fold_fill, outline=color, width=detail_w))
-            for px, py in ((x + 11, y + 7), (x + 24, y + 3), (x + 40, y + 6), (x + 53, y + 15)):
-                items.append(line(*pivot, px, py, fill="#d9c783", width=detail_w))
-            items.append(self.canvas.create_oval(x + 3, y + 25, x + 12, y + 34, fill="#d9c783", outline=color, width=detail_w))
-        elif shape == "paper_whisper_fan":
-            paper_fill = "#fff4cf"
-            fold_fill = "#fff9df"
-            rib = "#d9c783"
-            pivot = (x + 30, y + 44)
-            blades = [
-                ((x + 30, y + 44), (x + 7, y + 29), (x + 15, y + 18), (x + 31, y + 36)),
-                ((x + 30, y + 44), (x + 15, y + 18), (x + 31, y + 10), (x + 35, y + 37)),
-                ((x + 30, y + 44), (x + 31, y + 10), (x + 48, y + 13), (x + 39, y + 38)),
-                ((x + 30, y + 44), (x + 48, y + 13), (x + 61, y + 26), (x + 43, y + 40)),
-            ]
-            for index, blade in enumerate(blades):
-                coords = [coord for point in blade for coord in point]
-                items.append(self.canvas.create_polygon(*coords, fill=paper_fill if index % 2 else fold_fill, outline=color, width=detail_w, smooth=True, splinesteps=8))
-            items.append(self.canvas.create_arc(x + 5, y + 9, x + 63, y + 62, start=30, extent=126, outline=color, width=main_w, style=tk.ARC))
-            for px, py in ((x + 8, y + 29), (x + 16, y + 18), (x + 31, y + 10), (x + 48, y + 13), (x + 61, y + 26)):
-                items.append(line(*pivot, px, py, fill=rib, width=detail_w))
-            items.extend([
-                self.canvas.create_oval(x + 25, y + 39, x + 35, y + 49, fill=rib, outline=color, width=detail_w),
-                line(x + 12, y + 30, x + 52, y + 24, fill="#d7dee8", width=1.4, smooth=True),
-                line(x + 17, y + 36, x + 47, y + 31, fill="#d7dee8", width=1.4, smooth=True),
-            ])
-        elif shape == "paper_oops_cover":
-            paper_fill = "#fff4cf"
-            line_fill = "#d7dee8"
-            items.extend([
-                self.canvas.create_polygon(
-                    x + 3, y + 2,
-                    x + 39, y + 0,
-                    x + 44, y + 49,
-                    x + 0, y + 51,
-                    fill=paper_fill,
-                    outline=color,
-                    width=main_w,
-                ),
-                line(x + 9, y + 13, x + 35, y + 12, fill=line_fill, width=detail_w),
-                line(x + 9, y + 23, x + 36, y + 22, fill=line_fill, width=detail_w),
-                line(x + 10, y + 33, x + 32, y + 32, fill=line_fill, width=detail_w),
-            ])
-        elif shape == "paper_tent":
-            paper_fill = "#fff4cf"
-            fold_fill = "#fff9df"
-            items.extend([
-                self.canvas.create_polygon(x + 2, y + 54, x + 28, y + 4, x + 42, y + 54, fill=fold_fill, outline=color, width=main_w),
-                self.canvas.create_polygon(x + 28, y + 4, x + 72, y + 18, x + 42, y + 54, fill=paper_fill, outline=color, width=main_w),
-                line(x + 28, y + 7, x + 28, y + 48, fill="#d7dee8", width=detail_w),
-                line(x + 44, y + 26, x + 63, y + 31, fill="#d7dee8", width=detail_w),
-            ])
-        elif shape == "paper_pillow":
-            paper_fill = "#fff4cf"
-            line_fill = "#d7dee8"
-            items.extend([
-                self.canvas.create_polygon(
-                    x + 2, y + 18,
-                    x + 19, y + 5,
-                    x + 62, y + 7,
-                    x + 76, y + 24,
-                    x + 57, y + 38,
-                    x + 13, y + 36,
-                    fill=paper_fill,
-                    outline=color,
-                    width=main_w,
-                    smooth=True,
-                    splinesteps=10,
-                ),
-                line(x + 18, y + 17, x + 58, y + 18, fill=line_fill, width=detail_w),
-                line(x + 18, y + 27, x + 54, y + 28, fill=line_fill, width=detail_w),
-            ])
-        elif shape == "paper_stage":
-            paper_fill = "#fff4cf"
-            line_fill = "#d7dee8"
-            items.extend([
-                self.canvas.create_polygon(
-                    x + 0, y + 9,
-                    x + 86, y + 8,
-                    x + 75, y + 32,
-                    x + 11, y + 34,
-                    fill=paper_fill,
-                    outline=color,
-                    width=main_w,
-                    smooth=True,
-                    splinesteps=8,
-                ),
-                line(x + 11, y + 15, x + 75, y + 14, fill=line_fill, width=detail_w),
-                line(x + 42, y + 9, x + 43, y + 33, fill="#e6d090", width=detail_w),
-                line(x + 6, y + 34, x + 80, y + 32, width=detail_w),
-            ])
-        elif shape == "bug_mark":
-            items.extend([
-                self.canvas.create_oval(x + 8, y + 7, x + 22, y + 23, fill="#fff4f4", outline=color, width=detail_w),
-                line(x + 15, y + 6, x + 15, y + 24, width=detail_w),
-                line(x + 6, y + 11, x + 1, y + 8, width=detail_w),
-                line(x + 6, y + 19, x + 1, y + 22, width=detail_w),
-                line(x + 24, y + 11, x + 30, y + 8, width=detail_w),
-                line(x + 24, y + 19, x + 30, y + 22, width=detail_w),
-            ])
-        elif shape == "palette":
-            items.extend([
-                self.canvas.create_oval(x + 1, y + 3, x + 29, y + 27, fill="#fff7f5", outline=color, width=detail_w),
-                self.canvas.create_oval(x + 17, y + 13, x + 25, y + 21, fill=paper, outline=""),
-                self.canvas.create_oval(x + 8, y + 10, x + 12, y + 14, fill="#f0b429", outline=""),
-                self.canvas.create_oval(x + 14, y + 8, x + 18, y + 12, fill="#4f7ecf", outline=""),
-                self.canvas.create_oval(x + 9, y + 17, x + 13, y + 21, fill="#42a96b", outline=""),
-            ])
-        elif shape == "tab_stack":
-            for index, fill in enumerate(("#f9f6ff", "#f2f7ff", "#fffdfd")):
-                items.append(card(x + index * 5, y + index * 5, x + 28 + index * 5, y + 16 + index * 5, 5, fill=fill, width=detail_w))
-        elif shape == "bandage":
-            items.extend([
-                _rounded_rect(self.canvas, x, y + 7, x + 35, y + 21, 7, fill="#fff7f5", outline=color, width=detail_w),
-                line(x + 10, y + 9, x + 18, y + 19, width=detail_w),
-                line(x + 18, y + 9, x + 10, y + 19, width=detail_w),
-                self.canvas.create_oval(x + 25, y + 13, x + 28, y + 16, fill=color, outline=""),
-            ])
-
-        if items:
-            decoration_scale = 1.0 if definition.asset else (1.58 if shape == "sleep_cap" else DECORATION_SCALE)
-            if decoration_scale != 1.0:
-                for item in items:
-                    self.canvas.scale(item, x, y, decoration_scale, decoration_scale)
-            self._apply_actor_transform_to_items(items)
-            for item in items:
-                self.canvas.addtag_withtag("decoration", item)
-                if shape == "sleep_cap":
-                    self.canvas.addtag_withtag("under_brow_decoration", item)
-            self._decoration_items.setdefault(lifetime, []).extend(items)
-            self.canvas.tag_raise("decoration")
-            self._animate_decoration_entrance(items, pulse=definition.pulse)
-            if self.canvas.find_withtag("under_brow_decoration"):
-                self.canvas.tag_lower("under_brow_decoration", "brow")
-                self.canvas.tag_raise("brow")
-
-    def _animate_decoration_entrance(self, items: list[int], *, pulse: bool = False) -> None:
-        bbox = self.canvas.bbox(*items)
-        if not bbox:
-            return
-        cx = (bbox[0] + bbox[2]) / 2
-        cy = (bbox[1] + bbox[3]) / 2
-        current = [0.72]
-        for item in items:
-            self.canvas.scale(item, cx, cy, current[0], current[0])
-        frames = ((1.16, 46), (0.96, 58), (1.04, 64), (1.0, 72))
-
-        def step(index: int = 0) -> None:
-            if index >= len(frames):
-                if pulse:
-                    self._animate_decoration_pulse(items, loops=3)
-                return
-            target, delay = frames[index]
-            bbox_now = self.canvas.bbox(*items)
-            if not bbox_now:
-                return
-            center_x = (bbox_now[0] + bbox_now[2]) / 2
-            center_y = (bbox_now[1] + bbox_now[3]) / 2
-            factor = target / current[0]
-            for item_id in items:
-                try:
-                    self.canvas.scale(item_id, center_x, center_y, factor, factor)
-                except tk.TclError:
-                    return
-            current[0] = target
-            self._schedule_decoration_animation(delay, lambda: step(index + 1))
-
-        step()
-
-    def _animate_decoration_pulse(self, items: list[int], *, loops: int = 2) -> None:
-        total = max(1, loops * 14)
-        current = [1.0]
-
-        def step(index: int = 0) -> None:
-            if index >= total:
-                return
-            bbox = self.canvas.bbox(*items)
-            if not bbox:
-                return
-            target = 1.0 + math.sin(index / total * loops * math.tau) * 0.055
-            factor = target / current[0]
-            cx = (bbox[0] + bbox[2]) / 2
-            cy = (bbox[1] + bbox[3]) / 2
-            for item_id in items:
-                try:
-                    self.canvas.scale(item_id, cx, cy, factor, factor)
-                except tk.TclError:
-                    return
-            current[0] = target
-            self._schedule_decoration_animation(42, lambda: step(index + 1))
-
-        step()
-
-    def _schedule_decoration_animation(self, delay_ms: int, callback: Callable[[], None]) -> None:
-        holder: list[str] = []
-
-        def fire() -> None:
-            if holder and holder[0] in self._decoration_anim_after:
-                self._decoration_anim_after.remove(holder[0])
-            callback()
-
-        after_id = self.root.after(max(0, delay_ms), fire)
-        holder.append(after_id)
-        self._decoration_anim_after.append(after_id)
 
     def _apply_actor_transform_to_items(self, items: list[int]) -> None:
         sx, sy = self._pal_scale
@@ -2438,17 +1077,6 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
 
 
 
-    def _decoration_anchor(self, definition: DecorationDefinition) -> tuple[float, float]:
-        anchors = {
-            "upper_left": (PAL_PAD_X + PAL_WIDTH * 0.04, PAL_PAD_Y + PAL_HEIGHT * 0.08),
-            "upper_right": (PAL_PAD_X + PAL_WIDTH * 0.68, PAL_PAD_Y + PAL_HEIGHT * 0.05),
-            "above_head": (PAL_PAD_X + PAL_WIDTH * 0.34, PAL_PAD_Y - 12),
-            "lower_left": (PAL_PAD_X + PAL_WIDTH * 0.06, PAL_PAD_Y + PAL_HEIGHT * 0.74),
-            "right_side": (PAL_PAD_X + PAL_WIDTH * 0.78, PAL_PAD_Y + PAL_HEIGHT * 0.38),
-            "around_character": (PAL_PAD_X - 10, PAL_PAD_Y - 6),
-        }
-        x, y = anchors.get(definition.anchor, anchors["upper_right"])
-        return x + definition.dx, y + definition.dy
 
     def _quiet_for(self, seconds: int) -> None:
         self._quiet_until = time.time() + max(1, seconds)
@@ -2556,17 +1184,8 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
     def _save_language_setting(self, language: str) -> None:
         self._save_setting("language", normalize_language(language))
 
-    def _load_identity_setting(self) -> str:
-        return self._valid_identity_id(str(self._load_settings().get("identity") or "auto"))
 
-    def _save_identity_setting(self, identity_id: str) -> None:
-        self._save_setting("identity", self._valid_identity_id(identity_id))
 
-    def _valid_identity_id(self, identity_id: str) -> str:
-        key = identity_id.strip().lower().replace("-", "_").replace(" ", "_")
-        if key == "auto":
-            return key
-        return key if key in self.brain.identities.packs else "auto"
 
     def _load_settings(self) -> dict[str, object]:
         path = self.project_root / "settings.json"
@@ -2588,50 +1207,9 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
         except Exception:
             pass
 
-    def _schedule_micro(self) -> None:
-        interval = self.mood.micro_interval_ms()
-        self._micro_after = self.root.after(interval, self._micro_tick)
 
-    def _micro_tick(self) -> None:
-        self._micro_after = None
-        if not self._large_action_running and not self.state.brain_busy and not self._dragging:
-            interruptibility = self._interruptibility()
-            if not interruptibility.allow_speech:
-                if interruptibility.allow_animation and random.random() < 0.18:
-                    self._play_idle_animation(self._pick_idle_animation(micro=True, low_stimulus=True), source="micro_quiet")
-                self._schedule_micro()
-                return
-            action = self._pick_idle_animation(micro=True)
-            if action:
-                self._play_idle_animation(action, source="micro")
-        self._schedule_micro()
 
-    def _schedule_companion(self) -> None:
-        self._companion_after = self.root.after(self.mood.companion_interval_ms(), self._companion_tick)
 
-    def _companion_tick(self) -> None:
-        self._companion_after = None
-        if not self._large_action_running and not self.state.brain_busy and not self._dragging:
-            policy = self._activity_policy()
-            interruptibility = self._interruptibility()
-            if not interruptibility.allow_speech:
-                if interruptibility.allow_animation and random.random() < 0.28:
-                    self._play_idle_animation(self._pick_idle_animation(low_stimulus=True), source="companion_quiet")
-                self._schedule_companion()
-                return
-            if random.random() < policy.mouse_follow_chance:
-                self._start_mouse_follow(random.randint(850, 1700))
-            if random.random() < policy.companion_action_chance:
-                self._play_idle_animation(self._pick_idle_animation(), source="companion")
-            if (
-                not self._bubble_items
-                and self.state.can_speak(max(8, round(self.mood.ambient_cooldown_seconds() * policy.cooldown_multiplier)))
-                and random.random() < policy.companion_chatter_chance
-            ):
-                self._ask_brain("ambient", allow_live=False)
-        self._schedule_companion()
-
-    # ── daily greeting ──────────────────────────────────────────────
 
     def _check_daily_greeting(self) -> None:
         today_str = date.today().isoformat()
@@ -2720,109 +1298,12 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
         reaction = Reaction(should_say=True, line=line, mood=mood, action=action, bubble="speech", event=event)
         self._apply_reaction(reaction)
 
-    def _pick_idle_animation(self, micro: bool = False, low_stimulus: bool = False) -> str:
-        if low_stimulus:
-            return random.choice(LOW_STIMULUS_IDLE_ACTIONS)
-
-        now = time.time()
-        pack = self._current_identity_pack()
-        candidates: list[tuple[str, float, str]] = []
-        identity_idle = pack.animations.get("idle", "")
-        if identity_idle and not micro:
-            weight = 4.0 if now - self._last_identity_idle_action_at > 45 else 1.2
-            candidates.append((identity_idle, weight, "identity_idle"))
-        for action in pack.core_animations:
-            candidates.append((action, 2.2 if not micro else 1.2, "identity_core"))
-
-        mood_action = self.mood.pick_micro_behavior()
-        if mood_action:
-            candidates.append((mood_action, 2.4, "mood"))
-        candidates.extend((action, 1.5, "common") for action in COMMON_IDLE_ACTIONS)
-
-        policy = self._activity_policy()
-        if not micro or policy.tier in {"active", "hyper"}:
-            candidates.extend((action, 0.9, "mid") for action in MID_IDLE_ACTIONS)
-        if not micro and policy.tier in {"active", "hyper"}:
-            candidates.extend((action, 0.28 if policy.tier == "active" else 0.46, "rare") for action in RARE_IDLE_ACTIONS)
-
-        usable: list[tuple[str, float, str, ResolvedAnimation]] = []
-        for name, weight, source in candidates:
-            resolved = self.animation_resolver.resolve(name)
-            if not self._idle_animation_allowed(resolved, micro=micro):
-                continue
-            if resolved.requested in self._recent_idle_actions[-5:] or resolved.action in self._recent_idle_actions[-5:]:
-                weight *= 0.35
-            if resolved.requested in self._recent_idle_actions[-2:] or resolved.action in self._recent_idle_actions[-2:]:
-                weight *= 0.18
-            if weight > 0.05:
-                usable.append((name, weight, source, resolved))
-
-        if not usable:
-            return random.choice(LOW_STIMULUS_IDLE_ACTIONS)
-        names, weights, sources, resolved_items = zip(*usable)
-        choice_index = random.choices(range(len(names)), weights=weights, k=1)[0]
-        chosen = names[choice_index]
-        resolved = resolved_items[choice_index]
-        self._last_idle_animation_debug = self._idle_animation_debug_text(chosen, sources[choice_index], resolved)
-        if sources[choice_index].startswith("identity"):
-            self._last_identity_idle_action_at = time.time()
-        return chosen
-
-    def _idle_animation_allowed(self, resolved: ResolvedAnimation, micro: bool = False) -> bool:
-        name = resolved.performance or resolved.action
-        if not name or name == "idle":
-            return True
-        now = time.time()
-        if name in LARGE_IDLE_ACTIONS and now - self._last_large_idle_action_at < (35 if micro else 60):
-            return False
-        if name in MOVE_IDLE_ACTIONS and now - self._last_move_idle_action_at < 180:
-            return False
-        if self._recent_idle_actions and self._recent_idle_actions[-1] == name:
-            return False
-        return True
-
-    def _play_idle_animation(self, name: str, source: str = "idle") -> None:
-        resolved = self.animation_resolver.resolve(name)
-        played = resolved.performance or resolved.action
-        if not played or played == "idle":
-            self._last_idle_animation_debug = self._idle_animation_debug_text(name, source, resolved)
-            return
-        if resolved.kind == "performance" and resolved.performance:
-            reaction = Reaction(False, "", self.state.mood or "idle", resolved.action or "blink", "thought", resolved.performance, event=f"idle_{source}")
-            self._run_performance_phrase(resolved.performance, reaction, state="idle")
-        else:
-            self._perform_action(resolved.action)
-        self._remember_idle_animation(played)
-        if source != "identity_switch":
-            self._queue_action_decoration_cue(resolved.action)
-        self._last_idle_animation_debug = self._idle_animation_debug_text(name, source, resolved)
-
-    def _queue_action_decoration_cue(self, action: str) -> None:
-        cue = ACTION_DECORATION_CUES.get(action)
-        if not cue:
-            return
-        decoration_id, milliseconds = cue
-        self._queue_temporary_decoration(decoration_id, milliseconds, delay_ms=self._animation_duration_ms(action) + 40)
 
 
-    def _remember_idle_animation(self, played: str) -> None:
-        self._recent_idle_actions.append(played)
-        self._recent_idle_actions = self._recent_idle_actions[-8:]
-        if played in LARGE_IDLE_ACTIONS:
-            self._last_large_idle_action_at = time.time()
-        if played in MOVE_IDLE_ACTIONS:
-            self._last_move_idle_action_at = time.time()
 
-    def _idle_animation_debug_text(self, requested: str, source: str, resolved: ResolvedAnimation) -> str:
-        return (
-            f"current_identity: {self._active_identity_id or 'default_pal'}\n"
-            f"visual_addons: {', '.join(self._active_identity_addons) or 'none'}\n"
-            f"selected_idle_animation: {requested}\n"
-            f"resolver_result: kind={resolved.kind}, action={resolved.action}, performance={resolved.performance or 'none'}\n"
-            f"fallback_reason: {resolved.fallback_reason or 'none'}\n"
-            f"source: {source}\n"
-            f"recent_idle_actions: {', '.join(self._recent_idle_actions[-8:]) or 'none'}"
-        )
+
+
+
 
     def _show_codex_status(self) -> None:
         status = self.codex_status.sample()
@@ -3056,54 +1537,8 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
             self.root.after_cancel(self._brain_wait_after)
             self._brain_wait_after = None
 
-    def _start_chat_wait_feedback(self) -> None:
-        self._stop_chat_wait_feedback(clear_bubble=False)
-        self._chat_wait_step = 0
-        self._chat_wait_started_at = time.time()
-        self._apply_alive_cue(self.alive.observe_wait("chat"))
-        self._chat_wait_tick()
 
-    def _stop_chat_wait_feedback(self, clear_bubble: bool = False) -> None:
-        if self._chat_wait_after:
-            try:
-                self.root.after_cancel(self._chat_wait_after)
-            except tk.TclError:
-                pass
-            self._chat_wait_after = None
-        self._chat_wait_step = 0
-        self._chat_wait_started_at = 0.0
-        if clear_bubble:
-            self._clear_bubble()
 
-    def _chat_wait_tick(self) -> None:
-        self._chat_wait_after = None
-        if not self.state.brain_busy:
-            return
-        elapsed = time.time() - self._chat_wait_started_at if self._chat_wait_started_at else 0.0
-        early_steps = (
-            ("收到。夹夹把这句话夹住了。", "blink", "thought", 1250),
-            ("正在折一份低隐私状态小纸条。", "scan", "thought", 1500),
-            ("正在叫醒 Ollama。本地模型起床有仪式感。", "thinking_tilt", "thought", 1750),
-            ("模型在想。夹夹先用眉毛维持连接。", "smug_sway", "thought", 1850),
-            ("正在等它吐出一句像样的话。要求不高，像样就行。", "patrol", "thought", 2100),
-        )
-        long_wait_steps = (
-            ("还在等。本地脑子正在慢慢把风格拧紧。", "sleepy_sag", "thought", 2300),
-            ("它还没回。夹夹没有失联，只是在旁边审判延迟。", "scan", "thought", 2400),
-            ("再慢一点，我就要怀疑它在给词语排队。", "thinking_tilt", "thought", 2500),
-        )
-        if self._chat_wait_step < len(early_steps):
-            line, action, bubble, delay = early_steps[self._chat_wait_step]
-        else:
-            index = (self._chat_wait_step - len(early_steps)) % len(long_wait_steps)
-            line, action, bubble, delay = long_wait_steps[index]
-            if elapsed >= 18:
-                line = f"{line} 已经 {round(elapsed)} 秒了，仪式感略多。"
-        if not self._dragging:
-            self._perform_action(action)
-        self.show_bubble(line, milliseconds=max(2400, delay + 900), kind=bubble)
-        self._chat_wait_step += 1
-        self._chat_wait_after = self.root.after(delay, self._chat_wait_tick)
 
     def _brain_wait_tick(self) -> None:
         self._brain_wait_after = None
@@ -3731,18 +2166,7 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
     def _show_alive_debug(self) -> None:
         self.show_bubble(self._last_alive_debug, milliseconds=9000, kind="thought")
 
-    def _show_identity_debug(self) -> None:
-        context = self._context("manual")
-        pack = self.brain.identities.select("manual", context)
-        mode = self._identity_var.get()
-        prefix = f"mode: {mode}\nselected: {pack.display_name}\n"
-        self.show_bubble(prefix + pack.prompt_brief(), milliseconds=7600, kind="thought")
 
-    def _show_last_chat_context(self) -> None:
-        text = self._last_chat_context_debug
-        if not text:
-            text = json.dumps(self._build_chat_context(), ensure_ascii=False, indent=2)
-        self.show_bubble(text, milliseconds=10_000, kind="thought")
 
     def _log_event(
         self,
@@ -4004,34 +2428,6 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
             self.show_bubble(reaction.line, kind=reaction.bubble)
             self.state.remember_line(reaction.line)
 
-    def _maybe_show_reaction_decoration(self, reaction: Reaction) -> None:
-        event = (reaction.event or "").lower()
-        bubble = (reaction.bubble or "").lower()
-        if event.startswith(("hardware_", "chat_hardware", "demo_hardware")) or bubble.startswith("hardware_"):
-            self._show_temporary_decoration("heat_puffs", 4200)
-            self._show_temporary_decoration("paper_fan", 3800)
-        if event.startswith(("codex_usage", "claude_usage", "openai_billing", "chat_usage", "chat_claude_usage", "chat_openai_billing", "demo_usage")) or bubble.startswith("usage_"):
-            self._show_temporary_decoration("usage_bar", 4200)
-        if "reset_soon" in event or "reset_wait" in event:
-            self._show_temporary_decoration("reset_clock", 4200)
-        if reaction.performance in {"cold_arrow_then_innocent", "roast_and_scoot"} or reaction.mood in {"smirk", "smug"}:
-            self._show_temporary_decoration("annotation_circle", 2600)
-        if reaction.action in {"hide", "oops_innocent_combo", "inner_cover_oops"} or reaction.performance in {"cold_arrow_then_innocent", "fake_innocent"}:
-            self._show_temporary_decoration("paper_oops_cover", 3200)
-        if reaction.performance == "cheesy_love_cringe":
-            self._show_temporary_decoration("paper_oops_cover", 3600)
-        if reaction.action in {"dance", "celebrate", "happy_bounce"} or reaction.performance in {"tiny_celebrate", "holding_laugh"}:
-            self._show_temporary_decoration("paper_stage", 3600)
-        if reaction.action == "flop":
-            self._show_temporary_decoration("paper_pillow", 4200)
-        if reaction.action == "peek":
-            self._show_temporary_decoration("paper_peek_curtain", 3600)
-        if reaction.mood in {"sleepy", "sulky"}:
-            self._show_temporary_decoration("z_symbol", 3200)
-        if any(key in event for key in ("error", "blocked", "critical", "overloaded")):
-            self._show_temporary_decoration("tiny_warning", 4200)
-        if any(key in event for key in ("error", "blocked", "test_failed", "crash", "exception")):
-            self._show_temporary_decoration("bug_marker", 4200)
 
     def _maybe_flash_hardware_tint(self, reaction: Reaction) -> None:
         event = (reaction.event or "").lower()
@@ -4188,99 +2584,9 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
 
 
 
-    def _run_british_gentleman_suit_up(self) -> None:
-        if self._dragging:
-            return
-        self._clear_non_costume_decorations()
-        self.appearance = AppearanceState(
-            costume_id="britclip",
-            phase="entering",
-            language_mode="en",
-        )
-        self._clear_gentleman_props()
-        self._stop_mouse_follow()
-        self._prepare_action_acting("britclip_enter")
-        self._set_eye_pose("side_eye")
-        self._set_brow_pose("proud")
-        self._prop_anim_after.append(self.root.after(1050, self._draw_britclip_bow_tie))
-        self._prop_anim_after.append(self.root.after(1750, self._draw_gentleman_cane))
-        hat_start = self._gentleman_tail_anchor()
-        hat_end = self._gentleman_hat_head_anchor()
-        hat_items = self._draw_bowler_hat(*hat_start, scale=1.22)
-        self._run_tail_motion("tail_alert_snap")
-        self._run_inner_gesture("inner_side_smirk")
-        self._run_prop_body_frames(
-            (
-                (0.0, 0.0, 1.0, 1.0, 80),
-                (-6.0, 4.0, 0.92, 1.07, 320),
-                (-10.0, 2.0, 0.89, 1.10, 720),
-                (-4.0, -1.0, 0.97, 1.03, 320),
-                (0.0, 0.0, 1.0, 1.0, 280),
-            )
-        )
-        self._animate_prop_path(
-            hat_items,
-            hat_end,
-            control=(hat_end[0] + 48, hat_end[1] - 62),
-            duration_ms=850,
-            delay_ms=300,
-            on_done=lambda: (self._run_tail_motion("tail_smug_sway"), self._raise_face_over_costume()),
-        )
-        self._prop_anim_after.append(self.root.after(1500, lambda: self._run_tail_motion("tail_smug_sway") if self._gentleman_prop_items else None))
-        self._prop_anim_after.append(self.root.after(2350, lambda: self._run_tail_motion("tail_tip_flick") if self._gentleman_prop_items else None))
-        self._prop_anim_after.append(self.root.after(2550, lambda: self._run_large_action(ACTION_FRAMES["nod"], "polite_bow")))
-        self._prop_anim_after.append(self.root.after(3100, self._finish_britclip_enter))
-        self._schedule_expression_reset(5200)
 
-    def _finish_britclip_enter(self) -> None:
-        self.appearance = AppearanceState(
-            costume_id="britclip",
-            phase="equipped",
-            language_mode="en",
-        )
-        self._raise_face_over_costume()
 
-    def _run_british_gentleman_suit_down(self) -> None:
-        if self._dragging:
-            return
-        if not self._gentleman_prop_items:
-            self.appearance = AppearanceState(language_mode=normalize_language(self.soul.language))
-            return
-        self.appearance.phase = "exiting"
-        self._stop_mouse_follow()
-        self._set_brow_pose("guilty")
-        self._set_eye_pose("round")
-        self._run_inner_gesture("inner_shy_retract")
-        self._run_tail_motion("tail_alert_snap")
-        self._run_prop_body_frames(
-            (
-                (0.0, 0.0, 1.0, 1.0, 80),
-                (-5.0, 3.0, 0.93, 1.06, 260),
-                (-8.0, 1.0, 0.90, 1.09, 520),
-                (-2.0, 0.0, 0.98, 1.02, 220),
-                (0.0, 0.0, 1.0, 1.0, 200),
-            )
-        )
-        hat_items = list(self._gentleman_hat_items)
-        if hat_items:
-            tail = self._gentleman_tail_anchor()
-            self._animate_prop_path(
-                hat_items,
-                tail,
-                control=(tail[0] + 8, min(tail[1], self._gentleman_hat_head_anchor()[1]) - 52),
-                duration_ms=1250,
-                delay_ms=180,
-                on_done=lambda: self._prop_anim_after.append(
-                    self.root.after(360, self._finish_britclip_exit)
-                ),
-            )
-        else:
-            self._prop_anim_after.append(self.root.after(900, self._finish_britclip_exit))
-        self._schedule_expression_reset(1900)
 
-    def _finish_britclip_exit(self) -> None:
-        self._clear_gentleman_props(cancel_timers=False)
-        self.appearance = AppearanceState(language_mode=normalize_language(self.soul.language))
 
     def _run_hat_tip_oops(self) -> None:
         if self._dragging:
@@ -4337,44 +2643,6 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
             self._performance_after.append(self.root.after(delay, callback))
         self._schedule_expression_reset(1400)
 
-    def _idle_tail_pose(self) -> TailPose:
-        phase = self._tail_idle_phase
-        long = self._tail_mode == "long"
-        # long tail: broader, lazier sway — the length amplifies visually
-        # short tail: tighter, snappier
-        # resting amplitudes stay small so the idle tail hugs the original
-        # silhouette; actions and moods bring the big bends
-        if long:
-            amp = 0.34 + self.mood.energy * 0.30
-            sway = (
-                math.sin(phase * 0.42) * amp
-                + math.sin(phase * 0.97) * amp * 0.18
-                + math.sin(phase * 1.73) * amp * 0.06
-            )
-            curl = math.sin(phase * 0.35) * 0.38
-        else:
-            amp = 0.20 + self.mood.energy * 0.24
-            sway = math.sin(phase * 0.72) * amp + math.sin(phase * 1.55) * amp * 0.12
-            curl = math.sin(phase * 0.48) * 0.30
-        droop = 0.0
-        tuck = 0.0
-        stiffen = 0.0
-        mood = (self.state.mood or "").lower()
-        if mood in {"smirk", "smug", "proud", "happy", "done"}:
-            sway *= 1.45 if not long else 1.2
-            curl += 1.4 if not long else 1.2
-        elif mood in {"sleepy", "bored"} or self._doze_stage >= 1:
-            sway *= 0.35 if long else 0.45
-            curl -= 0.5
-            droop = (5.0 if long else 3.4) + math.sin(phase * 0.38) * 0.6
-        elif mood in {"sulky", "guilty", "shy"}:
-            sway *= 0.45 if long else 0.55
-            curl -= 0.8
-            tuck = (3.6 if long else 2.4) + math.sin(phase * 0.5) * 0.4
-        elif mood in {"startled", "worried"}:
-            sway *= 0.75
-            stiffen = 2.4
-        return (sway, curl, droop, tuck, stiffen)
 
 
 
@@ -4504,75 +2772,9 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
             self._set_pupil_pose(*self._pupil_look, size_scale=1.0)
             self._eye_target_openness = 1.0
 
-    def _schedule_idle(self, first: bool = False) -> None:
-        if first:
-            delay = 10_000
-        else:
-            low = max(8, self.soul.idle_min_seconds)
-            high = max(low, self.soul.idle_max_seconds)
-            delay = random.randint(low, high) * 1000
-        self.root.after(delay, self._idle_tick)
 
-    def _idle_tick(self) -> None:
-        if self._doze_stage >= 2:
-            self._schedule_idle()
-            return
-        policy = self._activity_policy()
-        idle_cooldown = max(12, round(self.soul.cooldown_seconds * policy.cooldown_multiplier))
-        if (
-            not self._auto_reactions_paused()
-            and policy.ambient_enabled
-            and self.state.can_speak(idle_cooldown)
-        ):
-            context = self.ears.sample()
-            if context.idle_seconds > 75 and random.random() < 0.70:
-                self._ask_brain("bored", allow_live=False)
-            elif context.idle_seconds > 15 or random.random() < 0.35:
-                self._ask_brain("idle", allow_live=False)
-        self._schedule_idle()
 
-    def _schedule_ambient(self, first: bool = False) -> None:
-        if first:
-            delay = 12_000
-        else:
-            scaled_min = max(6_000, round(AMBIENT_MIN_MS / max(0.5, self.mood.frequency_multiplier)))
-            scaled_max = max(scaled_min + 1_000, round(AMBIENT_MAX_MS / max(0.5, self.mood.frequency_multiplier)))
-            delay = random.randint(scaled_min, scaled_max)
-        self.root.after(delay, self._ambient_tick)
 
-    def _ambient_tick(self) -> None:
-        interruptibility = self._interruptibility()
-        if not interruptibility.allow_speech:
-            self.decision.last_decision = DecisionResult(
-                False,
-                event="ambient",
-                reason=interruptibility.reason,
-                pattern="interruptibility",
-                reaction_style="silent_watch",
-                blocked_rules=[f"interruptibility:{interruptibility.mode}"],
-            )
-            if interruptibility.allow_animation and not self._dragging and not self._large_action_running:
-                self._apply_alive_cue(self.alive.observe_silence("ambient", interruptibility.reason))
-            self._schedule_ambient()
-            return
-        policy = self._activity_policy()
-        if not policy.ambient_enabled:
-            self._schedule_ambient()
-            return
-        world = self._world_state()
-        cooldown = max(
-            10,
-            round(min(AMBIENT_COOLDOWN_SECONDS, self.mood.ambient_cooldown_seconds()) * policy.cooldown_multiplier),
-        )
-        decision = self.decision.ambient_decision(
-            world,
-            cooldown_seconds=cooldown,
-            chance_multiplier=self.mood.ambient_chance_multiplier() * policy.proactive_detection,
-            bubble_visible=bool(self._bubble_items),
-        )
-        if decision.should_react:
-            self._ask_brain("ambient", world, allow_live=False)
-        self._schedule_ambient()
 
     def _animate(self) -> None:
         self._anim_tick += 1
@@ -4752,67 +2954,7 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
 
 
 
-    def _update_doze(self) -> None:
-        """Progressive doze sequence when user is idle for extended periods."""
-        now = time.time()
-        # Throttle ears.sample() — only check every ~2 seconds
-        if self._anim_tick % 60 != 0 and self._doze_stage < 3:
-            return
-        try:
-            idle_secs = self.ears.sample().idle_seconds
-        except Exception:
-            idle_secs = 0
-        if idle_secs < 30:
-            if self._doze_stage > 0:
-                if self._doze_stage >= 2:
-                    self._spring.kick_stretch(3.0)
-                    self._spring_active = True
-                    self._transition_expression("wide", "innocent", 2000)
-                    self._emit_particles("exclaim")
-                else:
-                    self._reset_expression_pose()
-                self._doze_stage = 0
-                self._hide_sleep_blanket()
-            self._last_active_time = now
-            return
-        idle_duration = now - self._last_active_time
-        if self._doze_stage == 0 and idle_duration > 120:
-            # stage 1: drowsy — eyes half-closed, brows drooping, yawn
-            self._doze_stage = 1
-            self._transition_expression("sleepy_slit", "droop", 120_000)
-            self._run_inner_gesture("inner_yawn")
-            self.set_chin_mode("sulk")
-        elif self._doze_stage == 1 and idle_duration > 240:
-            # stage 2: fully asleep — eyes closed, zzz particles
-            self._doze_stage = 2
-            self._transition_expression("closed", "droop", 600_000)
-            self.set_chin_mode("sulk")
-            self._emit_particles("zzz")
-            self._show_sleep_blanket()
-        elif self._doze_stage == 2:
-            # periodic zzz while sleeping
-            self._show_sleep_blanket()
-            if self._anim_tick % 300 == 0:
-                self._emit_particles("zzz")
-            if idle_secs < 10:
-                # wake up!
-                self._doze_stage = 3
-                self._doze_timer = now
-                self._spring.kick_stretch(3.0)
-                self._spring_active = True
-                self._transition_expression("wide", "innocent", 2000)
-                self._emit_particles("exclaim")
-        elif self._doze_stage == 3 and now - self._doze_timer > 2:
-            self._doze_stage = 0
-            self._last_active_time = now
-            self._hide_sleep_blanket()
 
-    def _drag_struggle(self) -> None:
-        """Small wiggle while being dragged — the pal 'struggles'."""
-        if not self._dragging:
-            return
-        self._spring.kick_squash(0.8)
-        self._spring_active = True
 
     def _emit_particles(self, preset: str = "sparkle") -> None:
         cx, cy = self._particle_anchor(preset)
@@ -4890,102 +3032,16 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
 
 
 
-    def _schedule_blink(self) -> None:
-        self.root.after(self.mood.blink_interval_ms(), self._blink_tick)
 
-    def _blink_tick(self) -> None:
-        if not self._dragging and not self._rebound_after and not self._large_action_running and not self._window_move_running:
-            self._blink()
-        self._schedule_blink()
 
-    def _schedule_look(self) -> None:
-        self.root.after(random.randint(LOOK_MIN_MS, LOOK_MAX_MS), self._look_tick)
 
-    def _look_tick(self) -> None:
-        if (
-            not self._dragging
-            and not self._is_blinking
-            and not self._rebound_after
-            and not self._large_action_running
-            and not self._window_move_running
-            and self._doze_stage < 1
-            and time.time() >= self._mouse_follow_until
-        ):
-            if self._should_start_selective_mouse_follow():
-                self._start_mouse_follow(random.randint(850, 1500))
-            elif self._maybe_secret_judge():
-                pass
-            else:
-                self._animate_look(self._pick_look_target())
-        self._schedule_look()
 
-    def _maybe_secret_judge(self) -> bool:
-        """idle 时偶尔偷偷审判用户；鼠标一靠近就瞬间装乖。"""
-        if random.random() >= 0.10:
-            return False
-        if self._is_pointer_near_pal() or self._bubble_items or self.state.brain_busy:
-            return False
-        self._secret_judge_until = time.time() + random.uniform(1.8, 3.2)
-        self._set_brow_pose("judge")
-        self._set_eye_pose("side_eye")
-        self._secret_judge_tick()
-        return True
 
-    def _secret_judge_tick(self) -> None:
-        if self._large_action_running or self._dragging or time.time() >= self._secret_judge_until:
-            self._secret_judge_until = 0.0
-            self._reset_expression_pose()
-            return
-        if self._is_pointer_near_pal():
-            # 被抓包：切回无辜的速度快得可疑，然后补一个慢眨眼。
-            self._secret_judge_until = 0.0
-            self._perform_micro_action("micro_snap_innocent")
-            self._expression_after.append(self.root.after(700, self._slow_blink))
-            return
-        self._expression_after.append(self.root.after(120, self._secret_judge_tick))
 
-    def _should_start_selective_mouse_follow(self) -> bool:
-        if time.time() < self._mouse_follow_cooldown_until:
-            return False
-        if not self._is_pointer_near_pal():
-            return False
-        if self._bubble_items and random.random() < 0.45:
-            return True
-        return random.random() < 0.35
 
-    def _start_mouse_follow(self, duration_ms: int = 1200, force: bool = False) -> None:
-        now = time.time()
-        if self._large_action_running or self._is_blinking:
-            return
-        if not force and now < self._mouse_follow_cooldown_until:
-            return
-        self._mouse_follow_until = max(self._mouse_follow_until, now + duration_ms / 1000)
-        if not self._mouse_follow_after:
-            self._mouse_follow_tick()
 
-    def _stop_mouse_follow(self) -> None:
-        if self._mouse_follow_after:
-            self.root.after_cancel(self._mouse_follow_after)
-            self._mouse_follow_after = None
-        self._mouse_follow_until = 0.0
 
-    def _mouse_follow_tick(self) -> None:
-        self._mouse_follow_after = None
-        if time.time() >= self._mouse_follow_until or self._large_action_running or self._is_blinking:
-            self._mouse_follow_cooldown_until = time.time() + MOUSE_FOLLOW_COOLDOWN_MS / 1000
-            return
-        self._look_at_pointer_now()
-        self._mouse_follow_after = self.root.after(MOUSE_FOLLOW_TICK_MS, self._mouse_follow_tick)
 
-    def _look_at_pointer_now(self) -> None:
-        if self._is_blinking or self._large_action_running:
-            return
-        dx, dy = self._pointer_look_target()
-        start_x, start_y = self._pupil_look
-        next_x = start_x + (dx - start_x) * 0.55
-        next_y = start_y + (dy - start_y) * 0.55
-        self._pupil_look = (next_x, next_y)
-        self._set_pupil_pose(next_x, next_y)
 
     def _pointer_look_target(self) -> tuple[float, float]:
         pointer_x, pointer_y = self.root.winfo_pointerxy()
@@ -4995,41 +3051,9 @@ class PaperclipPalApp(WindowMixin, CanvasMixin, ActionMixin):
         dy = _clamp((local_y - PAL_LOOK_CENTER_Y) / max(1, PAL_HEIGHT) * 7.0, -2.4, 2.4)
         return dx, dy
 
-    def _is_pointer_near_pal(self) -> bool:
-        pointer_x, pointer_y = self.root.winfo_pointerxy()
-        center_x = self.root.winfo_x() + PAL_CENTER_X
-        center_y = self.root.winfo_y() + PAL_PAD_Y + PAL_HEIGHT * 0.40
-        return math.hypot(pointer_x - center_x, pointer_y - center_y) <= MOUSE_FOLLOW_NEAR_RADIUS
 
 
-    def _pick_look_target(self) -> tuple[float, float]:
-        if self._is_pointer_near_pal() and random.random() < 0.25:
-            return self._pointer_look_target()
-        return random.uniform(-2.4, 2.4), random.uniform(-1.4, 1.8)
 
-    def _animate_look(self, target: tuple[float, float]) -> None:
-        start_x, start_y = self._pupil_look
-        target_x, target_y = target
-        steps = 8
-
-        def step(index: int = 1) -> None:
-            if time.time() < self._mouse_follow_until:
-                return
-            if index > steps:
-                self._pupil_look = (target_x, target_y)
-                if not self._is_blinking:
-                    self._set_pupil_pose(target_x, target_y)
-                return
-            t = index / steps
-            eased = 1 - (1 - t) ** 3
-            dx = start_x + (target_x - start_x) * eased
-            dy = start_y + (target_y - start_y) * eased
-            self._pupil_look = (dx, dy)
-            if not self._is_blinking:
-                self._set_pupil_pose(dx, dy)
-            self.root.after(45, lambda: step(index + 1))
-
-        step()
 
 
 
