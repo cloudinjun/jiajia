@@ -119,12 +119,17 @@ python scripts\generate_action_gifs.py
 ```text
 python_pal/
   main.py                  app entry point
-  body.py                  app orchestration
-  pal_canvas.py            Tk drawing layer
-  pal_decor.py             decoration and costume layer
-  pal_panels.py            chat and quiz panels
+  body.py                  app orchestration (mixes the layers below together)
+  pal_geometry.py          shared constants, curves and pure geometry
   pal_motion.py            keyframes and motion tables
+  pal_window.py            Win32 and window placement layer
+  pal_canvas.py            Tk drawing layer
   pal_actions.py           action dispatch and scheduling
+  pal_decor.py             decoration and costume layer
+  pal_idle.py              idle timers, gaze, blinking and dozing
+  pal_panels.py            chat and quiz panels
+  rig_pose.py              tail and inner-core pose math
+  prop_shapes.py           emotion props, face scripts and eye FX
   animations.yaml          logical states and performance phrases
   soul.yaml                personality and behavior rules
   assets/                  public runtime assets and vendor notices
