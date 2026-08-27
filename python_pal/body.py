@@ -57,6 +57,49 @@ from .quiz import (
     score_packet,
 )
 from .quiz_safety import validate_quiz_packet
+from .pal_geometry import (  # re-exported: scripts and mixins read these here
+    ANIM_TICK_MS, ANIM_TICK_SCALE, LERP_TICK_MS,
+    BODY_CURVES, BODY_MAIN_CURVES, BODY_START, BROW, CHEEK_BLUSH,
+    DECORATION_SCALE, EYE_WHITE, LEFT_BROW_CURVES, LEFT_BROW_START,
+    PAL_CANVAS_HEIGHT, PAL_CANVAS_WIDTH, PAL_CENTER_X, PAL_HEIGHT,
+    PAL_LOOK_CENTER_X, PAL_LOOK_CENTER_Y, PAL_PAD_X, PAL_PAD_Y, PAL_SCALE,
+    PAL_SCALE_CENTER_Y, PAL_SCALE_PIVOT_Y, PAL_SOURCE_HEIGHT, PAL_SOURCE_WIDTH,
+    PAL_WIDTH, PUPIL, RIGHT_BROW_CURVES, RIGHT_BROW_START,
+    TAIL_CURVES, TAIL_LONG_CURVES, TAIL_LONG_START, TAIL_SHORT_CURVES,
+    TAIL_SHORT_START, TAIL_START, TAIL_TIP_EXTENSION, TRANSPARENT, WIRE,
+    ActionFrame, ActionFrames,
+    _acting_frames, _breath_curve, _brow_pose_coords, _clamp, _ease_out_cubic,
+    _ease_out_sine, _geometry_position, _geometry_with_size,
+    _is_neutral_action_frame, _jitter_frames, _oval_bounds, _oval_center_radius,
+    _path_coords, _per_tick, _sample_cubic, _scale_coords, _smoothstep,
+    _source_point,
+)
+from .pal_canvas import (
+    HARDWARE_TINTS, CanvasMixin, _rounded_polygon, _rounded_rect,
+    _speech_bubble, _thought_bubble,
+)
+from .pal_window import (
+    GLOBAL_MOUSE_POLL_MS, PAL_HIT_MARGIN_X, PAL_HIT_MARGIN_Y, WindowMixin,
+    _WinMonitorInfo, _WinPoint, _WinRect, _button_down, _cursor_position,
+    _load_user32,
+)
+from .pal_motion import (  # re-exported: action layer + GIF renderer read these
+    ACTION_ACTING_CUES, ACTION_ANTICIPATION_FRAMES, ACTION_BODY_BEND,
+    ACTION_DECORATION_CUES, ACTION_FOLLOW_THROUGH_FRAMES, ACTION_FRAMES,
+    ACTION_INNER_GESTURES, ACTION_SELF_PARTICLES, ACTION_SHADOW_ACTIONS,
+    ACTION_TAIL_MOTIONS, BLINK_FRAMES, BODY_BEND_NEUTRAL, COMMON_IDLE_ACTIONS,
+    GUILTY_DART_SEQUENCE, IDENTITY_STATE_CUES, INNER_GESTURE_FRAMES,
+    INNER_NEUTRAL_POSE, LARGE_IDLE_ACTIONS, LOW_STIMULUS_IDLE_ACTIONS,
+    MELT_PUDDLE_HOLD_MS, MELT_RECOVERY_FRAMES, MELT_SINK_FRAMES,
+    MID_IDLE_ACTIONS, MOVE_ACTION_DURATIONS, MOVE_IDLE_ACTIONS,
+    PAPER_PROP_ACTIONS, RARE_IDLE_ACTIONS, SCAN_LOOK_HOLD_MS, SCAN_LOOK_TARGETS,
+    SLOW_BLINK_FRAMES, TAIL_HAND_POSE, TAIL_MOTION_FRAMES, TAIL_NEUTRAL_POSE,
+    TAIL_OSCILLATIONS, TAIL_POSTURES, TAIL_TIP_ENGAGE, TAIL_TIP_LAG_MS,
+    WIGGLE_FRAMES, _POSTURE_ENTER_S, _POSTURE_EXIT_S,
+    ActionActingCue, BodyBend, InnerFrame, InnerFrames, InnerPose, PaperPropCue,
+    PropFrame, PropFrames, TailFrame, TailFrames, TailPose,
+    tail_hand_pose, tail_oscillation_pose, tail_posture_pose,
+)
 from .prop_shapes import (
     ACTION_FACE_SCRIPTS,
     ACTION_PROP_CUES,
@@ -135,15 +178,6 @@ STATUS_BADGES: dict[str, tuple[str, str, str]] = {
     "error": ("!", "#d65b4a", "triangle"),
     "sleeping": ("Z", "#a8a8a8", "circle"),
 }
-HARDWARE_TINTS = {
-    "normal": WIRE,
-    "unavailable": WIRE,
-    "busy": "#aeb6c5",
-    "cooling": "#b8b8b8",
-    "warm": "#caa0a0",
-    "hot": "#d86b6b",
-    "overloaded": "#bd4343",
-}
 BLINK_MIN_MS = 3200
 BLINK_MAX_MS = 8200
 LOOK_MIN_MS = 1200
@@ -151,9 +185,6 @@ LOOK_MAX_MS = 3600
 MOUSE_FOLLOW_TICK_MS = 75
 MOUSE_FOLLOW_COOLDOWN_MS = 1800
 MOUSE_FOLLOW_NEAR_RADIUS = 150
-GLOBAL_MOUSE_POLL_MS = 24
-PAL_HIT_MARGIN_X = 70
-PAL_HIT_MARGIN_Y = 58
 CODEX_STATUS_POLL_MS = 2500
 CODEX_USAGE_POLL_MS = 60_000
 CLAUDE_STATUS_POLL_MS = 8000
@@ -161,13 +192,6 @@ CLAUDE_USAGE_POLL_MS = 120_000
 CLAUDE_ACCOUNT_USAGE_POLL_MS = 60_000
 OPENAI_BILLING_POLL_MS = 30 * 60 * 1000
 HARDWARE_STATUS_POLL_MS = 5000
-# follow-through: the tail tip plays the pose this far behind the root, so the
-# wire bends through motion instead of swinging as one rigid piece
-TAIL_TIP_LAG_MS = 130
-# body bend channel: (lean, hunch) in px at the very top of the character;
-# lean shears sideways with the feet planted, hunch>0 slumps, hunch<0 lifts
-BodyBend = tuple[float, float]
-BODY_BEND_NEUTRAL: BodyBend = (0.0, 0.0)
 VISION_FIRST_REFRESH_MS = 5 * 60 * 1000
 VISION_REFRESH_MS = 10 * 60 * 1000
 VISION_BUSY_RETRY_MS = 5 * 60 * 1000
@@ -177,31 +201,8 @@ LINE_BANK_BUSY_RETRY_MS = 10 * 60 * 1000
 AMBIENT_MIN_MS = 18_000
 AMBIENT_MAX_MS = 45_000
 AMBIENT_COOLDOWN_SECONDS = 50
-LOW_STIMULUS_IDLE_ACTIONS = ("blink", "peek", "nod", "micro_soften")
-COMMON_IDLE_ACTIONS = ("blink", "peek", "scan", "thinking_tilt", "nod", "wiggle", "tail_wag", "curious_lean")
-MID_IDLE_ACTIONS = ("stretch", "sleepy_sag", "smug_sway", "patrol", "mini_hop_shift", "shiver")
-RARE_IDLE_ACTIONS = ("twirl", "flop", "hide", "dance", "relocate_hop", "sneeze", "peekaboo", "excited_spin", "spin_jump", "moonwalk", "zoomies", "pounce", "tail_raise_excited", "tail_question_hook")
-LARGE_IDLE_ACTIONS = {"jump", "flop", "melt", "dance", "twirl", "stretch", "sleepy_sag", "sulk", "hide", "celebrate", "spin_jump", "excited_spin", "peekaboo", "sneeze"}
-ACTION_SHADOW_ACTIONS = {"jump", "happy_bounce", "celebrate", "dance", "flop", "melt", "sleepy_sag", "sulk", "startled_pop", "spin_jump", "excited_spin", "peekaboo", "sneeze", "shiver"}
-# measured from the keyframes each move action builds (distances are random,
-# the beat lengths are not)
-MOVE_ACTION_DURATIONS: dict[str, int] = {
-    "twist_scoot": 270, "mini_hop_shift": 325, "relocate_hop": 555,
-    "roast_and_scoot": 660, "retreat_to_corner": 570, "drop_in": 1030,
-    "zoomies": 930, "moonwalk": 860, "pounce": 720,
-}
-MOVE_IDLE_ACTIONS = {"twist_scoot", "mini_hop_shift", "relocate_hop", "roast_and_scoot", "retreat_to_corner", "drop_in", "zoomies", "moonwalk", "pounce"}
 ActionFrame = tuple[float, float, float, float, int]
 ActionFrames = tuple[ActionFrame, ...]
-ActionActingCue = tuple[str, str, int, bool]
-TailPose = tuple[float, float, float, float, float]
-TailFrame = tuple[float, float, float, float, float, int]
-TailFrames = tuple[TailFrame, ...]
-InnerPose = tuple[float, float, float, float]
-InnerFrame = tuple[float, float, float, float, int]
-InnerFrames = tuple[InnerFrame, ...]
-PropFrame = tuple[float, float, float, float, int]
-PropFrames = tuple[PropFrame, ...]
 
 
 @dataclass(frozen=True)
@@ -223,488 +224,20 @@ class AppearanceState:
     language_mode: str = "zh-CN"
 
 
-class PaperPropCue(TypedDict):
-    decoration: str
-    duration: int
-    eyes: str
-    brows: str
-    frames: PropFrames
-    tail: NotRequired[str]
-    inner: NotRequired[str]
 
 
-class _WinPoint(ctypes.Structure):
-    _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
 
 
-class _WinRect(ctypes.Structure):
-    _fields_ = [
-        ("left", ctypes.c_long),
-        ("top", ctypes.c_long),
-        ("right", ctypes.c_long),
-        ("bottom", ctypes.c_long),
-    ]
 
 
-class _WinMonitorInfo(ctypes.Structure):
-    _fields_ = [
-        ("cbSize", ctypes.c_ulong),
-        ("rcMonitor", _WinRect),
-        ("rcWork", _WinRect),
-        ("dwFlags", ctypes.c_ulong),
-    ]
 
 
-TAIL_NEUTRAL_POSE: TailPose = (0.0, 0.0, 0.0, 0.0, 0.0)
-INNER_NEUTRAL_POSE: InnerPose = (0.0, 0.0, 0.0, 0.0)
-ACTION_FRAMES: dict[str, ActionFrames] = {
-    # 卡通跳跃：蓄力蹲→弹射拉伸→顶点滞空漂浮→落地压扁→双段回弹 (~840ms)
-    "jump": (
-        (0, 8, 1.22, 0.72, 150),
-        (0, -42, 0.80, 1.30, 100),
-        (0, -46, 0.94, 1.08, 90),
-        (0, -44, 0.96, 1.04, 110),
-        (0, -12, 1.02, 0.98, 90),
-        (0, 7, 1.30, 0.68, 80),
-        (0, -8, 0.92, 1.10, 80),
-        (0, 3, 1.08, 0.94, 60),
-        (0, 0, 1.0, 1.0, 80),
-    ),
-    # 瘫倒：极快砸平→超长躺平→缓慢爬起
-    "flop": (
-        (0, 10, 1.12, 0.80, 50),
-        (0, 32, 1.50, 0.35, 80),
-        (0, 34, 1.52, 0.32, 500),
-        (0, 20, 1.20, 0.60, 180),
-        (0, 8, 1.08, 0.88, 120),
-        (0, 0, 1.0, 1.0, 100),
-    ),
-    # 跳舞：左右律动带下拍压扁，后半段加大幅度，最后小跳收尾 (~1150ms)
-    "dance": (
-        (-10, -8, 1.06, 0.94, 120),
-        (0, 2, 1.10, 0.92, 70),
-        (10, -8, 0.94, 1.06, 120),
-        (0, 2, 1.10, 0.92, 70),
-        (-12, -12, 1.02, 1.00, 130),
-        (0, 3, 1.12, 0.90, 70),
-        (12, -12, 0.98, 1.02, 130),
-        (0, 2, 1.08, 0.94, 70),
-        (-6, -16, 0.92, 1.10, 110),
-        (0, 4, 1.14, 0.88, 80),
-        (0, -2, 0.98, 1.03, 80),
-        (0, 0, 1.0, 1.0, 90),
-    ),
-    # 转身：微离地水平翻转，背面短暂定格，落地轻触 (~650ms)
-    "twirl": (
-        (0, -4, 0.42, 1.10, 85),
-        (0, -7, -0.42, 1.10, 85),
-        (0, -9, -1.0, 1.04, 150),
-        (0, -6, -0.42, 1.08, 85),
-        (0, -2, 0.42, 1.08, 85),
-        (0, 2, 1.06, 0.94, 70),
-        (0, 0, 1.0, 1.0, 90),
-    ),
-    # 伸懒腰：慢压→大拉伸→顶点微颤→享受停顿→弹回 (~1330ms)
-    "stretch": (
-        (0, 8, 1.14, 0.82, 180),
-        (0, -4, 0.84, 1.30, 320),
-        (0, -3, 0.83, 1.32, 140),
-        (0, -2, 0.85, 1.28, 140),
-        (0, -2, 0.88, 1.24, 260),
-        (0, 4, 1.10, 0.88, 120),
-        (0, -1, 0.96, 1.04, 90),
-        (0, 0, 1.0, 1.0, 80),
-    ),
-    # 颤抖：可读的左右摆，振幅逐渐衰减到静止 (~770ms)
-    # 半周期 65-80ms——再快就成视觉噪声了
-    "shake": (
-        (-13, -2, 1.05, 0.96, 70),
-        (13, 2, 0.95, 1.05, 70),
-        (-11, -1, 1.04, 0.97, 65),
-        (11, 1, 0.96, 1.04, 65),
-        (-8, -1, 1.03, 0.98, 70),
-        (8, 1, 0.97, 1.03, 70),
-        (-5, 0, 1.02, 0.99, 80),
-        (5, 0, 0.98, 1.02, 80),
-        (-2, 0, 1.01, 1.0, 90),
-        (0, 0, 1.0, 1.0, 110),
-    ),
-    # 开心弹跳：无蓄力直接双弹，轻快但看得清 (320ms)
-    "happy_bounce": (
-        (0, -18, 0.94, 1.08, 100),
-        (0, -4, 1.06, 0.94, 70),
-        (0, -10, 0.97, 1.04, 90),
-        (0, 0, 1.0, 1.0, 60),
-    ),
-    # 点头：纵向三次，末次最轻，撑得住举牌确认的时长 (620ms)
-    "nod": (
-        (0, 10, 1.04, 0.92, 120),
-        (0, 2, 1.0, 1.0, 80),
-        (0, 8, 1.03, 0.94, 120),
-        (0, 2, 1.0, 1.0, 80),
-        (0, 5, 1.02, 0.96, 110),
-        (0, 0, 1.0, 1.0, 110),
-    ),
-    # 歪头想事：单次歪头→长停顿（够读完自己举的问号牌）→慢回正
-    "thinking_tilt": (
-        (-6, 0, 0.92, 1.06, 180),
-        (-8, 2, 0.90, 1.08, 640),
-        (-7, 2, 0.91, 1.07, 220),
-        (-4, 1, 0.95, 1.04, 160),
-        (0, 0, 1.0, 1.0, 110),
-    ),
-    # 打盹：渐进下沉→猛醒→再沉→又醒
-    "sleepy_sag": (
-        (0, 4, 0.98, 0.96, 200),
-        (0, 12, 0.96, 0.88, 250),
-        (0, 20, 1.04, 0.78, 300),
-        (0, 6, 0.96, 0.96, 80),
-        (0, 14, 1.02, 0.84, 250),
-        (0, 4, 0.98, 0.94, 100),
-        (0, 0, 1.0, 1.0, 120),
-    ),
-    # 受惊膨胀：瞬间均匀膨大→定格（警示牌还砸在头顶）→慢缩回
-    "startled_pop": (
-        (0, -6, 1.30, 1.30, 40),
-        (0, -8, 1.28, 1.28, 280),
-        (0, -6, 1.20, 1.20, 140),
-        (0, -4, 1.12, 1.12, 130),
-        (0, -2, 1.05, 1.05, 110),
-        (0, 0, 1.0, 1.0, 90),
-    ),
-    # 得意慢摆：不对称，delay 加倍
-    "smug_sway": (
-        # 头歪开、眼锁死：先向注视方向虚晃，再倒向反侧并长停——
-        # 身体倾角与 smug_half 瞳孔(-2.8)始终反向，欠感来自这个对立。
-        (-4, 1, 0.98, 1.01, 150),
-        (9, -1, 1.03, 0.99, 240),
-        (7, 0, 1.01, 1.0, 400),
-        (3, 0, 1.0, 1.0, 160),
-        (0, 0, 1.0, 1.0, 140),
-    ),
-    # 委屈：缩向一侧+微颤+长停留（撑满头顶乌云淋雨的整场戏）
-    "sulk": (
-        (-3, 6, 0.94, 0.92, 120),
-        (-5, 14, 0.88, 0.82, 150),
-        (-6, 16, 0.86, 0.80, 100),
-        (-4, 14, 0.88, 0.82, 100),
-        (-5, 15, 0.87, 0.81, 640),
-        (-4, 14, 0.88, 0.82, 320),
-        (-2, 8, 0.94, 0.92, 170),
-        (0, 0, 1.0, 1.0, 130),
-    ),
-    # 躲藏：快速缩向右下→探头→又缩回→慢出来
-    "hide": (
-        (8, 12, 0.86, 0.82, 80),
-        (14, 24, 0.62, 0.52, 100),
-        (16, 30, 0.50, 0.40, 400),
-        (12, 22, 0.70, 0.60, 150),
-        (15, 28, 0.54, 0.44, 200),
-        (8, 14, 0.80, 0.72, 140),
-        (0, 0, 1.0, 1.0, 120),
-    ),
-    # 巡逻：匀速平移无缩放，端点停顿举镜观察
-    "patrol": (
-        (-20, 0, 1.0, 1.0, 220),
-        (-20, 0, 1.0, 1.0, 280),
-        (0, 0, 1.0, 1.0, 160),
-        (20, 0, 1.0, 1.0, 220),
-        (20, 0, 1.0, 1.0, 280),
-        (0, 0, 1.0, 1.0, 160),
-    ),
-    # 庆祝：跳高→空中左右扭三下→落地→开心补一个小跳 (~940ms)
-    "celebrate": (
-        (0, 6, 1.20, 0.78, 90),
-        (0, -36, 0.88, 1.16, 110),
-        (-10, -33, 0.92, 1.08, 100),
-        (10, -31, 1.08, 0.92, 100),
-        (-8, -33, 0.94, 1.06, 100),
-        (0, -8, 0.96, 1.04, 80),
-        (0, 5, 1.18, 0.80, 70),
-        (0, -14, 0.94, 1.08, 90),
-        (0, 3, 1.08, 0.92, 60),
-        (0, -2, 0.98, 1.02, 60),
-        (0, 0, 1.0, 1.0, 70),
-    ),
-    # 转体跳：蓄力→跳起穿越翻面→镜像顶点亮相→翻回落地压扁→回弹 (~920ms)
-    "spin_jump": (
-        (0, 8, 1.22, 0.72, 140),
-        (0, -38, 0.90, 1.16, 90),
-        (0, -48, 0.30, 1.10, 62),
-        (0, -50, -0.90, 1.06, 72),
-        (0, -46, -1.0, 1.05, 130),
-        (0, -32, -0.30, 1.06, 62),
-        (0, -16, 0.90, 1.05, 72),
-        (0, 7, 1.26, 0.72, 80),
-        (0, -4, 0.94, 1.07, 80),
-        (0, 0, 1.0, 1.0, 80),
-    ),
-    # 兴奋转圈：两次翻转但每一面都看得清→小落地→骄傲亮相 (~1120ms)
-    "excited_spin": (
-        (0, -3, 1.12, 0.92, 90),
-        (0, -6, 0.30, 1.06, 85),
-        (0, -7, -1.0, 1.02, 100),
-        (0, -6, -0.30, 1.04, 80),
-        (0, -7, 1.0, 1.02, 95),
-        (0, -6, 0.30, 1.05, 80),
-        (0, -7, -1.0, 1.02, 100),
-        (0, -4, -0.30, 1.04, 85),
-        (0, -5, 0.95, 1.06, 95),
-        (0, 3, 1.10, 0.92, 90),
-        (0, -2, 0.98, 1.03, 100),
-        (0, 0, 1.0, 1.0, 120),
-    ),
-    # 打喷嚏：仰头吸气越吸越大→猛地向前下方喷出→反弹晃两下→委屈缓神 (~1400ms)
-    "sneeze": (
-        (0, -2, 0.97, 1.04, 200),
-        (-2, -6, 0.90, 1.14, 240),
-        (-3, -8, 0.86, 1.20, 160),
-        (4, 14, 1.32, 0.66, 60),
-        (2, 6, 0.94, 1.06, 90),
-        (1, 9, 1.10, 0.88, 90),
-        (0, 3, 0.97, 1.02, 110),
-        (0, 5, 1.0, 0.96, 320),
-        (0, 0, 1.0, 1.0, 130),
-    ),
-    # 发抖：缩成一小团颤抖，振幅渐减后慢慢展开 (~940ms)
-    "shiver": (
-        (0, 4, 0.94, 0.94, 100),
-        (-4, 5, 0.93, 0.93, 60),
-        (4, 4, 0.95, 0.93, 60),
-        (-4, 5, 0.93, 0.94, 62),
-        (4, 4, 0.95, 0.93, 62),
-        (-3, 5, 0.94, 0.94, 68),
-        (3, 4, 0.95, 0.94, 68),
-        (-2, 4, 0.95, 0.95, 76),
-        (2, 4, 0.96, 0.95, 76),
-        (0, 2, 0.97, 0.97, 150),
-        (0, 0, 1.0, 1.0, 160),
-    ),
-    # 好奇探身：朝一侧倾身拉长凑近→定住观察→微调→缩回 (~1350ms)
-    "curious_lean": (
-        (4, 0, 1.03, 0.98, 130),
-        (12, -2, 1.13, 0.94, 240),
-        (14, -3, 1.15, 0.93, 520),
-        (13, -2, 1.14, 0.94, 180),
-        (6, -1, 1.06, 0.98, 150),
-        (0, 0, 1.0, 1.0, 130),
-    ),
-    # 躲猫猫：快速缩下去→憋住悬念→猛地弹出来→开心落定 (~1420ms)
-    "peekaboo": (
-        (0, 10, 1.10, 0.84, 90),
-        (0, 30, 0.72, 0.44, 110),
-        (0, 32, 0.70, 0.42, 620),
-        (0, 34, 0.76, 0.40, 120),
-        (0, -26, 0.86, 1.24, 90),
-        (0, -20, 1.0, 1.10, 140),
-        (0, 6, 1.12, 0.88, 80),
-        (0, -3, 0.97, 1.04, 80),
-        (0, 0, 1.0, 1.0, 90),
-    ),
-}
 
-IDENTITY_STATE_CUES: dict[str, dict[str, object]] = {
-    "default_pal": {"mood": "smirk", "action": "blink", "eyes": "round", "brows": "innocent", "hold_ms": 1800},
-    "task_auditor": {"mood": "suspicious", "action": "thinking_tilt", "eyes": "side_eye", "brows": "judge", "hold_ms": 3200},
-    "agent_supervisor": {"mood": "thinking", "action": "scan", "decoration": "status_dot", "eyes": "side_eye", "brows": "judge", "hold_ms": 4200},
-    "thermal_technician": {"mood": "startled", "action": "shake", "decoration": "heat_puffs", "eyes": "round", "brows": "guilty", "hold_ms": 4800},
-    "usage_accountant": {"mood": "focused", "action": "scan", "decoration": "usage_bar", "eyes": "side_eye", "brows": "soft", "hold_ms": 4400},
-    "focus_companion": {"mood": "innocent", "action": "blink", "eyes": "soft", "brows": "soft", "hold_ms": 3600},
-    "sleepy_clip": {"mood": "sleepy", "action": "sleepy_sag", "decoration": "z_symbol", "eyes": "sleepy_slit", "brows": "droop", "hold_ms": 9000},
-    "bug_coroner": {"mood": "suspicious", "action": "scan", "decoration": "tiny_warning", "eyes": "side_eye", "brows": "judge", "hold_ms": 4600},
-    "critic_clip": {"mood": "smirk", "action": "thinking_tilt", "decoration": "annotation_circle", "eyes": "side_eye", "brows": "judge", "hold_ms": 3600},
-    "tab_warden": {"mood": "suspicious", "action": "patrol", "decoration": "tab_bar", "eyes": "side_eye", "brows": "judge", "hold_ms": 4400},
-    "gremlin_clip": {"mood": "smug", "action": "smug_sway", "eyes": "side_eye", "brows": "proud", "hold_ms": 3600},
-    "meltdown_clip": {"mood": "sulky", "action": "melt", "decoration": "tiny_warning", "eyes": "peek_up", "brows": "sulk", "hold_ms": 5200},
-}
 
-ACTION_DECORATION_CUES: dict[str, tuple[str, int]] = {
-    "sleepy_sag": ("z_symbol", 4200),
-    "flop": ("paper_pillow", 4200),
-    "hide": ("paper_oops_cover", 3600),
-    "dance": ("paper_stage", 4200),
-    "celebrate": ("paper_stage", 4400),
-    "shake": ("paper_fan", 3200),
-}
 
-PAPER_PROP_ACTIONS: dict[str, PaperPropCue] = {
-    "paper_blanket": {
-        "decoration": "draft_blanket",
-        "duration": 6500,
-        "eyes": "sleepy_slit",
-        "brows": "droop",
-        "tail": "tail_sleepy_droop",
-        "inner": "inner_droop",
-        "frames": ((0, 10, 1.04, 0.86, 180), (0, 4, 1.0, 0.94, 260), (0, 0, 1.0, 1.0, 180)),
-    },
-    "paper_surfboard": {
-        "decoration": "paper_surfboard",
-        "duration": 4600,
-        "eyes": "wide",
-        "brows": "proud",
-        "tail": "tail_wag",
-        "frames": ((-8, -5, 0.96, 1.06, 170), (10, -7, 1.04, 0.98, 210), (-4, -4, 0.98, 1.02, 180), (0, 0, 1.0, 1.0, 160)),
-    },
-    "paper_peek_curtain": {
-        "decoration": "paper_peek_curtain",
-        "duration": 5200,
-        "eyes": "peek_up",
-        "brows": "guilty",
-        "tail": "tail_guilty_tuck",
-        "inner": "inner_shy_retract",
-        "frames": ((0, 2, 0.96, 0.98, 180), (0, 0, 1.0, 1.0, 220)),
-    },
-    "paper_fan": {
-        "decoration": "paper_fan",
-        "duration": 4200,
-        "eyes": "smug_half",
-        "brows": "skeptical",
-        "tail": "tail_tip_flick",
-        "frames": ((2, 0, 1.0, 1.0, 130), (-2, 0, 1.0, 1.0, 135), (1, 0, 1.0, 1.0, 125), (0, 0, 1.0, 1.0, 150)),
-    },
-    "paper_whisper_fan": {
-        "decoration": "paper_whisper_fan",
-        "duration": 5600,
-        "eyes": "smug_half",
-        "brows": "smug_arch",
-        "tail": "tail_smug_sway",
-        "inner": "inner_cover_oops",
-        "frames": ((-2, 1, 0.98, 1.02, 160), (2, -1, 1.01, 0.99, 180), (0, 0, 1.0, 1.0, 180)),
-    },
-    "paper_oops_cover": {
-        "decoration": "paper_oops_cover",
-        "duration": 4200,
-        "eyes": "guilty_round",
-        "brows": "innocent",
-        "tail": "tail_frantic_innocent",
-        "inner": "inner_cover_oops",
-        "frames": ((-3, 1, 0.98, 1.02, 120), (0, 0, 1.0, 1.0, 160)),
-    },
-    "paper_tent": {
-        "decoration": "paper_tent",
-        "duration": 5400,
-        "eyes": "peek_up",
-        "brows": "sulk",
-        "tail": "tail_guilty_tuck",
-        "inner": "inner_shy_retract",
-        "frames": ((0, 7, 0.90, 0.82, 220), (0, 3, 0.95, 0.90, 280), (0, 0, 1.0, 1.0, 220)),
-    },
-    "paper_pillow": {
-        "decoration": "paper_pillow",
-        "duration": 5200,
-        "eyes": "sleepy_slit",
-        "brows": "droop",
-        "tail": "tail_sleepy_droop",
-        "inner": "inner_droop",
-        "frames": ((-8, 15, 1.10, 0.72, 220), (-4, 8, 1.04, 0.82, 260), (0, 0, 1.0, 1.0, 220)),
-    },
-    "paper_stage": {
-        "decoration": "paper_stage",
-        "duration": 4600,
-        "eyes": "round",
-        "brows": "proud",
-        "tail": "tail_wag",
-        "frames": ((0, -10, 0.94, 1.10, 140), (0, 4, 1.08, 0.88, 110), (0, -4, 0.98, 1.04, 120), (0, 0, 1.0, 1.0, 120)),
-    },
-}
 
-ACTION_ANTICIPATION_FRAMES: dict[str, ActionFrames] = {
-    "jump": ((0, 12, 1.18, 0.70, 110),),
-    "happy_bounce": ((0, 7, 1.12, 0.82, 75),),
-    "celebrate": ((0, 8, 1.18, 0.76, 85),),
-    "flop": ((0, -5, 0.92, 1.10, 75),),
-    "dance": ((0, 5, 1.10, 0.88, 75),),
-    "twirl": ((0, 0, 1.18, 0.90, 85),),
-    "stretch": ((0, 10, 1.12, 0.80, 100),),
-    "shake": ((4, 0, 1.03, 0.98, 80),),
-    "thinking_tilt": ((4, 0, 1.03, 0.98, 90),),
-    "sleepy_sag": ((0, -4, 0.94, 1.08, 95),),
-    "startled_pop": ((0, 3, 0.86, 0.86, 65),),
-    "smug_sway": ((4, 0, 1.02, 0.98, 90),),
-    "sulk": ((2, -2, 0.98, 1.02, 60),),
-    "hide": ((-4, -2, 1.04, 1.02, 65),),
-    "patrol": ((0, 0, 0.98, 1.02, 65),),
-    "spin_jump": ((0, 11, 1.16, 0.74, 100),),
-    "excited_spin": ((0, 4, 1.10, 0.90, 80),),
-    "curious_lean": ((-3, 0, 0.98, 1.01, 90),),
-    "pounce": ((-4, 3, 1.08, 0.92, 130),),
-}
 
-ACTION_FOLLOW_THROUGH_FRAMES: dict[str, ActionFrames] = {
-    "jump": ((0, 8, 1.18, 0.78, 70), (0, -3, 0.96, 1.05, 80), (0, 0, 1.0, 1.0, 70)),
-    "happy_bounce": ((0, 4, 1.10, 0.88, 65), (0, -2, 0.98, 1.03, 70), (0, 0, 1.0, 1.0, 70)),
-    "celebrate": ((0, 6, 1.16, 0.82, 75), (0, -4, 0.97, 1.04, 75), (0, 0, 1.0, 1.0, 75)),
-    "flop": ((0, 30, 1.34, 0.46, 160), (0, 10, 1.10, 0.82, 120), (0, 0, 1.0, 1.0, 120)),
-    "dance": ((0, -4, 0.98, 1.04, 80), (0, 0, 1.0, 1.0, 80)),
-    "twirl": ((0, -1, 0.74, 1.08, 80), (0, 0, 1.0, 1.0, 95)),
-    "stretch": ((0, -2, 0.92, 1.10, 80), (0, 5, 1.08, 0.90, 80), (0, 0, 1.0, 1.0, 90)),
-    "shake": ((-3, 0, 1.02, 0.98, 55), (0, 0, 1.0, 1.0, 70)),
-    "thinking_tilt": ((-2, 1, 0.97, 1.03, 120), (0, 0, 1.0, 1.0, 100)),
-    "sleepy_sag": ((0, 18, 1.08, 0.72, 180), (0, 4, 0.98, 0.92, 120), (0, 0, 1.0, 1.0, 120)),
-    "startled_pop": ((0, -2, 1.12, 1.12, 85), (0, 2, 0.96, 0.96, 85), (0, 0, 1.0, 1.0, 85)),
-    "smug_sway": ((-4, 0, 0.98, 1.02, 110), (0, 0, 1.0, 1.0, 100)),
-    "sulk": ((-4, 12, 0.90, 0.84, 180), (-1, 5, 0.96, 0.92, 120), (0, 0, 1.0, 1.0, 120)),
-    "hide": ((10, 16, 0.78, 0.70, 160), (3, 5, 0.92, 0.90, 130), (0, 0, 1.0, 1.0, 110)),
-    "patrol": ((0, 0, 1.02, 0.98, 70), (0, 0, 1.0, 1.0, 80)),
-    "spin_jump": ((0, 6, 1.16, 0.82, 70), (0, -3, 0.97, 1.04, 70), (0, 0, 1.0, 1.0, 70)),
-    "excited_spin": ((0, 2, 1.06, 0.95, 70), (0, 0, 1.0, 1.0, 80)),
-    "shiver": ((0, 1, 0.99, 0.99, 90), (0, 0, 1.0, 1.0, 100)),
-}
 
-ACTION_ACTING_CUES: dict[str, ActionActingCue] = {
-    "jump": ("wide", "guilty", 1400, False),
-    "happy_bounce": ("sparkle", "proud", 1700, False),
-    "celebrate": ("sparkle", "proud", 2200, False),
-    "dance": ("wide", "laugh", 1800, False),
-    "twirl": ("wide", "proud", 1600, False),
-    "stretch": ("soft", "soft", 1800, False),
-    "shake": ("wide", "guilty", 1400, False),
-    "thinking_tilt": ("curious", "curious", 2200, False),
-    "sleepy_sag": ("sleepy_slit", "droop", 3200, False),
-    "startled_pop": ("startled_dot", "panic", 1600, False),
-    "smug_sway": ("smug_half", "smug_arch", 2300, False),
-    "sulk": ("peek_up", "sulk", 2600, False),
-    "hide": ("peek_up", "guilty", 2200, False),
-    "flop": ("wide", "guilty", 1800, False),
-    "melt": ("guilty_round", "sulk", 2800, False),
-    "patrol": ("side_eye", "judge", 1700, False),
-    "scan": ("suspicious_slit", "skeptical", 1700, False),
-    "peek": ("peek_up", "soft", 1600, False),
-    "wiggle": ("wide", "guilty", 1200, False),
-    "tail_wag": ("proud", "proud", 1600, False),
-    "tail_idle_slow": ("soft", "soft", 1200, False),
-    "tail_tip_flick": ("suspicious_slit", "skeptical", 1300, False),
-    "tail_smug_sway": ("smug_half", "smug_arch", 1800, False),
-    "tail_guilty_tuck": ("guilty_round", "innocent", 1500, False),
-    "tail_sleepy_droop": ("sleepy_slit", "droop", 2100, False),
-    "tail_alert_snap": ("startled_dot", "panic", 1500, False),
-    "tail_frantic_innocent": ("innocent_round", "innocent", 1500, False),
-    "inner_cover_oops": ("innocent_round", "innocent", 1500, False),
-    "inner_side_smirk": ("smug_half", "skeptical", 1400, False),
-    "inner_shy_retract": ("guilty_round", "innocent", 1500, False),
-    "inner_droop": ("sleepy_slit", "droop", 1800, False),
-    "oops_innocent_combo": ("wide", "innocent", 1700, False),
-    "britclip_enter": ("wide", "proud", 5200, False),
-    "britclip_exit": ("guilty_round", "innocent", 2200, False),
-    "tip_hat": ("wide", "innocent", 1500, False),
-    "bow_tie_check": ("smug_half", "proud", 1500, False),
-    "cane_tap": ("side_eye", "proud", 1400, False),
-    "polite_bow": ("soft", "proud", 1400, False),
-    "british_gentleman_suit_up": ("wide", "proud", 4200, False),
-    "hat_tip_oops": ("wide", "innocent", 1500, False),
-    "roast_and_scoot": ("round", "innocent", 1700, False),
-    "retreat_to_corner": ("peek_up", "sulk", 2200, False),
-    "drop_in": ("wide", "innocent", 1600, False),
-    "spin_jump": ("sparkle", "proud", 1800, False),
-    "excited_spin": ("sparkle", "laugh", 1900, False),
-    "sneeze": ("guilty_round", "innocent", 2000, True),
-    "shiver": ("guilty_round", "sulk", 1900, False),
-    "curious_lean": ("curious", "curious", 2400, False),
-    "peekaboo": ("wide", "laugh", 2000, False),
-    "zoomies": ("sparkle", "laugh", 2000, False),
-    "moonwalk": ("smug_half", "smug_arch", 2000, False),
-    "pounce": ("suspicious_slit", "judge", 1600, False),
-}
 
 # ── tail oscillators ─────────────────────────────────────────────
 # Swinging tail motions are continuous oscillations, not keyframes: a cat's
@@ -719,75 +252,13 @@ ACTION_ACTING_CUES: dict[str, ActionActingCue] = {
 # whip. It extends into a steady carry position and only breathes — the tiny
 # sway of a hand keeping an object level.
 
-TAIL_HAND_POSE: TailPose = (2.0, 3.2, 0.0, 0.0, 1.8)
 
 
-def tail_hand_pose(t_seconds: float) -> TailPose:
-    """Steady carry pose with a gentle keeping-it-level micro-sway."""
-    s = math.sin(t_seconds * 2.4) * 0.9 + math.sin(t_seconds * 1.1) * 0.4
-    return (
-        TAIL_HAND_POSE[0] + s,
-        TAIL_HAND_POSE[1] + s * 0.2,
-        TAIL_HAND_POSE[2],
-        TAIL_HAND_POSE[3],
-        TAIL_HAND_POSE[4],
-    )
 
 
-# "wave": spatial frequency in π units along the wire. ONE bend = half a sine
-# period (π), so wave 1.0 ≈ a single C-curve and ~1.35 lets an S flash through
-# at speed — never more. A real cat tops out at one S even when lashing; the
-# tip-lag follow-through already adds its own hint of extra curvature.
-# "engage": (start, full) arc-length progress where the swing participates.
-# Omitted = whole tail swings from the shoulder. A tip motion — ringing a
-# bell, flicking at something — moves from the wrist out and leaves the rest
-# of the wire standing still.
-TAIL_TIP_ENGAGE = (0.58, 0.95)
-
-TAIL_OSCILLATIONS: dict[str, dict[str, object]] = {
-    "tail_wag": {"freq": 2.4, "amp": 13.0, "cycles": 3.5, "attack": 0.16, "decay": 0.28, "curl": 1.6, "wave": 1.15},
-    "tail_smug_sway": {"freq": 0.85, "amp": 7.0, "cycles": 2.0, "attack": 0.22, "decay": 0.3, "curl": 4.5, "wave": 0.85},
-    "tail_idle_slow": {"freq": 0.5, "amp": 4.5, "cycles": 1.0, "attack": 0.3, "decay": 0.35, "curl": 1.0, "wave": 0.8},
-    # a flick is still a SWING: the whole wire carries it, the tip snaps most
-    "tail_tip_flick": {"freq": 2.6, "amp": 10.0, "cycles": 2.0, "attack": 0.12, "decay": 0.35, "curl": 2.0, "wave": 1.0},
-    "tail_frantic_innocent": {"freq": 2.9, "amp": 13.0, "cycles": 4.0, "attack": 0.12, "decay": 0.3, "wave": 1.35},
-    # ringing a bell held in the tail tip: a wrist shake, not an arm swing.
-    # amp is high because only the last ~40% of wire bends — calibrated so the
-    # tip travels ~9px (ring) / ~5px (jingle) while the rest stands still
-    "tail_bell_ring": {"freq": 3.4, "amp": 53.0, "cycles": 3.0, "attack": 0.1, "decay": 0.3, "wave": 0.7, "engage": TAIL_TIP_ENGAGE},
-    "tail_bell_jingle": {"freq": 1.1, "amp": 29.0, "cycles": 1.5, "attack": 0.25, "decay": 0.35, "wave": 0.7, "engage": TAIL_TIP_ENGAGE},
-}
 
 
-def tail_oscillation_pose(params: dict[str, object], t_seconds: float, duration_override: float = 0.0):
-    """Sample a tail oscillation at time t.
 
-    Returns (sway_envelope, curl, droop, tuck, stiffen, phase) — the sway
-    value is the ENVELOPE amplitude; the time phase feeds posed_tail_points'
-    s_phase so the spatial wave and the swing are one traveling wave.
-    Returns None when the oscillation has finished.
-    """
-    freq = float(params["freq"])
-    duration = duration_override or float(params["cycles"]) / freq
-    if t_seconds >= duration:
-        return None
-    attack = max(0.05, float(params.get("attack", 0.2))) * duration
-    decay = max(0.05, float(params.get("decay", 0.3))) * duration
-    if t_seconds < attack:
-        env = _smoothstep(t_seconds / attack)
-    elif t_seconds > duration - decay:
-        env = _smoothstep((duration - t_seconds) / decay)
-    else:
-        env = 1.0
-    phase = -2.0 * math.pi * freq * t_seconds  # wave travels root → tip
-    return (
-        float(params["amp"]) * env,
-        float(params.get("curl", 0.0)) * env,
-        float(params.get("droop", 0.0)) * env,
-        float(params.get("tuck", 0.0)) * env,
-        float(params.get("stiffen", 0.0)) * env,
-        phase,
-    )
 
 
 # ── tail postures ────────────────────────────────────────────────
@@ -798,299 +269,6 @@ def tail_oscillation_pose(params: dict[str, object], t_seconds: float, duration_
 #   pose: target 5-channel pose · quiver_amp/freq: tip tremble while held
 #   hold_ms: time at full pose
 
-TAIL_POSTURES: dict[str, dict[str, object]] = {
-    "tail_raise_excited": {"pose": (1.5, 2.0, 0.0, 0.0, 14.0), "quiver_amp": 1.6, "quiver_freq": 5.5, "hold_ms": 1600},
-    "tail_question_hook": {"pose": (2.0, 6.5, 0.0, 5.0, 2.0), "quiver_amp": 0.8, "quiver_freq": 1.2, "hold_ms": 1800},
-    "tail_bristle": {"pose": (0.5, 1.0, 0.0, 0.0, 11.0), "quiver_amp": 1.3, "quiver_freq": 6.5, "hold_ms": 1300},
-}
-
-_POSTURE_ENTER_S = 0.26
-_POSTURE_EXIT_S = 0.30
-
-
-def tail_posture_pose(params: dict[str, object], t_seconds: float):
-    """Sample a tail posture at time t: ease in → quivering hold → ease out.
-
-    Returns a 5-channel pose, or None when finished.
-    """
-    hold_s = float(params.get("hold_ms", 1500)) / 1000.0
-    total = _POSTURE_ENTER_S + hold_s + _POSTURE_EXIT_S
-    if t_seconds >= total:
-        return None
-    if t_seconds < _POSTURE_ENTER_S:
-        w = _smoothstep(t_seconds / _POSTURE_ENTER_S)
-    elif t_seconds > _POSTURE_ENTER_S + hold_s:
-        w = _smoothstep((total - t_seconds) / _POSTURE_EXIT_S)
-    else:
-        w = 1.0
-    pose = params["pose"]
-    quiver = (
-        float(params.get("quiver_amp", 0.0))
-        * math.sin(2.0 * math.pi * float(params.get("quiver_freq", 5.0)) * t_seconds)
-        * w
-    )
-    return (
-        pose[0] * w + quiver,
-        pose[1] * w,
-        pose[2] * w,
-        pose[3] * w,
-        pose[4] * w,
-    )
-
-
-TAIL_MOTION_FRAMES: dict[str, TailFrames] = {
-    "tail_guilty_tuck": (
-        (0, 0, 0, 0, 0, 40),
-        (-2, -3, 0, 9, 0, 150),
-        (-1, -4, 0, 12, 0, 360),
-        (2, 2, 0, 4, 0, 150),
-        (0, 0, 0, 0, 0, 180),
-    ),
-    "tail_sleepy_droop": (
-        (0, 0, 0, 0, 0, 40),
-        (-1, -2, 7, 1, 0, 280),
-        (1, -1, 13, 0, 0, 620),
-        (0, -1, 9, 0, 0, 280),
-        (0, 0, 0, 0, 0, 220),
-    ),
-    "tail_alert_snap": (
-        (0, 0, 0, 0, 0, 40),
-        (1, 4, 0, 0, 13, 70),
-        (-5, -3, 0, 0, 7, 75),
-        (3, 2, 0, 0, 4, 80),
-        (0, 0, 0, 0, 0, 160),
-    ),
-}
-
-INNER_GESTURE_FRAMES: dict[str, InnerFrames] = {
-    "inner_cover_oops": (
-        (0, 0, 0, 0, 45),
-        (5, 16, -4, 7, 95),
-        (-2, 12, 3, 8, 85),
-        (3, 15, -2, 6, 130),
-        (0, 7, 1, 4, 120),
-        (0, 0, 0, 0, 140),
-    ),
-    "inner_side_smirk": (
-        (0, 0, 0, 0, 45),
-        (10, 4, 4, -1, 120),
-        (4, 2, 2, 1, 180),
-        (0, 0, 0, 0, 150),
-    ),
-    "inner_shy_retract": (
-        (0, 0, 0, 0, 45),
-        (-8, 10, -3, 5, 120),
-        (-6, 8, -5, 8, 260),
-        (0, 3, -2, 3, 120),
-        (0, 0, 0, 0, 150),
-    ),
-    "inner_droop": (
-        (0, 0, 0, 0, 45),
-        (-1, -9, -1, -4, 220),
-        (1, -12, 1, -7, 420),
-        (0, -5, 0, -3, 180),
-        (0, 0, 0, 0, 180),
-    ),
-    # --- hand gestures ---
-    "inner_wave": (
-        (0, 0, 0, 0, 40),
-        (12, 6, 5, 2, 100),      # reach out right
-        (-10, 7, -4, 3, 110),    # sweep left
-        (11, 5, 4, 1, 105),      # sweep right
-        (-8, 6, -3, 2, 110),     # sweep left
-        (4, 3, 2, 1, 120),       # settle
-        (0, 0, 0, 0, 130),
-    ),
-    "inner_point": (
-        (0, 0, 0, 0, 40),
-        (0, 14, 0, 6, 110),      # extend upward firmly
-        (2, 16, 1, 7, 280),      # hold with micro-drift
-        (1, 12, 0, 5, 140),      # retract slightly
-        (0, 0, 0, 0, 140),
-    ),
-    "inner_facepalm": (
-        (0, 0, 0, 0, 40),
-        (3, 18, -2, 10, 120),    # reach up fast
-        (1, 20, -1, 12, 400),    # press and hold (exasperation)
-        (2, 14, 0, 8, 160),      # slowly peel away
-        (0, 4, 0, 2, 130),
-        (0, 0, 0, 0, 140),
-    ),
-    "inner_thumbs_up": (
-        (0, 0, 0, 0, 40),
-        (0, 18, 0, 8, 120),      # extend upward stiffly
-        (1, 20, -1, 9, 320),     # hold proud
-        (0, 10, 0, 5, 140),      # lower
-        (0, 0, 0, 0, 130),
-    ),
-    # --- mouth gestures ---
-    "inner_yawn": (
-        (0, 0, 0, 0, 60),
-        (0, -3, 0, -1, 180),     # mouth starts to open
-        (-1, -10, 1, -5, 320),   # wide open yawn
-        (1, -12, -1, -6, 500),   # hold open, slight drift
-        (0, -6, 0, -3, 240),     # closing
-        (0, -1, 0, 0, 160),      # almost closed
-        (0, 0, 0, 0, 120),
-    ),
-    "inner_chew": (
-        (0, 0, 0, 0, 35),
-        (2, -6, -1, -2, 75),     # chomp down
-        (-1, -1, 1, 0, 65),      # open
-        (3, -7, -2, -3, 70),     # chomp again offset
-        (-2, -2, 1, -1, 60),     # open
-        (1, -5, 0, -2, 70),      # smaller chomp
-        (0, 0, 0, 0, 100),
-    ),
-    "inner_fidget": (
-        (0, 0, 0, 0, 40),
-        (3, 1, -1, 0, 78),       # tap right
-        (-2, -1, 1, 0, 72),      # tap left
-        (4, 2, -2, 1, 85),       # tap right bigger
-        (-1, 0, 0, 0, 70),       # back
-        (2, -1, 1, -1, 80),      # tap right-down
-        (-3, 1, -1, 0, 75),      # tap left-up
-        (0, 0, 0, 0, 100),
-    ),
-}
-
-ACTION_TAIL_MOTIONS: dict[str, str] = {
-    "happy_bounce": "tail_wag",
-    "celebrate": "tail_wag",
-    "dance": "tail_wag",
-    "jump": "tail_alert_snap",
-    "wiggle": "tail_tip_flick",
-    "shake": "tail_bristle",
-    "startled_pop": "tail_bristle",
-    "smug_sway": "tail_smug_sway",
-    "thinking_tilt": "tail_tip_flick",
-    "sulk": "tail_guilty_tuck",
-    "hide": "tail_guilty_tuck",
-    "roast_and_scoot": "tail_guilty_tuck",
-    "retreat_to_corner": "tail_guilty_tuck",
-    "sleepy_sag": "tail_sleepy_droop",
-    "flop": "tail_sleepy_droop",
-    "melt": "tail_sleepy_droop",
-    "stretch": "tail_idle_slow",
-    "patrol": "tail_tip_flick",
-    "spin_jump": "tail_alert_snap",
-    "excited_spin": "tail_wag",
-    "sneeze": "tail_alert_snap",
-    "shiver": "tail_guilty_tuck",
-    "curious_lean": "tail_tip_flick",
-    "peekaboo": "tail_frantic_innocent",
-    "zoomies": "tail_wag",
-    "moonwalk": "tail_smug_sway",
-    "pounce": "tail_tip_flick",
-}
-
-# inner core (hand/mouth) gestures triggered by actions
-ACTION_INNER_GESTURES: dict[str, str] = {
-    "happy_bounce": "inner_wave",
-    "celebrate": "inner_thumbs_up",
-    "dance": "inner_wave",
-    "smug_sway": "inner_side_smirk",
-    "thinking_tilt": "inner_fidget",
-    "sulk": "inner_droop",
-    "hide": "inner_cover_oops",
-    "sleepy_sag": "inner_yawn",
-    "flop": "inner_droop",
-    "melt": "inner_droop",
-    "startled_pop": "inner_facepalm",
-    "shake": "inner_fidget",
-    "roast_and_scoot": "inner_thumbs_up",
-    "stretch": "inner_yawn",
-    "excited_spin": "inner_wave",
-    "sneeze": "inner_cover_oops",
-    "shiver": "inner_fidget",
-    "peekaboo": "inner_wave",
-    "moonwalk": "inner_side_smirk",
-}
-
-# --- inline performance data, kept module-level so offline renderers can read it ---
-# melt: sink into a puddle, hold, then recover
-MELT_SINK_FRAMES: ActionFrames = (
-    (0, 0, 1.03, 0.92, 120),
-    (0, 0, 1.00, 0.82, 150),
-    (0, 0, 0.94, 0.68, 180),
-    (0, 0, 0.88, 0.52, 190),
-    (0, 0, 0.82, 0.38, 210),
-    (0, 0, 1.05, 0.26, 220),
-    (0, 0, 1.32, 0.20, 230),
-    (0, 0, 1.58, 0.16, 230),
-    (0, 0, 1.72, 0.12, 240),
-)
-MELT_PUDDLE_HOLD_MS = 1900
-MELT_RECOVERY_FRAMES: ActionFrames = (
-    (0, 0, 1.58, 0.16, 220),
-    (0, 0, 1.32, 0.24, 240),
-    (0, 0, 1.05, 0.48, 260),
-    (0, 0, 0.94, 0.78, 240),
-    (0, 0, 1.0, 1.0, 260),
-)
-# wiggle: (sx, sy, delay_ms)
-WIGGLE_FRAMES: tuple[tuple[float, float, int], ...] = (
-    (1.13, 0.88, 55),
-    (0.93, 1.08, 70),
-    (1.04, 0.97, 60),
-    (1.0, 1.0, 1),
-)
-# blink / slow blink: (pupil_blink_scale, delay_ms)
-BLINK_FRAMES: tuple[tuple[float, int], ...] = (
-    (0.55, 25), (0.18, 30), (0.06, 55), (0.30, 30), (0.65, 30), (1.0, 1),
-)
-SLOW_BLINK_FRAMES: tuple[tuple[float, int], ...] = (
-    (0.55, 110), (0.18, 120), (0.06, 240), (0.35, 130), (0.7, 120), (1.0, 90),
-)
-# scan / guilty dart: pupil look targets
-SCAN_LOOK_TARGETS: tuple[tuple[float, float], ...] = (
-    (-3.0, -0.3), (3.0, -0.2), (-2.2, 0.4), (2.4, 0.2), (0.0, 0.0),
-)
-SCAN_LOOK_HOLD_MS = 215  # paced to the magnifier sweep
-GUILTY_DART_SEQUENCE: tuple[tuple[float, float, int], ...] = (
-    (0.0, -0.3, 110),
-    (-3.2, 0.5, 150),
-    (-3.2, 0.5, 430),
-    (-1.2, 0.1, 260),
-    (0.0, -0.1, 290),
-)
-
-# per-action body bend performances: (lean, hunch, delay_ms). lean>0 leans
-# toward screen right, hunch>0 slumps the shoulders, hunch<0 lifts the chest.
-# These run in parallel with ACTION_FRAMES, adding head-tilt body language the
-# squash/offset channels cannot express.
-ACTION_BODY_BEND: dict[str, tuple[tuple[float, float, int], ...]] = {
-    "thinking_tilt": ((-7, 1, 200), (-9, 2, 480), (-4, 1, 180), (0, 0, 150)),
-    "curious_lean": ((10, -2, 260), (13, -3, 620), (5, -1, 210), (0, 0, 160)),
-    "sneeze": ((-6, -4, 430), (-8, -5, 210), (10, 6, 90), (4, 2, 170), (0, 0, 240)),
-    "dance": ((-8, -1, 190), (8, -1, 190), (-9, -2, 200), (9, -2, 200), (-6, -1, 190), (6, -1, 190), (0, 0, 180)),
-    "smug_sway": ((6, -2, 240), (8, -2, 500), (3, -1, 210), (0, 0, 170)),
-    "sulk": ((-3, 5, 270), (-4, 7, 540), (-2, 4, 230), (0, 0, 190)),
-    "sleepy_sag": ((0, 4, 320), (-2, 7, 440), (1, 6, 400), (0, 0, 260)),
-    "stretch": ((0, 3, 200), (0, -6, 420), (0, -7, 480), (0, -2, 220), (0, 0, 170)),
-    "celebrate": ((-6, -3, 190), (6, -3, 210), (-5, -2, 210), (0, 0, 190)),
-    "moonwalk": ((-9, -2, 280), (-9, -2, 560), (0, 0, 220)),
-    "patrol": ((5, 0, 330), (-5, 0, 330), (5, 0, 330), (-5, 0, 330), (0, 0, 210)),
-    "zoomies": ((10, 0, 160), (-10, 0, 200), (10, 0, 180), (-8, 0, 200), (0, 0, 170)),
-    "pounce": ((-7, 4, 350), (12, -2, 150), (4, 0, 190), (0, 0, 150)),
-    "hide": ((4, 6, 210), (6, 9, 520), (2, 4, 220), (0, 0, 190)),
-    "nod": ((0, 4, 150), (0, 1, 110), (0, 3, 150), (0, 0, 130)),
-    "happy_bounce": ((0, -3, 160), (0, 1, 120), (0, -2, 150), (0, 0, 130)),
-    "shake": ((-6, 0, 90), (6, 0, 90), (-4, 0, 90), (4, 0, 95), (0, 0, 130)),
-    "startled_pop": ((0, -5, 120), (0, -4, 260), (0, 0, 200)),
-}
-
-# actions that fire their own particle burst (preset, delay_ms into the action)
-ACTION_SELF_PARTICLES: dict[str, tuple[str, int]] = {
-    "sneeze": ("sweat", 620),
-    "peekaboo": ("exclaim", 940),
-    "excited_spin": ("sparkle", 150),
-    "spin_jump": ("stars", 330),
-    "shiver": ("sweat", 200),
-    "zoomies": ("dust", 180),
-    "moonwalk": ("note", 260),
-    "pounce": ("dust", 420),
-}
 
 
 
@@ -1114,7 +292,18 @@ ACTION_SELF_PARTICLES: dict[str, tuple[str, int]] = {
 
 
 
-class PaperclipPalApp:
+
+
+
+
+
+
+
+
+
+
+
+class PaperclipPalApp(WindowMixin, CanvasMixin):
     def __init__(self, soul: Soul, project_root: Path) -> None:
         self.project_root = project_root
         self.soul = soul
@@ -1415,165 +604,13 @@ class PaperclipPalApp:
             self._eyes = Eyes(model=self._eyes_model)
         return self._eyes
 
-    def _place_initially(self) -> None:
-        self.root.update_idletasks()
-        screen_w = self.root.winfo_screenwidth()
-        screen_h = self.root.winfo_screenheight()
-        x = max(40, round(screen_w - PAL_PAD_X - PAL_WIDTH - 84))
-        y = max(40, round(screen_h - PAL_PAD_Y - PAL_HEIGHT - 84))
-        self.root.geometry(_geometry_with_size(self.width, self.height, x, y))
 
-    def _desktop_bounds(self) -> tuple[int, int, int, int]:
-        if self._user32 and self.root.tk.call("tk", "windowingsystem") == "win32":
-            try:
-                left = int(self._user32.GetSystemMetrics(76))
-                top = int(self._user32.GetSystemMetrics(77))
-                width = int(self._user32.GetSystemMetrics(78))
-                height = int(self._user32.GetSystemMetrics(79))
-                if width > 0 and height > 0:
-                    return (left, top, left + width, top + height)
-            except Exception:
-                pass
-        return (0, 0, self.root.winfo_screenwidth(), self.root.winfo_screenheight())
 
-    def _monitor_bounds_for_point(self, x: float, y: float) -> tuple[int, int, int, int]:
-        if self._user32 and self.root.tk.call("tk", "windowingsystem") == "win32":
-            try:
-                point = _WinPoint(round(x), round(y))
-                monitor = self._user32.MonitorFromPoint(point, 2)  # nearest monitor
-                if monitor:
-                    info = _WinMonitorInfo()
-                    info.cbSize = ctypes.sizeof(_WinMonitorInfo)
-                    if self._user32.GetMonitorInfoW(monitor, ctypes.byref(info)):
-                        rect = info.rcWork
-                        if rect.right > rect.left and rect.bottom > rect.top:
-                            return (int(rect.left), int(rect.top), int(rect.right), int(rect.bottom))
-            except Exception:
-                pass
-        return self._desktop_bounds()
 
-    def _pal_screen_point(self, x: float = PAL_CENTER_X, y: float = PAL_SCALE_CENTER_Y) -> tuple[float, float]:
-        self.root.update_idletasks()
-        return (self.root.winfo_x() + x, self.root.winfo_y() + y)
 
-    def _pal_monitor_bounds(self) -> tuple[int, int, int, int]:
-        x, y = self._pal_screen_point()
-        return self._monitor_bounds_for_point(x, y)
 
-    def _hide_from_taskbar(self) -> None:
-        if self.root.tk.call("tk", "windowingsystem") != "win32":
-            return
-        self._hide_window_from_taskbar(self.root)
-        self._hide_window_from_taskbar(self.bubble_root)
 
-    def _hide_window_from_taskbar(self, window: tk.Tk | tk.Toplevel) -> None:
-        try:
-            import ctypes
 
-            window.update_idletasks()
-            hwnd = window.winfo_id()
-            gwl_exstyle = -20
-            ws_ex_toolwindow = 0x00000080
-            ws_ex_appwindow = 0x00040000
-            user32 = ctypes.windll.user32
-            style = user32.GetWindowLongW(hwnd, gwl_exstyle)
-            style = (style | ws_ex_toolwindow) & ~ws_ex_appwindow
-            user32.SetWindowLongW(hwnd, gwl_exstyle, style)
-        except Exception:
-            return
-
-    def _draw_pal(self) -> None:
-        c = self.canvas
-        # --- chin (inner end) --- split first curve as independent joint
-        chin_coords = tuple(_scale_coords(_path_coords(BODY_START, (BODY_CURVES[0],))))
-        self._chin_wire = c.create_line(
-            *chin_coords, smooth=False,
-            width=30 * PAL_SCALE, fill=WIRE, capstyle=tk.ROUND,
-            joinstyle=tk.ROUND, tags=("pal", "wire", "chin"),
-        )
-        self._chin_base_coords = chin_coords
-        # --- main body (adapts to tail mode) ---
-        body_start_pt = BODY_CURVES[0][2]  # endpoint of first curve
-        if self._tail_mode == "long":
-            body_main_curves = BODY_CURVES[1:-2]
-            tail_start = TAIL_LONG_START
-            tail_curves = TAIL_LONG_CURVES
-        else:
-            body_main_curves = BODY_CURVES[1:-1]
-            tail_start = TAIL_SHORT_START
-            tail_curves = TAIL_SHORT_CURVES
-        body_coords = _scale_coords(_path_coords(body_start_pt, body_main_curves))
-        self._body_wire = c.create_line(
-            *body_coords, smooth=False,
-            width=30 * PAL_SCALE, fill=WIRE, capstyle=tk.ROUND,
-            joinstyle=tk.ROUND, tags=("pal", "wire"),
-        )
-        self._body_base_coords = tuple(body_coords)
-        # --- tail — high-res sampling for S-curve wave ---
-        tail_coords = tuple(_scale_coords(_path_coords(tail_start, tail_curves, steps=36)))
-        self.tail_wire = c.create_line(
-            *tail_coords, smooth=False,
-            width=30 * PAL_SCALE, fill=WIRE, capstyle=tk.ROUND,
-            joinstyle=tk.ROUND, tags=("pal", "wire", "tail"),
-        )
-        self._tail_base_coords = tail_coords
-        self._tail_tip_point = (tail_coords[-2], tail_coords[-1])
-        left_sclera_bounds = _oval_bounds(57, 154.726, 57)
-        right_sclera_bounds = _oval_bounds(213, 195.226, 57, 56.5)
-        left_sclera = c.create_oval(*left_sclera_bounds, fill=EYE_WHITE, outline="", tags=("pal", "eye"))
-        right_sclera = c.create_oval(*right_sclera_bounds, fill=EYE_WHITE, outline="", tags=("pal", "eye"))
-        self._sclera_bounds = {
-            left_sclera: left_sclera_bounds,
-            right_sclera: right_sclera_bounds,
-        }
-        left_pupil_bounds = _oval_bounds(64, 154.726, 39)
-        right_pupil_bounds = _oval_bounds(203, 192.726, 39)
-        self.left_pupil = c.create_oval(*left_pupil_bounds, fill=PUPIL, outline="", tags=("pal", "pupil"))
-        self.right_pupil = c.create_oval(*right_pupil_bounds, fill=PUPIL, outline="", tags=("pal", "pupil"))
-        self._pupil_bounds = {
-            self.left_pupil: left_pupil_bounds,
-            self.right_pupil: right_pupil_bounds,
-        }
-        # eyelid overlays — arc-shaped, hidden in default state
-        tint = HARDWARE_TINTS.get(self._hardware_tint_level, WIRE)
-        for sb in (left_sclera_bounds, right_sclera_bounds):
-            x1, y1, x2, y2 = sb
-            lid = c.create_arc(
-                x1 - 2, y1 - 2, x2 + 2, y2 + 2,
-                start=0, extent=180, style=tk.CHORD,
-                fill=tint, outline="", tags=("pal", "lid"),
-                state="hidden",
-            )
-            self._lid_items.append(lid)
-        for lid in self._lid_items:
-            c.tag_raise(lid, "pupil")
-        left_brow_coords = tuple(_scale_coords(_path_coords(LEFT_BROW_START, LEFT_BROW_CURVES)))
-        right_brow_coords = tuple(_scale_coords(_path_coords(RIGHT_BROW_START, RIGHT_BROW_CURVES)))
-        self.left_brow = c.create_line(
-            *left_brow_coords, smooth=False,
-            width=30 * PAL_SCALE, fill=BROW, capstyle=tk.ROUND,
-            tags=("pal", "brow"),
-        )
-        self.right_brow = c.create_line(
-            *right_brow_coords, smooth=False,
-            width=30 * PAL_SCALE, fill=BROW, capstyle=tk.ROUND,
-            tags=("pal", "brow"),
-        )
-        self._brow_base_coords = {
-            self.left_brow: left_brow_coords,
-            self.right_brow: right_brow_coords,
-        }
-        # cheek blush circles (hidden initially, shown for emotional expressions)
-        left_cheek = _oval_bounds(20, 210, 22, 16)
-        right_cheek = _oval_bounds(245, 250, 22, 16)
-        for cb in (left_cheek, right_cheek):
-            item = c.create_oval(*cb, fill=CHEEK_BLUSH, outline="", tags=("pal", "cheek"), state="hidden")
-            self._cheek_items.append(item)
-        # z-ordering: tail/chin behind eyes
-        self.canvas.tag_lower(self.tail_wire, "eye")
-        if self._chin_wire:
-            self.canvas.tag_lower(self._chin_wire, "eye")
-        self._apply_hardware_tint()
 
     def _reset_pal_geometry(self, preserve_tail: bool = False) -> None:
         # preserve_tail: finish callbacks of a PREVIOUS action must not kill a
@@ -2312,37 +1349,7 @@ class PaperclipPalApp:
         self._last_chat_context_debug = json.dumps(context, ensure_ascii=False, indent=2)
         return context
 
-    def _poll_global_mouse(self) -> None:
-        if self._user32 is None:
-            return
-        cursor = _cursor_position(self._user32)
-        if cursor is None:
-            self.root.after(GLOBAL_MOUSE_POLL_MS, self._poll_global_mouse)
-            return
-        left_down = _button_down(self._user32, 0x01)
-        right_down = _button_down(self._user32, 0x02)
-        if left_down and not self._global_left_down:
-            if self._drag_start is None and self._point_in_pal_hitbox(*cursor):
-                self._global_mouse_claimed = True
-                self._begin_drag(*cursor)
-        elif left_down and self._global_mouse_claimed:
-            self._continue_drag(*cursor)
-        elif not left_down and self._global_left_down and self._global_mouse_claimed:
-            self._finish_drag()
-            self._global_mouse_claimed = False
-        if right_down and not self._global_right_down and self._point_in_pal_hitbox(*cursor):
-            self._popup_context_menu()
-        self._global_left_down = left_down
-        self._global_right_down = right_down
-        self.root.after(GLOBAL_MOUSE_POLL_MS, self._poll_global_mouse)
 
-    def _point_in_pal_hitbox(self, x_root: int, y_root: int) -> bool:
-        self.root.update_idletasks()
-        left = self.root.winfo_x() + PAL_PAD_X - PAL_HIT_MARGIN_X
-        top = self.root.winfo_y() + PAL_PAD_Y - PAL_HIT_MARGIN_Y
-        right = self.root.winfo_x() + PAL_PAD_X + PAL_WIDTH + PAL_HIT_MARGIN_X
-        bottom = self.root.winfo_y() + PAL_PAD_Y + PAL_HEIGHT + PAL_HIT_MARGIN_Y
-        return left <= x_root <= right and top <= y_root <= bottom
 
     def _set_frequency(self, key: str) -> None:
         self.mood.set_frequency(key)
@@ -2705,70 +1712,7 @@ class PaperclipPalApp:
             self.canvas.addtag_withtag("gentleman_prop", item)
         self.canvas.tag_raise("decoration")
 
-    def _clear_melt_puddle(self) -> None:
-        for item in getattr(self, "_melt_puddle_items", []):
-            try:
-                self.canvas.delete(item)
-            except tk.TclError:
-                pass
-        self._melt_puddle_items = []
 
-    def _draw_melt_puddle(self, progress: float) -> None:
-        self._clear_melt_puddle()
-        p = _clamp(progress, 0.0, 1.0)
-        if p < 0.18:
-            return
-        eased = _ease_out_cubic((p - 0.18) / 0.82)
-        cx, cy = self._actor_point(PAL_CENTER_X, PAL_SCALE_PIVOT_Y + 3)
-        rx = 14 + 50 * eased
-        ry = 2.5 + 7.5 * eased
-        tint = HARDWARE_TINTS.get(self._hardware_tint_level, WIRE)
-        pale = "#c8c8c8"
-        highlight = "#ededed"
-        brow = BROW
-        items = [
-            self.canvas.create_oval(cx - rx, cy - ry, cx + rx, cy + ry, fill=tint, outline=""),
-        ]
-        if p > 0.42:
-            items.append(
-                self.canvas.create_oval(
-                    cx - rx * 0.42,
-                    cy - ry * 1.55,
-                    cx + rx * 0.22,
-                    cy + ry * 0.20,
-                    fill=pale,
-                    outline="",
-                )
-            )
-        if p > 0.62:
-            eye_y = cy - ry * 0.62
-            eye_r = 3.6 + 2.0 * eased
-            items.extend(
-                [
-                    self.canvas.create_oval(cx - rx * 0.30 - eye_r, eye_y - eye_r, cx - rx * 0.30 + eye_r, eye_y + eye_r, fill=brow, outline=""),
-                    self.canvas.create_oval(cx + rx * 0.20 - eye_r, eye_y - eye_r * 0.9, cx + rx * 0.20 + eye_r, eye_y + eye_r * 0.9, fill=brow, outline=""),
-                    self.canvas.create_line(cx - rx * 0.45, eye_y - 10, cx - rx * 0.12, eye_y - 8, fill=brow, width=3.2, capstyle=tk.ROUND),
-                    self.canvas.create_line(cx + rx * 0.02, eye_y - 8, cx + rx * 0.38, eye_y - 6, fill=brow, width=3.2, capstyle=tk.ROUND),
-                ]
-            )
-        if p > 0.72:
-            items.append(
-                self.canvas.create_oval(
-                    cx - rx * 0.66,
-                    cy - ry * 0.70,
-                    cx - rx * 0.18,
-                    cy + ry * 0.12,
-                    fill=highlight,
-                    outline="",
-                )
-            )
-        self._melt_puddle_items = items
-        for item in items:
-            self.canvas.addtag_withtag("melt_puddle", item)
-            try:
-                self.canvas.tag_lower(item, "pal")
-            except tk.TclError:
-                pass
 
     def _pal_source_point(self, x: float, y: float) -> tuple[float, float]:
         return self._actor_point(*_source_point(x, y))
@@ -2882,12 +1826,6 @@ class PaperclipPalApp:
         items.extend(self._draw_britclip_bow_tie())
         return items
 
-    def _raise_face_over_costume(self) -> None:
-        for tag in ("eye", "pupil", "lid", "brow", "cheek"):
-            try:
-                self.canvas.tag_raise(tag)
-            except tk.TclError:
-                pass
 
     def _prop_items_center(self, items: list[int]) -> tuple[float, float] | None:
         boxes = [self.canvas.bbox(item) for item in items]
@@ -3487,52 +2425,10 @@ class PaperclipPalApp:
             for item in items:
                 self.canvas.move(item, dx, dy)
 
-    def _move_actor_items(self, dx: float, dy: float) -> None:
-        if not dx and not dy:
-            return
-        self.canvas.move("pal", dx, dy)
-        self.canvas.move("decoration", dx, dy)
 
-    def _scale_actor_items(self, sx: float, sy: float) -> None:
-        self.canvas.scale("pal", PAL_CENTER_X, PAL_SCALE_PIVOT_Y, sx, sy)
-        self.canvas.scale("decoration", PAL_CENTER_X, PAL_SCALE_PIVOT_Y, sx, sy)
 
-    def _actor_point(self, x: float, y: float) -> tuple[float, float]:
-        lean, hunch = self._body_bend
-        if lean or hunch:
-            x, y = bend_point(x, y, lean, hunch, pivot_y=PAL_SCALE_PIVOT_Y, top_y=PAL_PAD_Y)
-        sx, sy = self._pal_scale
-        actor_dx = self._action_offset[0] + self._bob_x
-        actor_dy = self._action_offset[1] + self._bob_y
-        return (
-            PAL_CENTER_X + (x - PAL_CENTER_X) * sx + actor_dx,
-            PAL_SCALE_PIVOT_Y + (y - PAL_SCALE_PIVOT_Y) * sy + actor_dy,
-        )
 
-    def _actor_coords(self, coords: tuple[float, ...] | list[float]) -> list[float]:
-        transformed: list[float] = []
-        for index in range(0, len(coords), 2):
-            x, y = self._actor_point(coords[index], coords[index + 1])
-            transformed.extend((x, y))
-        return transformed
 
-    def _actor_oval_bounds(
-        self,
-        bounds: tuple[float, float, float, float],
-        *,
-        dx: float = 0.0,
-        dy: float = 0.0,
-        rx_scale: float = 1.0,
-        ry_scale: float = 1.0,
-    ) -> tuple[float, float, float, float]:
-        x1, y1, x2, y2 = bounds
-        cx = (x1 + x2) / 2 + dx
-        cy = (y1 + y2) / 2 + dy
-        sx, sy = self._pal_scale
-        tx, ty = self._actor_point(cx, cy)
-        rx = (x2 - x1) / 2 * sx * rx_scale
-        ry = (y2 - y1) / 2 * sy * ry_scale
-        return tx - rx, ty - ry, tx + rx, ty + ry
 
     def _decoration_anchor(self, definition: DecorationDefinition) -> tuple[float, float]:
         anchors = {
@@ -4562,14 +3458,6 @@ class PaperclipPalApp:
         self._apply_hardware_tint()
         self._refresh_status_badges()
 
-    def _apply_hardware_tint(self) -> None:
-        fill = HARDWARE_TINTS.get(self._hardware_tint_level, WIRE)
-        self.canvas.itemconfigure("wire", fill=fill)
-        for lid in self._lid_items:
-            try:
-                self.canvas.itemconfigure(lid, fill=fill)
-            except tk.TclError:
-                pass
 
     def _set_codex_usage_badge(self, status: CodexUsageStatus) -> None:
         self._clear_codex_usage_badge()
@@ -5865,35 +4753,6 @@ class PaperclipPalApp:
             stiffen = 2.4
         return (sway, curl, droop, tuck, stiffen)
 
-    def _set_tail_pose(
-        self,
-        sway: float = 0.0,
-        curl: float = 0.0,
-        droop: float = 0.0,
-        tuck: float = 0.0,
-        stiffen: float = 0.0,
-    ) -> None:
-        self._tail_pose = (sway, curl, droop, tuck, stiffen)
-        if not self.tail_wire or not self._tail_base_coords:
-            return
-        now = time.monotonic()
-        self._tail_pose_trail.append((now, self._tail_pose))
-        tip_pose = self._sample_tail_trail(now - TAIL_TIP_LAG_MS / 1000.0)
-        posed = posed_tail_points(
-            self._tail_base_coords,
-            sway, curl, droop, tuck, stiffen,
-            tail_mode=self._tail_mode,
-            s_phase=self._tail_s_phase,
-            tip_pose=tip_pose,
-            wave_factor=self._tail_wave_factor,
-            engage=self._tail_engage,
-        )
-        coords: list[float] = []
-        for x, y in posed:
-            coords.extend(self._actor_point(x, y))
-        self.canvas.coords(self.tail_wire, *coords)
-        # the tail tip doubles as a hand: held props are anchored here
-        self._tail_tip_point = (coords[-2], coords[-1])
 
     def _sample_tail_trail(self, target_time: float) -> TailPose:
         """Return the tail pose as it was at target_time (for tip follow-through)."""
@@ -6114,135 +4973,11 @@ class PaperclipPalApp:
 
     # ── eye FX & face decals (distilled from the expression sheets) ──
 
-    def _set_eye_fx(self, shape_key: str | None, wink: str | None = None) -> None:
-        """Replace the round pupils with shaped ones (star/heart/spiral/x/…).
 
-        `wink` closes one eye with a smiling arc; it combines with or without
-        a shape for the other eye. Passing (None, None) restores round pupils.
-        """
-        if (shape_key, wink) == self._eye_fx_state:
-            return
-        self._eye_fx_state = (shape_key, wink)
-        for item in self._eye_fx_items:
-            try:
-                self.canvas.delete(item)
-            except tk.TclError:
-                pass
-        self._eye_fx_items.clear()
-        pupil_items = list(self._pupil_bounds)
-        if not shape_key and not wink:
-            for item in pupil_items:
-                try:
-                    self.canvas.itemconfigure(item, state="normal")
-                except tk.TclError:
-                    pass
-            return
-        shapes = EYE_FX_SHAPES.get(shape_key or "", (None, None))
-        smile = EYE_FX_SHAPES["closed_smile"][0]
-        per_eye = [shapes[0], shapes[1]]
-        if wink == "l":
-            per_eye[0] = smile
-        elif wink == "r":
-            per_eye[1] = smile
-        for side, (item, prims) in enumerate(zip(pupil_items, per_eye)):
-            if prims is None:
-                continue
-            try:
-                self.canvas.itemconfigure(item, state="hidden")
-            except tk.TclError:
-                pass
-            for prim in prims:
-                self._eye_fx_items.append(self._create_face_prim(prim, tag="eye_fx"))
-        self._place_eye_fx()
 
-    def _place_eye_fx(self) -> None:
-        """Position eye-FX shapes at each pupil's current center."""
-        if not self._eye_fx_items:
-            return
-        shapes = EYE_FX_SHAPES.get(self._eye_fx_state[0] or "", (None, None))
-        smile = EYE_FX_SHAPES["closed_smile"][0]
-        per_eye = [shapes[0], shapes[1]]
-        if self._eye_fx_state[1] == "l":
-            per_eye[0] = smile
-        elif self._eye_fx_state[1] == "r":
-            per_eye[1] = smile
-        sx, sy = (abs(v) or 1.0 for v in self._pal_scale)
-        dx, dy = self._pupil_look
-        item_iter = iter(self._eye_fx_items)
-        for bounds, prims in zip(self._pupil_bounds.values(), per_eye):
-            if prims is None:
-                continue
-            b = self._actor_oval_bounds(bounds, dx=dx, dy=dy)
-            cx, cy = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
-            for prim in prims:
-                item = next(item_iter, None)
-                if item is None:
-                    return
-                self._place_face_prim(item, prim, cx, cy, sx, sy)
 
-    def _set_face_decal(self, key: str | None) -> None:
-        """Hang a small symbol on the face (tear, sweat, shock rays, …)."""
-        for item in self._face_decal_items:
-            try:
-                self.canvas.delete(item)
-            except tk.TclError:
-                pass
-        self._face_decal_items.clear()
-        decal = FACE_DECALS.get(key or "")
-        if not decal:
-            return
-        ax, ay = self._actor_point(*_source_point(*decal["anchor"]))
-        sx, sy = (abs(v) or 1.0 for v in self._pal_scale)
-        for prim in decal["prims"]:
-            item = self._create_face_prim(prim, tag="face_decal")
-            self._face_decal_items.append(item)
-            self._place_face_prim(item, prim, ax, ay, sx, sy)
-        self._raise_face_over_costume()
-        for item in self._face_decal_items:
-            try:
-                self.canvas.tag_raise(item)
-            except tk.TclError:
-                pass
 
-    def _create_face_prim(self, prim, tag: str) -> int:
-        kind = prim[0]
-        if kind == "line":
-            return self.canvas.create_line(
-                0, 0, 1, 1, fill=prim[3], width=prim[2],
-                capstyle=tk.ROUND, joinstyle=tk.ROUND,
-                smooth=len(prim[1]) > 2, splinesteps=8,
-                tags=("pal", tag),
-            )
-        if kind == "polygon":
-            return self.canvas.create_polygon(
-                0, 0, 1, 1, 2, 2, fill=prim[2] or "", outline=prim[3] or "",
-                width=max(0.1, prim[4]), smooth=False, tags=("pal", tag),
-            )
-        _k, _cx, _cy, _rx, _ry, fill, outline, width = prim
-        return self.canvas.create_oval(
-            0, 0, 1, 1, fill=fill or "", outline=outline or "",
-            width=max(0.1, width), tags=("pal", tag),
-        )
 
-    def _place_face_prim(self, item: int, prim, cx: float, cy: float, sx: float, sy: float) -> None:
-        kind = prim[0]
-        try:
-            if kind in ("line", "polygon"):
-                coords: list[float] = []
-                for x, y in prim[1]:
-                    coords.extend((cx + x * sx, cy + y * sy))
-                self.canvas.coords(item, *coords)
-            else:
-                _k, ox, oy, rx, ry, _fill, _outline, _width = prim
-                tx, ty = cx + ox * sx, cy + oy * sy
-                self.canvas.coords(item, tx - rx * sx, ty - ry * sy, tx + rx * sx, ty + ry * sy)
-        except tk.TclError:
-            pass
-
-    def _clear_face_fx(self) -> None:
-        self._set_eye_fx(None, None)
-        self._set_face_decal(None)
-        self._set_cheek_blush(False)
 
     def _blink_flutter(self) -> None:
         """Rapid shallow eyelid flutter — overwhelmed, dazzled, or overcaffeinated."""
@@ -6422,28 +5157,7 @@ class PaperclipPalApp:
             self._tail_hand_mode = False
             self._tail_transition_to(TAIL_NEUTRAL_POSE, 200, self._tail_wag_after.clear)
 
-    def _set_chin_amount(
-        self,
-        amount_x: float,
-        amount_y: float = 0.0,
-        mid_x: float = 0.0,
-        mid_y: float = 0.0,
-    ) -> None:
-        """Displace the inner core with virtual mid/tip anchors. Positive y curls upward."""
-        self._inner_pose = (amount_x, amount_y, mid_x, mid_y)
-        if not self._chin_wire or not self._chin_base_coords:
-            return
-        posed = posed_chin_points(self._chin_base_coords, amount_x, amount_y, mid_x, mid_y)
-        coords: list[float] = []
-        for x, y in posed:
-            coords.extend(self._actor_point(x, y))
-        self.canvas.coords(self._chin_wire, *coords)
 
-    def _settle_chin_pose(self, target: InnerPose, strength: float = 0.34) -> None:
-        # caller strengths are tuned for the legacy 50ms heartbeat
-        strength = _per_tick(_clamp(strength, 0.0, 1.0))
-        pose = tuple(self._inner_pose[i] + (target[i] - self._inner_pose[i]) * strength for i in range(4))
-        self._set_chin_amount(*pose)  # type: ignore[arg-type]
 
     def set_chin_mode(self, mode: str) -> None:
         """Set chin animation mode: idle|talk|chew|yawn|mumble|cover|wave|point|fidget|think|sulk."""
@@ -6502,58 +5216,7 @@ class PaperclipPalApp:
         elif action == "micro_soft_reset":
             self._reset_expression_pose()
 
-    def _set_eye_pose(self, pose: str) -> None:
-        # (dx, dy, pupil_scale, eye_openness)
-        poses: dict[str, tuple[float, float, float, float]] = {
-            "neutral": (0.0, 0.0, 1.0, 1.0),
-            "side_eye": (-3.1, 0.35, 0.92, 0.78),
-            "round": (0.0, 0.0, 1.08, 1.0),
-            "soft": (0.0, 0.0, 0.96, 0.8),
-            "peek_up": (1.9, -0.75, 0.92, 0.75),
-            "narrow": (0.0, 0.6, 0.7, 0.55),
-            "wide": (0.0, -0.3, 1.15, 1.0),
-            "half_closed": (0.0, 0.5, 0.7, 0.35),
-            "closed": (0.0, 0.0, 0.5, 0.0),
-            "proud": (-0.35, -0.25, 1.02, 1.0),
-            "innocent_round": (0.0, -0.35, 1.18, 1.0),
-            "guilty_round": (0.0, -0.10, 1.12, 1.0),
-            "smug_half": (-2.8, 0.45, 0.80, 0.58),
-            "suspicious_slit": (-2.2, 0.45, 0.74, 0.52),
-            "worried_wide": (0.35, -0.15, 1.08, 1.0),
-            "sleepy_slit": (0.0, 0.55, 0.62, 0.26),
-            "curious": (1.15, -0.30, 1.04, 0.94),
-            "startled_dot": (0.0, -0.40, 0.72, 1.0),
-        }
-        dx, dy, scale, openness = poses.get(pose, poses["neutral"])
-        self._pupil_look = (dx, dy)
-        self._eye_target_openness = openness
-        self._set_pupil_pose(dx, dy, size_scale=scale)
 
-    def _set_brow_pose(self, pose: str) -> None:
-        poses: dict[str, tuple[tuple[float, float, float], tuple[float, float, float]]] = {
-            "neutral": ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
-            "soft": ((0.0, -0.7, 0.0), (0.0, -0.5, 0.0)),
-            "judge": ((-0.4, 1.7, -0.08), (0.3, 1.2, 0.09)),
-            "innocent": ((0.0, -2.0, 0.02), (0.0, -1.6, -0.03)),
-            "guilty": ((0.0, 2.3, 0.05), (0.0, 2.0, -0.05)),
-            "laugh": ((0.0, 1.4, -0.02), (0.0, 1.2, 0.02)),
-            "sulk": ((0.0, 2.6, -0.03), (0.0, 2.1, 0.03)),
-            "proud": ((0.0, -1.4, -0.06), (0.0, -1.1, 0.06)),
-            "smug_arch": ((0.0, -1.7, -0.10), (0.0, -0.9, 0.08)),
-            "skeptical": ((-0.4, 1.2, -0.10), (0.4, -0.8, 0.10)),
-            "angry": ((-0.7, 2.8, -0.18), (0.7, 2.5, 0.18)),
-            "worried": ((0.0, 2.2, 0.10), (0.0, 2.0, -0.10)),
-            "droop": ((0.0, 2.4, 0.04), (0.0, 2.2, -0.04)),
-            "curious": ((0.0, -1.6, -0.06), (0.0, 0.2, 0.06)),
-            "flat": ((0.0, 0.2, 0.0), (0.0, 0.2, 0.0)),
-            "panic": ((0.0, -2.6, 0.12), (0.0, -2.3, -0.12)),
-        }
-        left_spec, right_spec = poses.get(pose, poses["neutral"])
-        for item, spec in ((self.left_brow, left_spec), (self.right_brow, right_spec)):
-            base = self._brow_base_coords.get(item)
-            if base:
-                self.canvas.coords(item, *self._actor_coords(_brow_pose_coords(base, *spec)))
-        self._current_brow_spec = (left_spec, right_spec)
 
     def _schedule_expression_reset(self, delay_ms: int) -> None:
         self._expression_after.append(self.root.after(delay_ms, self._reset_expression_pose))
@@ -7211,50 +5874,9 @@ class PaperclipPalApp:
         if self._chat_window:
             self._position_chat_input()
 
-    def _movement_direction(self) -> int:
-        self.root.update_idletasks()
-        center_x = self.root.winfo_x() + self.width / 2
-        left, _top, right, _bottom = self._desktop_bounds()
-        screen_mid = (left + right) / 2
-        if abs(center_x - screen_mid) < 120:
-            return random.choice((-1, 1))
-        return -1 if center_x > screen_mid else 1
 
-    def _relocation_delta(self, distance: int) -> float:
-        return self._movement_direction() * distance
 
-    def _corner_retreat_delta(self) -> tuple[float, float]:
-        self.root.update_idletasks()
-        left, _top, right, bottom = self._desktop_bounds()
-        current_x = self.root.winfo_x()
-        current_y = self.root.winfo_y()
-        target_x = left + 18 if current_x < (left + right) / 2 else right - self.width - 18
-        target_y = bottom - self.height - 28
-        return target_x - current_x, target_y - current_y
 
-    def _clamped_window_frames(self, frames: ActionFrames, start_x: int, start_y: int) -> ActionFrames:
-        final_dx, final_dy, _sx, _sy, _delay = frames[-1]
-        left, top, right, bottom = self._desktop_bounds()
-        max_x = max(left, right - self.width)
-        max_y = max(top, bottom - self.height)
-        clamped_final_x = _clamp(start_x + final_dx, left, max_x)
-        clamped_final_y = _clamp(start_y + final_dy, top, max_y)
-        allowed_dx = clamped_final_x - start_x
-        allowed_dy = clamped_final_y - start_y
-        ratio_x = allowed_dx / final_dx if final_dx else 1.0
-        ratio_y = allowed_dy / final_dy if final_dy else 1.0
-        # scale toward the clamped endpoint, then clamp every intermediate
-        # frame too so mid-action dashes (zoomies, pounce) stay on screen
-        return tuple(
-            (
-                _clamp(start_x + dx * ratio_x, left, max_x) - start_x,
-                _clamp(start_y + dy * ratio_y, top, max_y) - start_y,
-                sx,
-                sy,
-                delay,
-            )
-            for dx, dy, sx, sy, delay in frames
-        )
 
     def _cancel_large_action(self) -> None:
         if self._large_action_after:
@@ -7272,88 +5894,10 @@ class PaperclipPalApp:
         self._spring_active = True
         self._reset_pal_geometry(preserve_tail=True)
 
-    def _set_action_offset(self, dx: float, dy: float) -> None:
-        previous_x, previous_y = self._action_offset
-        self._move_actor_items(dx - previous_x, dy - previous_y)
-        self._action_offset = (dx, dy)
 
-    def _set_pal_scale(self, sx: float, sy: float) -> None:
-        # mirror flips interpolate sx through zero; Tk refuses a zero scale
-        # factor and the broken callback chain would wedge the action state
-        if abs(sx) < 0.01:
-            sx = 0.01 if sx >= 0 else -0.01
-        if abs(sy) < 0.01:
-            sy = 0.01 if sy >= 0 else -0.01
-        previous_x, previous_y = self._pal_scale
-        if previous_x == 0 or previous_y == 0:
-            previous_x, previous_y = 1.0, 1.0
-        self._scale_actor_items(sx / previous_x, sy / previous_y)
-        self._pal_scale = (sx, sy)
 
-    def _apply_brow_spec(
-        self,
-        left_spec: tuple[float, float, float],
-        right_spec: tuple[float, float, float],
-    ) -> None:
-        """Apply raw brow offset/rotation without going through pose lookup."""
-        for item, spec in ((self.left_brow, left_spec), (self.right_brow, right_spec)):
-            base = self._brow_base_coords.get(item)
-            if base:
-                self.canvas.coords(item, *self._actor_coords(_brow_pose_coords(base, *spec)))
-        self._current_brow_spec = (left_spec, right_spec)
 
-    def _update_shadow(self) -> None:
-        """Draw a temporary contact shadow only for physical action beats."""
-        if not self._shadow_action or self._dragging or self._window_move_running:
-            self._hide_shadow()
-            return
-        action_dy = self._action_offset[1] + self._bob_y
 
-        if self._shadow_action == "melt":
-            contact = _clamp(1.0 - self._pal_scale[1], 0.0, 1.0)
-            rx = 24 + contact * 34
-            ry = 4.0 + contact * 4.0
-            strength = 0x18 + round(contact * 0x14)
-        elif self._shadow_action in {"flop", "sleepy_sag", "sulk"}:
-            contact = _clamp(action_dy / 28.0, 0.0, 1.0)
-            rx = 18 + contact * 16
-            ry = 3.5 + contact * 2.0
-            strength = 0x16 + round(contact * 0x18)
-        else:
-            lift = max(0.0, -action_dy)
-            contact = _clamp(action_dy / 10.0, 0.0, 1.0)
-            shrink = max(0.24, 1.0 - lift / 78.0)
-            rx = 22 * shrink + contact * 5
-            ry = 5.2 * shrink + contact * 1.4
-            strength = max(0x12, min(0x42, round(0x38 * shrink + contact * 0x0a)))
-
-        if rx < 7 or ry < 1.5:
-            self._hide_shadow()
-            return
-        cx = PAL_CENTER_X + self._bob_x + self._action_offset[0]
-        cy = PAL_PAD_Y + PAL_HEIGHT + 4
-        color = f"#{strength:02x}{strength:02x}{strength:02x}"
-        if self._shadow_item:
-            self.canvas.coords(
-                self._shadow_item,
-                cx - rx, cy - ry, cx + rx, cy + ry,
-            )
-            self.canvas.itemconfigure(self._shadow_item, fill=color, outline="")
-        else:
-            self._shadow_item = self.canvas.create_oval(
-                cx - rx, cy - ry, cx + rx, cy + ry,
-                fill=color, outline="", tags=("shadow",),
-            )
-            self.canvas.tag_lower("shadow")
-
-    def _hide_shadow(self) -> None:
-        if not self._shadow_item:
-            return
-        try:
-            self.canvas.delete(self._shadow_item)
-        except tk.TclError:
-            pass
-        self._shadow_item = 0
 
     def _update_doze(self) -> None:
         """Progressive doze sequence when user is idle for extended periods."""
@@ -7699,78 +6243,8 @@ class PaperclipPalApp:
 
         step()
 
-    def _set_pupil_pose(
-        self,
-        dx: float,
-        dy: float,
-        blink_scale: float = 1.0,
-        size_scale: float | None = None,
-    ) -> None:
-        if size_scale is not None:
-            self._pupil_size_scale = max(0.75, min(1.16, size_scale))
-        self._pupil_blink_scale = blink_scale
-        openness = self._eye_openness
-        for item, bounds in self._pupil_bounds.items():
-            ry_scale = max(0.04, blink_scale * self._pupil_size_scale * openness)
-            self.canvas.coords(
-                item,
-                *self._actor_oval_bounds(
-                    bounds,
-                    dx=dx,
-                    dy=dy,
-                    rx_scale=self._pupil_size_scale,
-                    ry_scale=ry_scale,
-                ),
-            )
-        # shaped pupils ride along with the gaze
-        self._place_eye_fx()
 
-    def _set_eye_openness(self, openness: float) -> None:
-        """Set eye openness: 1.0=fully open, 0.0=fully closed.
 
-        Uses arc-shaped eyelid overlays that follow the eye curvature.
-        Hidden entirely in default (fully open) state.
-        """
-        openness = max(0.0, min(1.0, openness))
-        self._eye_openness = openness
-        # squash sclera ovals
-        for item, bounds in self._sclera_bounds.items():
-            self.canvas.coords(
-                item,
-                *self._actor_oval_bounds(bounds, ry_scale=max(0.06, openness)),
-            )
-        # position arc eyelids
-        sclera_list = list(self._sclera_bounds.values())
-        for i, lid in enumerate(self._lid_items):
-            if i >= len(sclera_list):
-                break
-            if openness >= 0.95:
-                self.canvas.itemconfigure(lid, state="hidden")
-            else:
-                self.canvas.itemconfigure(lid, state="normal")
-                x1, y1, x2, y2 = self._actor_oval_bounds(sclera_list[i])
-                # arc extent: wider as eye closes, centered on top (90 deg)
-                extent = 360.0 * (1.0 - openness)
-                start = 90.0 - extent / 2.0
-                self.canvas.itemconfigure(lid, start=start, extent=extent)
-                self.canvas.coords(lid, x1 - 2, y1 - 2, x2 + 2, y2 + 2)
-        # refresh pupil pose to apply new openness scaling; keep the current
-        # blink closure so mid-blink refreshes do not pop the pupil open
-        self._set_pupil_pose(*self._pupil_look, blink_scale=self._pupil_blink_scale)
-
-    def _set_cheek_blush(self, visible: bool, color: str | None = None) -> None:
-        """Show or hide cheek blush ovals."""
-        if visible == self._cheek_visible and color is None:
-            return
-        self._cheek_visible = visible
-        state = "normal" if visible else "hidden"
-        for item in self._cheek_items:
-            try:
-                self.canvas.itemconfigure(item, state=state)
-                if color:
-                    self.canvas.itemconfigure(item, fill=color)
-            except tk.TclError:
-                pass
 
     def show_bubble(self, text: str, milliseconds: int = 3200, kind: str = "speech") -> None:
         self._clear_bubble()
@@ -7931,22 +6405,10 @@ class PaperclipPalApp:
             self.set_chin_mode("idle")
 
 
-def _load_user32() -> object | None:
-    try:
-        return ctypes.windll.user32
-    except AttributeError:
-        return None
 
 
-def _cursor_position(user32: object) -> tuple[int, int] | None:
-    point = _WinPoint()
-    if not user32.GetCursorPos(ctypes.byref(point)):
-        return None
-    return (point.x, point.y)
 
 
-def _button_down(user32: object, virtual_key: int) -> bool:
-    return bool(user32.GetAsyncKeyState(virtual_key) & 0x8000)
 
 
 
@@ -9115,144 +7577,9 @@ def _bubble_page_duration(text: str, requested_ms: int) -> int:
 
 
 
-def _speech_bubble(
-    canvas: tk.Canvas,
-    x1: int,
-    y1: int,
-    x2: int,
-    y2: int,
-    radius: int,
-    tail: tuple[int, int, int, int, int, int],
-    fill: str,
-    outline: str,
-) -> list[int]:
-    tx1, ty1, tx2, ty2, tx3, ty3 = tail
-    return [
-        _rounded_polygon(
-            canvas,
-            x1,
-            y1,
-            x2,
-            y2,
-            radius,
-            tx1,
-            ty1,
-            tx2,
-            ty2,
-            tx3,
-            ty3,
-            fill=fill,
-            outline=outline,
-        )
-    ]
 
 
-def _thought_bubble(
-    canvas: tk.Canvas,
-    x1: int,
-    y1: int,
-    x2: int,
-    y2: int,
-    fill: str,
-    outline: str,
-) -> list[int]:
-    items = [
-        _rounded_rect(canvas, x1, y1, x2, y2, 16, fill=fill, outline=outline),
-    ]
-    center_x = (x1 + x2) / 2
-    dots = (
-        (center_x + 8, y2 + 8, 5),
-        (center_x + 1, y2 + 18, 3.5),
-        (center_x - 5, y2 + 25, 2.2),
-    )
-    for cx, cy, radius in dots:
-        items.append(canvas.create_oval(cx - radius, cy - radius, cx + radius, cy + radius, fill=fill, outline=outline))
-    return items
 
 
-def _rounded_rect(
-    canvas: tk.Canvas,
-    x1: float,
-    y1: float,
-    x2: float,
-    y2: float,
-    radius: float,
-    **kwargs: object,
-) -> int:
-    points = [
-        x1 + radius,
-        y1,
-        x2 - radius,
-        y1,
-        x2,
-        y1,
-        x2,
-        y1 + radius,
-        x2,
-        y2 - radius,
-        x2,
-        y2,
-        x2 - radius,
-        y2,
-        x1 + radius,
-        y2,
-        x1,
-        y2,
-        x1,
-        y2 - radius,
-        x1,
-        y1 + radius,
-        x1,
-        y1,
-    ]
-    return canvas.create_polygon(points, smooth=True, splinesteps=12, **kwargs)
 
 
-def _rounded_polygon(
-    canvas: tk.Canvas,
-    x1: int,
-    y1: int,
-    x2: int,
-    y2: int,
-    radius: int,
-    tx1: int,
-    ty1: int,
-    tx2: int,
-    ty2: int,
-    tx3: int,
-    ty3: int,
-    **kwargs: object,
-) -> int:
-    points = [
-        x1 + radius,
-        y1,
-        x2 - radius,
-        y1,
-        x2,
-        y1,
-        x2,
-        y1 + radius,
-        x2,
-        y2 - radius,
-        x2,
-        y2,
-        x2 - radius,
-        y2,
-        tx2,
-        ty2,
-        tx3,
-        ty3,
-        tx1,
-        ty1,
-        x1 + radius,
-        y2,
-        x1,
-        y2,
-        x1,
-        y2 - radius,
-        x1,
-        y1 + radius,
-        x1,
-        y1,
-    ]
-    return canvas.create_polygon(points, smooth=True, splinesteps=12, **kwargs)

@@ -16,6 +16,14 @@ The core interaction loop is: user types a prompt, the pal performs a visible
 thinking/searching state while the local LLM works, then it replies with a
 bubble and a small character performance.
 
+## 技术亮点
+
+- LLM 容错链：本地句库、Ollama、状态专用文案和安全降级共同保证夹夹能回应。
+- 隐私模型：只采集明确开启的低敏状态源，默认避开键盘内容、剪贴板和聊天正文。
+- 关键帧回归测试：动作 GIF 绑定签名，动画表改动后 CI 会提示重新生成演示资产。
+- 零运行时依赖：桌宠主体使用 Python 标准库与 Tkinter，额外能力通过可选依赖开启。
+- Win32 层：窗口置顶、拖拽、透明背景、任务栏隐藏和开机启动围绕 Windows 桌面体验打磨。
+
 | Idle | Cold arrow | Sleepy |
 |---|---|---|
 | ![Idle breathe](docs/media/idle-breathe.gif) | ![Cold arrow then innocent](docs/media/cold-arrow-then-innocent.gif) | ![Sleepy sag](docs/media/sleepy-sag.gif) |
