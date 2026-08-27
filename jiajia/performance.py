@@ -10,24 +10,32 @@ class PerformancePhrase:
     post_actions: tuple[tuple[str, int], ...] = ()
 
 
+# Each entry is (action, ms_before_the_next_step). The ms is a directorial
+# choice, but it is bounded by physics: a body, tail or inner-wire action needs
+# a real share of its duration before the next step cuts in, or the viewer sees
+# a twitch instead of a beat. Face-only micro actions (micro_*, slow_blink) are
+# exempt — an expression reads immediately and then holds.
+# tests/test_performance_timing.py enforces the floor.
+MIN_READABLE_FRACTION = 0.45
+
 PERFORMANCE_PHRASES: dict[str, PerformancePhrase] = {
     "cold_arrow_then_innocent": PerformancePhrase(
         pre_actions=(
             ("micro_focus_pause", 180),
-            ("thinking_tilt", 700),
+            ("thinking_tilt", 760),
             ("micro_side_eye", 280),
             ("micro_brow_judge", 180),
         ),
         line_delay_ms=160,
         post_actions=(
-            # judge/side_eye 表情自 pre_actions 延续 700ms —— 死寂冻结
+            # judge/side_eye carries over from pre_actions for 700ms — dead air
             ("micro_snap_innocent", 700),
             ("slow_blink", 620),
         ),
     ),
     "smug_but_caught": PerformancePhrase(
         pre_actions=(
-            ("smug_sway", 380),
+            ("smug_sway", 620),
             ("micro_holding_laugh", 300),
         ),
         line_delay_ms=80,
@@ -40,93 +48,93 @@ PERFORMANCE_PHRASES: dict[str, PerformancePhrase] = {
     ),
     "fake_sulk": PerformancePhrase(
         pre_actions=(
-            ("sulk", 460),
-            ("micro_peek_up", 260),
+            # one sulk, played through. It used to be started twice, which
+            # restarted the rain cloud instead of letting the mood linger.
+            ("sulk", 900),
+            ("micro_peek_up", 300),
         ),
         line_delay_ms=120,
         post_actions=(
-            ("sulk", 260),
-            ("micro_soft_reset", 220),
+            ("micro_soft_reset", 320),
             ("blink", 160),
         ),
     ),
     "suspicious_observe": PerformancePhrase(
         pre_actions=(
             ("micro_brow_judge", 160),
-            ("scan", 650),
+            ("scan", 700),
             ("micro_side_eye", 260),
-            ("thinking_tilt", 480),
+            ("thinking_tilt", 620),
         ),
         line_delay_ms=120,
         post_actions=(
-            # 说完保持审视 640ms 再收
+            # hold the scrutiny for 640ms before letting go
             ("slow_blink", 640),
             ("micro_soft_reset", 900),
         ),
     ),
     "thought_roast_smug": PerformancePhrase(
         pre_actions=(
-            ("smug_sway", 360),
-            ("inner_side_smirk", 140),
-            ("tail_smug_sway", 180),
-            ("micro_brow_judge", 120),
+            # the body carries this one; the tail sway was being cut to 7%,
+            # so it is gone rather than flickered
+            ("smug_sway", 640),
+            ("micro_brow_judge", 140),
         ),
         line_delay_ms=90,
         post_actions=(
-            ("inner_side_smirk", 120),
-            ("tail_tip_flick", 170),
-            ("micro_holding_laugh", 180),
+            ("inner_side_smirk", 380),
+            ("micro_holding_laugh", 220),
             ("slow_blink", 640),
         ),
     ),
     "grand_dame_whisper_roast": PerformancePhrase(
         pre_actions=(
             ("micro_focus_pause", 140),
-            ("thinking_tilt", 520),
-            ("paper_whisper_fan", 260),
-            ("micro_side_eye", 180),
-            ("inner_cover_oops", 120),
+            ("thinking_tilt", 700),
+            ("paper_whisper_fan", 420),
+            ("micro_side_eye", 220),
         ),
         line_delay_ms=120,
         post_actions=(
-            ("tail_smug_sway", 120),
-            ("oops_innocent_combo", 740),
+            # one recovery beat, played out, instead of tail + combo + blink
+            ("oops_innocent_combo", 820),
             ("slow_blink", 1000),
         ),
     ),
     "quiet_companion": PerformancePhrase(
         pre_actions=(
             ("micro_soften", 160),
-            ("sleepy_sag", 380),
+            ("sleepy_sag", 620),
         ),
         line_delay_ms=80,
         post_actions=(
             ("blink", 220),
-            ("nod", 260),
+            ("nod", 340),
             ("micro_soft_reset", 240),
         ),
     ),
     "tiny_celebrate": PerformancePhrase(
         pre_actions=(
             ("micro_tiny_proud", 100),
-            ("happy_bounce", 320),
+            ("happy_bounce", 340),
         ),
         line_delay_ms=80,
         post_actions=(
             ("micro_snap_innocent", 120),
-            ("nod", 220),
+            ("nod", 340),
         ),
     ),
     "cheesy_love_cringe": PerformancePhrase(
         pre_actions=(
-            ("inner_cover_oops", 180),
-            ("tail_tip_flick", 160),
+            # was five body actions at 12-24% each: tissue, pen twirl, alert
+            # sign, halo, halo. Now one covered-mouth delivery, then one cringe.
+            ("inner_cover_oops", 420),
         ),
         line_delay_ms=90,
         post_actions=(
-            ("shake", 160),
-            ("tail_frantic_innocent", 180),
-            ("oops_innocent_combo", 260),
+            ("shake", 460),
+            ("micro_caught_guilty", 200),
+            ("slow_blink", 520),
         ),
     ),
 }

@@ -16,6 +16,14 @@ class AnimationStep:
     reset: str = ""
     pause_ms: int = 0
     duration_ms: int = 0
+    # Wait for the action to actually finish instead of guessing how long it
+    # takes. A hardcoded duration_ms that is shorter than the real action means
+    # the next step starts on top of one still running, and whichever channel
+    # it touches — body, tail, inner wire, prop — gets cancelled mid-motion.
+    await_action: bool = False
+    # Deliberate overlap, subtracted from the awaited duration, so a phrase can
+    # blend rather than always landing on a hard cut.
+    overlap_ms: int = 0
 
 
 @dataclass(frozen=True)
@@ -204,6 +212,8 @@ def _parse_step(raw: dict[str, Any]) -> AnimationStep:
         reset=_key(raw.get("reset")),
         pause_ms=_int(raw.get("pause_ms"), 0),
         duration_ms=_int(raw.get("duration_ms"), 0),
+        await_action=bool(raw.get("await_action", False)),
+        overlap_ms=_int(raw.get("overlap_ms"), 0),
     )
 
 

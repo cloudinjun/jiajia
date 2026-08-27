@@ -479,7 +479,7 @@ def build_timeline(action: str) -> tuple[list[Pose], str]:
     if action in B.INNER_GESTURE_FRAMES:
         inner_gesture = action
 
-    if action == "blink":
+    if action in ("blink", "fake_innocent_blink"):
         blink = [v for v, d in B.BLINK_FRAMES for _ in range(max(1, round(d / FRAME_MS)))]
     elif action == "slow_blink":
         blink = [v for v, d in B.SLOW_BLINK_FRAMES for _ in range(max(1, round(d / FRAME_MS)))]

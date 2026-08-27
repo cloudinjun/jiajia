@@ -30,7 +30,8 @@ action also uses runtime-only canvas props (paper, hat, cane). `expression`
 | Action | Preview | Coverage | Notes |
 |---|---|---|---|
 | `thinking_tilt` | ![thinking_tilt](thinking_tilt.gif) | full | 歪着想一想，适合思考和吐槽前的停顿。 |
-| `sleepy_sag` | ![sleepy_sag](sleepy_sag.gif) | full | 慢慢塌下去再恢复，适合困、无聊、加载太久。 |
+| `sleepy_sag` | ![sleepy_sag](sleepy_sag.gif) | full | 慢慢塌下去，眼皮越来越重，不会惊醒。适合困、无聊、加载太久。 |
+| `alarm_jolt` | ![alarm_jolt](alarm_jolt.gif) | expression | 打盹到一半被闹钟吵醒：瞳孔缩一下、惊慌、不耐烦，然后重新犯困。 |
 | `flop` | ![flop](flop.gif) | full | 整只纸夹趴下，适合累了、无语、放弃一秒。 |
 | `melt` | ![melt](melt.gif) | full | Melt into a low readable puddle, hold for a beat, then recover; use for overload, embarrassment, or complete dramatic collapse. |
 | `stretch` | ![stretch](stretch.gif) | full | 伸懒腰，适合从 idle 醒来或准备开工。 |
@@ -44,7 +45,8 @@ action also uses runtime-only canvas props (paper, hat, cane). `expression`
 | Action | Preview | Coverage | Notes |
 |---|---|---|---|
 | `wiggle` | ![wiggle](wiggle.gif) | full | 被戳或欠欠地抖一下，短促。 |
-| `blink` | ![blink](blink.gif) | expression | 睁大眼装无辜或轻轻眨眼。 |
+| `blink` | ![blink](blink.gif) | expression | 轻轻眨一下眼，什么都不表示。 |
+| `fake_innocent_blink` | ![fake_innocent_blink](fake_innocent_blink.gif) | expression | 睁大眼睛左右偷看再装乖，是被抓包之后的表情。 |
 | `peek` | ![peek](peek.gif) | expression | 眼睛偷瞄鼠标或屏幕角落，适合观察。 |
 | `jump` | ![jump](jump.gif) | full | 明显跳一下，适合开心或突然来劲。 |
 | `spin_jump` | ![spin_jump](spin_jump.gif) | full | 跳起并在空中转体一整圈再落地，适合特别兴奋或想炫技。 |
@@ -106,6 +108,19 @@ action also uses runtime-only canvas props (paper, hat, cane). `expression`
 | `paper_tent` | ![paper_tent](paper_tent.gif) | body | Folded draft-paper tent; use for hiding, focus retreat, or dramatic avoidance. |
 | `paper_pillow` | ![paper_pillow](paper_pillow.gif) | body | Draft-paper pillow; use for sleepy or floppy low-energy beats. |
 | `paper_stage` | ![paper_stage](paper_stage.gif) | body | Draft-paper stage mat; use for dance, celebration, or tiny performance moments. |
+
+## Agent
+
+| Action | Preview | Coverage | Notes |
+|---|---|---|---|
+| `thinking_loop` | ![thinking_loop](thinking_loop.gif) | full | 持续思考：两侧缓慢来回漂移，一直没有落定。 |
+| `tool_working` | ![tool_working](tool_working.gif) | full | 跑工具时的机械脉冲，节奏均匀、不移动，像进度在跳。 |
+| `paper_editing` | ![paper_editing](paper_editing.gif) | full | 伏在纸面上逐行改，身体压低、小幅横向挪动。 |
+| `paper_sorting` | ![paper_sorting](paper_sorting.gif) | full | 左右分堆，每一边都有一个放下的下沉动作。 |
+| `waiting_stare` | ![waiting_stare](waiting_stare.gif) | full | 等人回话：几乎不动，只有一次极小的漂移和慢眨眼。 |
+| `permission_request` | ![permission_request](permission_request.gif) | full | 凑近镜头把请求举起来并保持住，等一个答复。 |
+| `reconnect_scan` | ![reconnect_scan](reconnect_scan.gif) | full | 来回搜寻信号，中间被两次卡顿打断。 |
+| `error_autopsy` | ![error_autopsy](error_autopsy.gif) | full | 凑近并压低去看错误，停留很久，是审视不是惊慌。 |
 
 ## Movement
 

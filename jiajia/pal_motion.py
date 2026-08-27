@@ -76,6 +76,81 @@ TAIL_NEUTRAL_POSE: TailPose = (0.0, 0.0, 0.0, 0.0, 0.0)
 INNER_NEUTRAL_POSE: InnerPose = (0.0, 0.0, 0.0, 0.0)
 
 ACTION_FRAMES: dict[str, ActionFrames] = {
+    # ── agent state signatures ───────────────────────────────────
+    # One state, one readable movement. These used to alias onto
+    # patrol/scan/thinking_tilt, so eight configured states showed up
+    # on screen as four.
+    "tool_working": (
+        (0, 0, 1.0, 1.0, 120),
+        (0, -3, 1.0, 1.02, 180),
+        (0, 0, 1.0, 1.0, 180),
+        (0, -3, 1.0, 1.02, 180),
+        (0, 0, 1.0, 1.0, 180),
+        (0, -3, 1.0, 1.02, 180),
+        (0, 0, 1.0, 1.0, 240),
+    ),
+    "paper_editing": (
+        (0, 3, 1.02, 0.98, 200),
+        (-3, 4, 1.02, 0.97, 260),
+        (-1, 4, 1.02, 0.97, 200),
+        (2, 4, 1.02, 0.97, 260),
+        (4, 4, 1.02, 0.97, 200),
+        (0, 2, 1.01, 0.99, 240),
+        (0, 0, 1.0, 1.0, 160),
+    ),
+    "waiting_stare": (
+        (0, 0, 1.0, 1.0, 300),
+        (1, 0, 1.0, 1.0, 900),
+        (1, 1, 1.0, 1.0, 700),
+        (0, 0, 1.0, 1.0, 400),
+    ),
+    "permission_request": (
+        (0, 0, 1.0, 1.0, 120),
+        (0, -4, 1.06, 1.04, 220),
+        (0, -6, 1.08, 1.05, 700),
+        (0, -5, 1.07, 1.04, 300),
+        (0, -2, 1.02, 1.01, 260),
+        (0, 0, 1.0, 1.0, 180),
+    ),
+    "paper_sorting": (
+        (0, 0, 1.0, 1.0, 140),
+        (-12, 2, 1.0, 1.0, 200),
+        (-12, 5, 1.0, 0.97, 240),
+        (0, 0, 1.0, 1.0, 200),
+        (12, 2, 1.0, 1.0, 200),
+        (12, 5, 1.0, 0.97, 240),
+        (0, 0, 1.0, 1.0, 220),
+    ),
+    "reconnect_scan": (
+        (0, 0, 1.0, 1.0, 120),
+        (-14, 0, 1.0, 1.0, 260),
+        (-14, 0, 1.0, 1.0, 100),
+        (-10, 0, 0.98, 1.02, 100),
+        (-14, 0, 1.0, 1.0, 120),
+        (14, 0, 1.0, 1.0, 300),
+        (14, 0, 1.0, 1.0, 100),
+        (10, 0, 0.98, 1.02, 100),
+        (14, 0, 1.0, 1.0, 120),
+        (0, 0, 1.0, 1.0, 200),
+    ),
+    "error_autopsy": (
+        (0, 0, 1.0, 1.0, 160),
+        (-5, 3, 1.03, 0.98, 340),
+        (-7, 5, 1.05, 0.96, 900),
+        (-6, 4, 1.04, 0.97, 300),
+        (-2, 1, 1.01, 0.99, 260),
+        (0, 0, 1.0, 1.0, 180),
+    ),
+    "thinking_loop": (
+        (0, 0, 1.0, 1.0, 200),
+        (-4, 1, 0.98, 1.02, 460),
+        (-5, 2, 0.97, 1.03, 380),
+        (0, 1, 0.99, 1.01, 420),
+        (4, 1, 0.98, 1.02, 460),
+        (5, 2, 0.97, 1.03, 380),
+        (0, 0, 1.0, 1.0, 300),
+    ),
+
     # 卡通跳跃：蓄力蹲→弹射拉伸→顶点滞空漂浮→落地压扁→双段回弹 (~840ms)
     "jump": (
         (0, 8, 1.22, 0.72, 150),
@@ -645,22 +720,40 @@ TAIL_MOTION_FRAMES: dict[str, TailFrames] = {
         (0, -1, 9, 0, 0, 280),
         (0, 0, 0, 0, 0, 220),
     ),
+    # An alert is a POSE, not a vibration. The old version crossed 63px with
+    # three direction reversals in 225ms and no hold: at 30fps each leg was
+    # about two frames, so it read as the tail teleporting rather than
+    # reacting. The shape of a real one is anticipation (coil the other way),
+    # one committed straighten, then a long hold — the hold is where the
+    # viewer actually reads "alert" — then a delayed tip shudder and a damped
+    # release that stops short of neutral, because the pal is still watching.
     "tail_alert_snap": (
         (0, 0, 0, 0, 0, 40),
-        (1, 4, 0, 0, 13, 70),
-        (-5, -3, 0, 0, 7, 75),
-        (3, 2, 0, 0, 4, 80),
-        (0, 0, 0, 0, 0, 160),
+        (-2, -3, 0, 0, 2, 110),
+        (2, 3, 0, 0, 15, 170),
+        (2, 3, 0, 0, 15, 300),
+        (3, 2, 0, 0, 14, 80),
+        (1, 3, 0, 0, 15, 80),
+        (2, 3, 0, 0, 12, 200),
+        (0, 1, 0, 0, 3, 180),
     ),
 }
+
+# The inner wire is a HAND that covers the mouth. It can hold something, but it
+# never carries it away: the wire stays put and only the tip articulates. In rig
+# terms amount_x/amount_y (tip) carry the gesture, while mid_x/mid_y bow the
+# whole wire outward and must stay under INNER_MID_LIMIT. Without that limit the
+# core reads as a free arm, which is how it ended up waving, pointing and giving
+# a thumbs-up — a second appendage the character is not supposed to have.
+INNER_MID_LIMIT = 5.0
 
 INNER_GESTURE_FRAMES: dict[str, InnerFrames] = {
     "inner_cover_oops": (
         (0, 0, 0, 0, 45),
-        (5, 16, -4, 7, 95),
-        (-2, 12, 3, 8, 85),
-        (3, 15, -2, 6, 130),
-        (0, 7, 1, 4, 120),
+        (5, 18, -2, 3, 95),
+        (-2, 14, 1, 3, 85),
+        (3, 17, -1, 2, 130),
+        (0, 8, 0, 2, 120),
         (0, 0, 0, 0, 140),
     ),
     "inner_side_smirk": (
@@ -671,58 +764,58 @@ INNER_GESTURE_FRAMES: dict[str, InnerFrames] = {
     ),
     "inner_shy_retract": (
         (0, 0, 0, 0, 45),
-        (-8, 10, -3, 5, 120),
-        (-6, 8, -5, 8, 260),
-        (0, 3, -2, 3, 120),
+        (-8, 11, -2, 2, 120),
+        (-7, 9, -3, 2, 260),
+        (0, 4, -1, 1, 120),
         (0, 0, 0, 0, 150),
     ),
     "inner_droop": (
         (0, 0, 0, 0, 45),
-        (-1, -9, -1, -4, 220),
-        (1, -12, 1, -7, 420),
-        (0, -5, 0, -3, 180),
+        (-1, -10, 0, -2, 220),
+        (1, -14, 0, -3, 420),
+        (0, -6, 0, -1, 180),
         (0, 0, 0, 0, 180),
     ),
     # --- hand gestures ---
     "inner_wave": (
         (0, 0, 0, 0, 40),
-        (12, 6, 5, 2, 100),      # reach out right
-        (-10, 7, -4, 3, 110),    # sweep left
-        (11, 5, 4, 1, 105),      # sweep right
-        (-8, 6, -3, 2, 110),     # sweep left
-        (4, 3, 2, 1, 120),       # settle
+        (13, 6, 2, 1, 100),
+        (-11, 7, -2, 1, 110),
+        (12, 5, 2, 1, 105),
+        (-9, 6, -1, 1, 110),
+        (4, 3, 1, 0, 120),
         (0, 0, 0, 0, 130),
     ),
     "inner_point": (
         (0, 0, 0, 0, 40),
-        (0, 14, 0, 6, 110),      # extend upward firmly
-        (2, 16, 1, 7, 280),      # hold with micro-drift
-        (1, 12, 0, 5, 140),      # retract slightly
+        (0, 16, 0, 2, 110),
+        (2, 18, 1, 2, 280),
+        (1, 13, 0, 2, 140),
         (0, 0, 0, 0, 140),
     ),
     "inner_facepalm": (
         (0, 0, 0, 0, 40),
-        (3, 18, -2, 10, 120),    # reach up fast
-        (1, 20, -1, 12, 400),    # press and hold (exasperation)
-        (2, 14, 0, 8, 160),      # slowly peel away
-        (0, 4, 0, 2, 130),
+        (3, 20, -1, 3, 120),
+        (1, 23, 0, 4, 400),
+        (2, 16, 0, 3, 160),
+        (0, 5, 0, 1, 130),
         (0, 0, 0, 0, 140),
     ),
     "inner_thumbs_up": (
         (0, 0, 0, 0, 40),
-        (0, 18, 0, 8, 120),      # extend upward stiffly
-        (1, 20, -1, 9, 320),     # hold proud
-        (0, 10, 0, 5, 140),      # lower
+        (0, 20, 0, 3, 120),
+        (1, 23, 0, 3, 320),
+        (0, 11, 0, 2, 140),
         (0, 0, 0, 0, 130),
     ),
     # --- mouth gestures ---
     "inner_yawn": (
         (0, 0, 0, 0, 60),
-        (0, -3, 0, -1, 180),     # mouth starts to open
-        (-1, -10, 1, -5, 320),   # wide open yawn
-        (1, -12, -1, -6, 500),   # hold open, slight drift
-        (0, -6, 0, -3, 240),     # closing
-        (0, -1, 0, 0, 160),      # almost closed
+        (0, -3, 0, -1, 180),
+        (-1, -11, 1, -2, 320),
+        (1, -14, -1, -3, 500),
+        (0, -7, 0, -2, 240),
+        (0, -1, 0, 0, 160),
         (0, 0, 0, 0, 120),
     ),
     "inner_chew": (
@@ -750,7 +843,7 @@ ACTION_TAIL_MOTIONS: dict[str, str] = {
     "happy_bounce": "tail_wag",
     "celebrate": "tail_wag",
     "dance": "tail_wag",
-    "jump": "tail_alert_snap",
+    "jump": "tail_tip_flick",
     "wiggle": "tail_tip_flick",
     "shake": "tail_bristle",
     "startled_pop": "tail_bristle",
@@ -765,9 +858,9 @@ ACTION_TAIL_MOTIONS: dict[str, str] = {
     "melt": "tail_sleepy_droop",
     "stretch": "tail_idle_slow",
     "patrol": "tail_tip_flick",
-    "spin_jump": "tail_alert_snap",
+    "spin_jump": "tail_tip_flick",
     "excited_spin": "tail_wag",
-    "sneeze": "tail_alert_snap",
+    "sneeze": "tail_tip_flick",
     "shiver": "tail_guilty_tuck",
     "curious_lean": "tail_tip_flick",
     "peekaboo": "tail_frantic_innocent",

@@ -11,9 +11,11 @@ built; see "What has shipped" for what is already done.*
 | body.py | 4,747 lines | 4,472 lines; the class itself is 3,019 lines / 142 methods across 8 mixins |
 | Seed entries per language | 51 zh, 0 en | 224 zh, 224 en (full parity) |
 | Identity packs | 11 zh only | 12 zh + 12 en |
-| Animation actions | 28 visible | 68, each with a checked-in GIF |
+| Animation actions | 28 visible | 78, each with a checked-in GIF |
 | Performance phrases | 6 | 9 primary choreographies |
-| Tests | 23 | 45 |
+| Phrase beats cut below readability | 20 | 0 |
+| Actions carrying a prop by default | 52 of 68 | 7 of 78 |
+| Tests | 23 | 73 |
 
 ### What has shipped
 
@@ -67,8 +69,117 @@ Two bugs surfaced while doing this and are fixed:
 - Chinese status lines appended their own `。` to a summary that already ended
   in one, producing `。。`, and a leading `。` when the summary was empty.
 
+### Animation semantics pass (2026-08-26)
+
+An external review graded the library 5.8/10 — not for lacking animation, but
+for having too much of it per action: "every action wants to prove it is rich".
+The finding that mattered was that props had become the acting. Verified before
+acting on it, and the numbers held up.
+
+What was actually wrong, each confirmed against the code:
+
+| Symptom | Evidence |
+|---|---|
+| Props replaced body language | 52 of 68 actions carried one by default; halo appeared in 7, alert_sign in 4, sunglasses in 4 |
+| The tail group showed props, not tails | all 11 tail actions had a default prop; 5 set `held` + `tail_style: wag`, turning the tail into a hand |
+| `blink` was not neutral | a 900ms halo + double-blink + glance-around skit, used as the idle baseline |
+| Rest scenarios contained a jump scare | `sleepy_sag`'s face script ran droop → **panic** → tremble; `comfort` (`lifecycle: loop`) played it forever |
+| `tail_alert_snap` popped | measured 63px of travel in 425ms, 774px/s peak, 67ms hold, three reversals — about two frames per leg at 30fps |
+
+Two more the review missed: `sleeping` was wired to the **sulk** performance
+(rain cloud, tears, for going to sleep), and `waking` was wired to
+`quiet_companion` — backwards on both ends.
+
+What shipped:
+
+- **Props are opt-in.** The catalogue moved to `SCENARIO_PROP_CUES` (nothing
+  deleted, 52 cues intact); `ACTION_PROP_CUES` is now derived from
+  `DEFAULT_PROP_ACTIONS` — 7 actions where the prop is the cause or the
+  consequence, not a caption. A scenario asks for the rest via
+  `scenario_prop_cue()`. This also fixed the tail group for free: `tail_wag`
+  had been playing the *bell* motion because a held prop overrode it.
+- **`blink` is a blink again** — neutral brows, no gaze, 260ms. The skit lives
+  on as `fake_innocent_blink`.
+- **`sleepy_sag` is a one-way slide**, no panic beat. The alarm skit lives on as
+  `alarm_jolt`, which keeps its clock because the alarm *is* the event, and is
+  now what `waking` plays.
+- **`tail_alert_snap` rebuilt** as anticipation → commit → hold → delayed tip
+  shudder → damped release that stops short of neutral: 425 → 1160ms,
+  774 → 256px/s, 67 → 283ms hold, same 62px of travel. `jump`, `spin_jump` and
+  `sneeze` no longer borrow it.
+
+`tests/test_action_semantics.py` (15 tests) now enforces the rules rather than
+the outcomes: neutral actions carry no prop, rest scenarios cannot panic, tail
+actions cannot show a prop or become a hand, no tail gesture may exceed
+400px/s, no single prop may be the default for more than two actions, and every
+face-script pose reference must resolve — an unknown pose name silently falls
+back rather than raising, which is how a tail action once ran for months with a
+non-existent eye pose.
+
+### Body rules, sequencer and agent states (2026-08-26, second pass)
+
+**The inner wire has a definition now.** It is a hand that covers the mouth. It
+may hold something, but it never carries it away: the wire keeps its place and
+only the tip articulates. The rig already separated those — `amount_*` moves the
+free tip, `mid_*` bows the whole wire outward — but gestures used both, so the
+core read as a free arm and had grown a wave, a point and a thumbs-up. Eight
+gestures were rebuilt under `INNER_MID_LIMIT = 5.0`, keeping tip amplitude
+(that is where the expression lives) and cutting the bow: `inner_facepalm` went
+from mid 13 to 4, `inner_shy_retract` 13 to 5.
+
+**The sequencer can wait.** `AnimationStep` gained `await_action` and
+`overlap_ms`, and `AnimationCallbacks` gained `duration_of`, wired to the
+existing `_animation_duration_ms`. A declared `duration_ms` still wins, because
+that is a directorial choice; otherwise an awaiting step advances by the
+action's real length minus any deliberate overlap, instead of a hand-guessed
+number that was usually too small.
+
+**The phrases were re-timed against measurement.** 20 of the phrase steps had
+been getting under 45% of their action, the worst at 5% — `grand_dame_whisper_roast`
+started a 2513ms tail sway and cut it after 120ms. Face-only micro actions are
+exempt (an expression reads on frame one and holds); body, tail and inner-wire
+actions are not. Beats a phrase could not afford were dropped rather than
+stretched, so `cheesy_love_cringe` went from five body actions at 12-24% each to
+two played through, and `fake_sulk` stopped starting `sulk` twice. Now 0 steps
+fall below the floor.
+
+**Agent states move for themselves.** Eight configured states resolved onto four
+existing actions, so the config implied more behaviour than a viewer saw. Each
+now has its own signature, differing in silhouette, rhythm and leading part:
+
+| State | What makes it readable |
+|---|---|
+| `tool_working` | pure vertical pulse, evenly spaced, no travel — a progress tick |
+| `paper_editing` | hunched down, stepping along a line |
+| `paper_sorting` | lateral like patrol, but with a set-down dip at each end |
+| `waiting_stare` | near-total stillness with a 900ms hold — the stillness is the signal |
+| `permission_request` | the only action that grows toward the viewer, and holds the ask |
+| `reconnect_scan` | a search sweep interrupted twice by a stutter |
+| `error_autopsy` | leans in *and* down over the evidence, longest hold in the set |
+| `thinking_loop` | drifts to both sides and never settles, unlike one-sided `thinking_tilt` |
+
+Tests are 45 → 73. `test_performance_timing.py` enforces the readability floor
+and that no phrase restarts a body action; `test_action_semantics.py` gained the
+inner-wire rule and a fingerprint check that no two agent states — and none of
+them versus `patrol`/`thinking_tilt` — share a motion profile.
+
 ### Known gaps
 
+- **The library still teaches props faster than it teaches the body.** The
+  silhouette redesigns the review asked for are open: `tail_raise_excited` reads
+  as a diagonal ruler rather than a friendly upright tail, `tail_question_hook`'s
+  hook is too weak to read as a question at desktop size, and `tail_bristle` is
+  a constant-width line that cannot express fur volume. These need drawing work,
+  not decoupling.
+- **Channel ownership is still unowned.** `await_action` stops a step starting
+  on top of a running one, but body, tail, inner wire, face and prop still hold
+  separate timers, and a new action can still cancel a previous one's channel
+  mid-motion. The remaining piece is explicit ownership and an interruption
+  policy, not the waiting.
+- **The agent signatures are conservative in the body.** They are distinct by
+  measurement and clearly so on the face, but body travel is 0-14px on a ~200px
+  figure, so `tool_working` and `paper_editing` lean on the face more than the
+  silhouette. Worth pushing once they have been watched in place.
 - **The only quiz packet is `zh-CN`.** The report frame around it is bilingual,
   but an English user still gets Chinese questions. This needs an English packet
   written, not more code.

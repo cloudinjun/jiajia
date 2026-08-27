@@ -107,7 +107,7 @@ logical_states:
     minimum_ms: 1600
     priority: 10
   sleeping:
-    performance: fake_sulk
+    performance: quiet_companion
     fallback_action: sleepy_sag
     meaning: low energy or dramatic collapse
     lifecycle: transition_to_state
@@ -116,8 +116,8 @@ logical_states:
     priority: 12
     interruptible: false
   waking:
-    performance: quiet_companion
-    fallback_action: startled_pop
+    performance: tiny_celebrate
+    fallback_action: alarm_jolt
     meaning: returning from low energy
     lifecycle: transition_to_state
     source_state: sleep
@@ -559,7 +559,7 @@ performance_phrases:
     source_state: sleep
     target_state: idle
     minimum_ms: 1600
-    fallback_action: startled_pop
+    fallback_action: alarm_jolt
     sequence:
       - action: startled_pop
         duration_ms: 420

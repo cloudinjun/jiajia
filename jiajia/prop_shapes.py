@@ -268,11 +268,19 @@ ANCHOR_LEFT_SIDE = (52.0, 300.0)     # low at the left side
 ANCHOR_GROUND = (140.0, 388.0)       # down at the floor
 
 
-# ── per-action prop cues ─────────────────────────────────────────
+# ── prop cues ────────────────────────────────────────────────────
 # Every cue names a story pattern — how this prop enters, performs its
 # meaning, and leaves. See _pattern_timeline for the choreography.
+#
+# These are the full CATALOGUE, not the defaults. A prop used to be attached
+# to every action, which meant the prop did the acting: the halo appears in
+# seven different actions, alert_sign in four, sunglasses in four. A viewer
+# learns "halo = innocent" instead of learning what the body is doing, and a
+# neutral action like blink stops being neutral. So the catalogue is opt-in —
+# a scenario or performance asks for a prop; an action no longer carries one
+# by default. DEFAULT_PROP_ACTIONS below names the exceptions.
 
-ACTION_PROP_CUES: dict[str, dict[str, Any]] = {
+SCENARIO_PROP_CUES: dict[str, dict[str, Any]] = {
     # mood / body
     "jump": {"shape": "flag", "anchor": ANCHOR_FACE_SIDE, "held": True, "size": 1.25, "pattern": "brandish", "duration": 1150, "wave_deg": 24},
     "flop": {"shape": "white_flag", "anchor": ANCHOR_BODY_SIDE, "held": True, "size": 1.35, "pattern": "weak_raise", "duration": 1900},
@@ -284,13 +292,13 @@ ACTION_PROP_CUES: dict[str, dict[str, Any]] = {
     "happy_bounce": {"shape": "flag", "anchor": ANCHOR_FACE_SIDE, "held": True, "size": 1.25, "pattern": "brandish", "duration": 1000, "wave_deg": 22},
     "nod": {"shape": "check_sign", "anchor": ANCHOR_FACE_SIDE, "held": True, "size": 1.35, "pattern": "pull_hold", "duration": 900, "lift": (0, -18)},
     "thinking_tilt": {"shape": "question_sign", "anchor": ANCHOR_FACE_SIDE, "held": True, "size": 1.35, "pattern": "pull_hold", "duration": 1450, "lift": (8, -18)},
-    "sleepy_sag": {"shape": "alarm_clock", "anchor": ANCHOR_OVERHEAD, "size": 1.25, "pattern": "ring", "duration": 2300},
+    "alarm_jolt": {"shape": "alarm_clock", "anchor": ANCHOR_OVERHEAD, "size": 1.25, "pattern": "ring", "duration": 2300},
     "startled_pop": {"shape": "alert_sign", "anchor": ANCHOR_OVERHEAD, "size": 1.3, "pattern": "slam_in", "duration": 950},
     "smug_sway": {"shape": "sunglasses", "anchor": ANCHOR_EYES, "over_face": True, "size": 1.9, "base_rot": 14, "pattern": "wear", "duration": 1550},
     "sulk": {"shape": "rain_cloud", "anchor": ANCHOR_OVERHEAD, "size": 2.0, "pattern": "float_in", "duration": 2600},
     "hide": {"shape": "halo", "anchor": ANCHOR_OVERHEAD, "size": 1.25, "pattern": "bloom", "duration": 1600},
     "wiggle": {"shape": "bell", "anchor": ANCHOR_TAIL_SIDE, "held": True, "tail_style": "wag", "tail_motion": "tail_bell_ring", "size": 1.25, "pattern": "brandish", "duration": 800, "wave_deg": 20},
-    "blink": {"shape": "halo", "anchor": ANCHOR_OVERHEAD, "size": 1.25, "pattern": "bloom", "duration": 820},
+    "fake_innocent_blink": {"shape": "halo", "anchor": ANCHOR_OVERHEAD, "size": 1.25, "pattern": "bloom", "duration": 820},
     "peek": {"shape": "binoculars", "anchor": ANCHOR_EYES, "over_face": True, "size": 1.2, "base_rot": 14, "pattern": "scan_hold", "duration": 1350, "sweep_px": 5},
     "scan": {"shape": "magnifier", "anchor": ANCHOR_FACE_SIDE, "held": True, "pattern": "scan_hold", "duration": 1450, "sweep_px": 16},
     "celebrate": {"shape": "trophy", "anchor": ANCHOR_FACE_SIDE, "held": True, "size": 1.35, "pattern": "present", "duration": 1550, "lift": (0, -30)},
@@ -307,7 +315,6 @@ ACTION_PROP_CUES: dict[str, dict[str, Any]] = {
     "tail_tip_flick": {"shape": "pen", "anchor": ANCHOR_TAIL_SIDE, "held": True, "tail_style": "wag", "size": 1.25, "pattern": "pen_twirl", "duration": 1000},
     "tail_smug_sway": {"shape": "sunglasses", "anchor": ANCHOR_EYES, "over_face": True, "size": 1.9, "base_rot": 14, "pattern": "wear", "duration": 1650},
     "tail_guilty_tuck": {"shape": "halo", "anchor": ANCHOR_OVERHEAD, "size": 1.25, "pattern": "bloom", "duration": 1450},
-    "tail_sleepy_droop": {"shape": "alarm_clock", "anchor": ANCHOR_OVERHEAD, "size": 1.25, "pattern": "ring", "duration": 1950},
     "tail_alert_snap": {"shape": "alert_sign", "anchor": ANCHOR_OVERHEAD, "size": 1.3, "pattern": "slam_in", "duration": 900},
     "tail_frantic_innocent": {"shape": "halo", "anchor": ANCHOR_OVERHEAD, "size": 1.25, "pattern": "bloom", "duration": 1250, "wobble_deg": 10},
     "tail_raise_excited": {"shape": "bell", "anchor": ANCHOR_TAIL_SIDE, "held": True, "tail_style": "wag", "size": 1.25, "pattern": "brandish", "duration": 1900, "wave_deg": 8},
@@ -330,6 +337,37 @@ ACTION_PROP_CUES: dict[str, dict[str, Any]] = {
     "moonwalk": {"shape": "headphones", "anchor": ANCHOR_HEAD_TOP, "over_face": True, "size": 1.5, "pattern": "wear", "duration": 1100},
     "pounce": {"shape": "binoculars", "anchor": ANCHOR_EYES, "over_face": True, "size": 1.2, "base_rot": 14, "pattern": "scan_hold", "duration": 1000, "sweep_px": 5},
 }
+
+# The only actions that keep a prop by default are the ones where the prop is
+# the CAUSE or the CONSEQUENCE of the movement, not a caption for it: you
+# cannot sneeze without something to sneeze into, and drop_in is a descent that
+# needs something to descend on. Everything else earns its prop per scenario.
+DEFAULT_PROP_ACTIONS: frozenset[str] = frozenset({
+    "sneeze",        # the tissue is what the sneeze produces
+    "drop_in",       # the parachute is the descent mechanism
+    "celebrate",     # the trophy is the thing being celebrated with
+    "dance",         # the headphones are where the music comes from
+    "sulk",          # the rain cloud is the joke, not a label for it
+    "melt",          # the thermometer is the heat that causes the melt
+    "alarm_jolt",    # the alarm is the event, not a caption for it
+})
+
+ACTION_PROP_CUES: dict[str, dict[str, Any]] = {
+    action: cue
+    for action, cue in SCENARIO_PROP_CUES.items()
+    if action in DEFAULT_PROP_ACTIONS
+}
+
+
+def scenario_prop_cue(action: str) -> dict[str, Any] | None:
+    """A prop cue from the catalogue, for a scenario that has earned it.
+
+    Use this when a specific situation wants a prop the action does not carry
+    by default — an alarm going off, a real inspection task. Reaching into
+    SCENARIO_PROP_CUES directly from an action would put the default back.
+    """
+    return SCENARIO_PROP_CUES.get(action)
+
 
 
 # ── shape FX: primitive-level animation (pure, shared) ───────────
@@ -955,9 +993,67 @@ FACE_DECALS: dict[str, dict[str, Any]] = {
 #   blush    True        cheek blush on for this beat
 
 ACTION_FACE_SCRIPTS: dict[str, tuple[FaceFrame, ...]] = {
+    "tool_working": (
+        (0, 'narrow', 'neutral', None, None),
+        (400, 'narrow', 'neutral', (0.0, 0.4), {'pupil': 0.92}),
+        (900, 'narrow', 'neutral', (0.0, 0.4), {'blink': 'quick'}),
+        (1200, 'round', 'neutral', None, None),
+    ),
+    "paper_editing": (
+        (0, 'narrow', 'skeptical', (0.0, 0.9), {'pupil': 0.9}),
+        (460, 'narrow', 'skeptical', (-1.2, 0.9), None),
+        (900, 'narrow', 'skeptical', (1.2, 0.9), None),
+        (1340, 'round', 'neutral', None, {'blink': 'quick'}),
+    ),
+    "waiting_stare": (
+        (0, 'round', 'neutral', None, None),
+        (300, 'half_closed', 'neutral', (0.0, -0.2), {'openness': 0.55}),
+        (1200, 'half_closed', 'neutral', (0.0, -0.2), {'blink': 'slow'}),
+        (2000, 'round', 'neutral', None, None),
+    ),
+    "permission_request": (
+        (0, 'round', 'neutral', None, None),
+        (220, 'wide', 'soft', (0.0, -0.6), {'pupil': 1.1}),
+        (900, 'wide', 'soft', (0.0, -0.6), {'blink': 'quick'}),
+        (1500, 'round', 'neutral', None, None),
+    ),
+    "paper_sorting": (
+        (0, 'round', 'neutral', (0.0, 0.5), None),
+        (340, 'narrow', 'neutral', (-1.4, 0.6), None),
+        (880, 'narrow', 'neutral', (1.4, 0.6), None),
+        (1300, 'round', 'neutral', None, {'blink': 'quick'}),
+    ),
+    "reconnect_scan": (
+        (0, 'round', 'worried', None, {'pupil': 0.95}),
+        (380, 'wide', 'worried', (-1.8, -0.2), None),
+        (880, 'wide', 'worried', (1.8, -0.2), None),
+        (1300, 'round', 'neutral', None, {'blink': 'quick'}),
+    ),
+    "error_autopsy": (
+        (0, 'round', 'neutral', None, None),
+        (340, 'suspicious_slit', 'judge', (-1.0, 0.8), {'pupil': 0.85}),
+        (1200, 'suspicious_slit', 'judge', (-1.0, 0.8), None),
+        (1800, 'round', 'neutral', None, {'blink': 'slow'}),
+    ),
+    "thinking_loop": (
+        (0, 'round', 'neutral', None, None),
+        (400, 'narrow', 'skeptical', (-1.0, -0.5), None),
+        (1200, 'narrow', 'skeptical', (1.0, -0.5), None),
+        (2100, 'round', 'neutral', None, {'blink': 'slow'}),
+    ),
+
     # ── halo family: the innocence performance ──
     # blinking too hard, glancing at the halo, checking nobody saw
+    # A blink is the one movement that has to mean nothing. It is the idle
+    # heartbeat other actions are read against, so it holds the neutral pose
+    # and only shuts the lids. The "caught looking around" version it used to
+    # play lives in fake_innocent_blink now.
     "blink": (
+        (0, "round", "neutral", None, None),
+        (90, "round", "neutral", None, {"blink": "quick"}),
+        (260, "round", "neutral", None, None),
+    ),
+    "fake_innocent_blink": (
         (0, "innocent_round", "innocent", None, {"blink": "double"}),
         (240, "innocent_round", "innocent", (0.8, -1.2), {"pupil": 1.1}),
         (500, "wide", "innocent", (-1.5, -0.3), None),
@@ -1034,21 +1130,30 @@ ACTION_FACE_SCRIPTS: dict[str, tuple[FaceFrame, ...]] = {
         (1150, "narrow", "droop", (0.0, 0.3), {"openness": 0.4, "blink": "slow"}),
     ),
     # ── alarm clock: drifting off → JOLTED → grumpy → dozing again ──
+    # Falling asleep is a one-way slide: the lids get heavier, the gaze stops
+    # tracking, and nothing snaps back. This used to end in panic because the
+    # alarm skit was baked into it, which made every quiet moment a jump scare.
+    # That skit is alarm_jolt now.
     "sleepy_sag": (
-        (0, "sleepy_slit", "droop", None, {"openness": 0.28, "blink": "slow"}),
-        (280, "sleepy_slit", "droop", None, {"openness": 0.18}),
-        (400, "startled_dot", "panic", (0.3, -1.3), {"pupil": 0.7}),
-        (700, "wide", "panic", (0.3, -1.2), {"blink": "quick", "pupil": 0.85}),
-        (1000, "worried_wide", "worried", (0.2, -1.1), {"tremble": 400}),
-        (1600, "narrow", "judge", (0.2, -1.0), None),
-        (1950, "sleepy_slit", "droop", (0.0, 0.2), {"openness": 0.3, "blink": "slow"}),
+        (0, "sleepy_slit", "droop", None, {"openness": 0.42, "blink": "slow"}),
+        (420, "sleepy_slit", "droop", (0.0, 0.3), {"openness": 0.3}),
+        (900, "sleepy_slit", "droop", (0.0, 0.5), {"openness": 0.2, "blink": "slow"}),
+        (1500, "sleepy_slit", "droop", (0.0, 0.6), {"openness": 0.12}),
+        (2000, "sleepy_slit", "droop", (0.0, 0.4), {"openness": 0.26, "blink": "slow"}),
+    ),
+    "alarm_jolt": (
+        (0, "sleepy_slit", "droop", None, {"openness": 0.2, "blink": "slow"}),
+        (260, "startled_dot", "panic", (0.3, -1.3), {"pupil": 0.7}),
+        (560, "wide", "panic", (0.3, -1.2), {"blink": "quick", "pupil": 0.85}),
+        (900, "worried_wide", "worried", (0.2, -1.1), {"tremble": 400}),
+        (1500, "narrow", "judge", (0.2, -1.0), None),
+        (1900, "sleepy_slit", "droop", (0.0, 0.2), {"openness": 0.3, "blink": "slow"}),
     ),
     "tail_sleepy_droop": (
-        (0, "sleepy_slit", "droop", None, {"openness": 0.3}),
-        (380, "startled_dot", "panic", (0.3, -1.3), {"pupil": 0.72}),
-        (700, "wide", "worried", (0.2, -1.1), {"blink": "quick"}),
-        (1100, "worried_wide", "worried", (0.2, -1.0), {"tremble": 300}),
-        (1600, "sleepy_slit", "droop", (0.0, 0.2), {"openness": 0.3, "blink": "slow"}),
+        (0, "sleepy_slit", "droop", None, {"openness": 0.34}),
+        (420, "sleepy_slit", "droop", (0.0, 0.3), {"openness": 0.24, "blink": "slow"}),
+        (1000, "sleepy_slit", "droop", (0.0, 0.5), {"openness": 0.16}),
+        (1600, "sleepy_slit", "droop", (0.0, 0.35), {"openness": 0.28, "blink": "slow"}),
     ),
     # ── trophy: eye it, gaze up as it rises, bask, hug it in ──
     "celebrate": (

@@ -2526,6 +2526,7 @@ class JiajiaApp(
             brows=self._set_brow_pose,
             reset_expression=self._reset_expression_pose,
             stop_cursor_follow=self._stop_mouse_follow,
+            duration_of=self._animation_duration_ms,
         )
         after_ids = self.animation_player.play(
             name,

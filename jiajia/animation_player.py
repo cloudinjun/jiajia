@@ -19,6 +19,10 @@ class AnimationCallbacks:
     brows: Callable[[str], None]
     reset_expression: Callable[[], None]
     stop_cursor_follow: Callable[[], None]
+    # How long an action really runs. Supplied by the app because only it can
+    # resolve aliases and read the frame tables; defaults to 0 so a caller that
+    # does not provide one simply falls back to the declared durations.
+    duration_of: Callable[[str], int] = lambda _action: 0
 
 
 @dataclass(frozen=True)
@@ -51,6 +55,23 @@ class AnimationDebug:
             f"fallback_action: {self.fallback_action or 'none'}\n"
             f"fallback_reason: {self.fallback_reason or 'none'}"
         )
+
+
+def _step_advance(step, scheduled: bool, callbacks: AnimationCallbacks) -> int:
+    """How long to wait before starting the next step.
+
+    A declared duration_ms always wins, because that is an explicit directorial
+    choice. Otherwise, if the step awaits its action, ask how long the action
+    actually takes rather than assuming the author guessed right — that guess
+    is what let the next step cut into a running one.
+    """
+    if step.duration_ms:
+        return step.duration_ms
+    if step.await_action and step.action:
+        real = max(0, int(callbacks.duration_of(step.action)))
+        if real:
+            return max(0, real - max(0, step.overlap_ms))
+    return 0 if not scheduled else 0
 
 
 class AnimationPlayer:
@@ -135,7 +156,7 @@ class AnimationPlayer:
                 after_ids.append(callbacks.after(elapsed, callbacks.reset_expression))
                 scheduled = True
 
-            elapsed += step.duration_ms if scheduled or step.duration_ms else 0
+            elapsed += _step_advance(step, scheduled, callbacks)
 
         self.last_debug = AnimationDebug(
             event=event,
