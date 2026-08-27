@@ -111,19 +111,25 @@ ACTION_FRAMES: dict[str, ActionFrames] = {
         (0, 2, 1.01, 0.99, 240),
         (0, 0, 1.0, 1.0, 160),
     ),
+    # 长 hold + 稀疏微动，并保持微小前倾。dy 不再出现正值：
+    # 旧版那一帧下沉是三个云端模型都读成“打盹”的原因。
     "waiting_stare": (
-        (0, 0, 1.0, 1.0, 300),
-        (1, 0, 1.0, 1.0, 900),
-        (1, 1, 1.0, 1.0, 700),
-        (0, 0, 1.0, 1.0, 400),
+        (0, 0, 1.0, 1.0, 260),
+        (0, -2, 1.01, 1.0, 1100),
+        (1, -2, 1.01, 1.0, 900),
+        (0, -2, 1.01, 1.0, 800),
+        (0, -1, 1.0, 1.0, 300),
     ),
+    # 一次提出 + 长时间等待。先下沉蓄力（与惊跳相反），再小幅靠近并长时间保持。
+    # 旧版是快速上浮放大，盲测 0/10，全部读成惊讶或警觉。
     "permission_request": (
-        (0, 0, 1.0, 1.0, 120),
-        (0, -4, 1.06, 1.04, 220),
-        (0, -6, 1.08, 1.05, 700),
-        (0, -5, 1.07, 1.04, 300),
-        (0, -2, 1.02, 1.01, 260),
-        (0, 0, 1.0, 1.0, 180),
+        (0, 0, 1.0, 1.0, 140),
+        (0, 1, 1.01, 0.99, 180),
+        (0, -3, 1.03, 1.0, 320),
+        (0, -4, 1.04, 1.0, 1400),
+        (0, -4, 1.04, 1.0, 400),
+        (0, -2, 1.02, 1.0, 260),
+        (0, 0, 1.0, 1.0, 160),
     ),
     "paper_sorting": (
         (0, 0, 1.0, 1.0, 140),
@@ -146,22 +152,32 @@ ACTION_FRAMES: dict[str, ActionFrames] = {
         (14, 0, 1.0, 1.0, 120),
         (0, 0, 1.0, 1.0, 200),
     ),
+    # 尖锐瞬态 + 停顿：反向抽动 → 高频震颤 → 失衡 → 恢复。
+    # 旧版是缓慢漂移加 900ms 停留，盲测 0/10，被读成慢眨眼。
     "error_autopsy": (
-        (0, 0, 1.0, 1.0, 160),
-        (-5, 3, 1.03, 0.98, 340),
-        (-7, 5, 1.05, 0.96, 900),
-        (-6, 4, 1.04, 0.97, 300),
-        (-2, 1, 1.01, 0.99, 260),
+        (0, 0, 1.0, 1.0, 60),
+        (7, -2, 1.06, 0.94, 70),
+        (-6, 1, 0.94, 1.07, 70),
+        (4, 0, 1.04, 0.96, 60),
+        (-3, 0, 0.97, 1.03, 60),
+        (2, 0, 1.02, 0.98, 55),
+        (-8, 6, 1.05, 0.95, 260),
+        (-7, 6, 1.04, 0.96, 1400),
+        (-3, 2, 1.01, 0.99, 240),
         (0, 0, 1.0, 1.0, 180),
     ),
+    # 不对称倾斜 + 上抬：两侧幅度和停留时长都不同，避免读成左右晃神。
+    # dy 全程为负（向上），旧版为正（下垂），那正是困倦的语法。
     "thinking_loop": (
-        (0, 0, 1.0, 1.0, 200),
-        (-4, 1, 0.98, 1.02, 460),
-        (-5, 2, 0.97, 1.03, 380),
-        (0, 1, 0.99, 1.01, 420),
-        (4, 1, 0.98, 1.02, 460),
-        (5, 2, 0.97, 1.03, 380),
-        (0, 0, 1.0, 1.0, 300),
+        (0, 0, 1.0, 1.0, 180),
+        (-5, -1, 0.99, 1.02, 300),
+        (-6, -2, 0.98, 1.03, 520),
+        (-5, -1, 0.99, 1.02, 200),
+        (2, 0, 1.0, 1.0, 260),
+        (4, -2, 0.99, 1.02, 300),
+        (3, -3, 0.98, 1.03, 380),
+        (1, -1, 0.99, 1.01, 240),
+        (0, 0, 1.0, 1.0, 220),
     ),
 
     # 卡通跳跃：蓄力蹲→弹射拉伸→顶点滞空漂浮→落地压扁→双段回弹 (~840ms)
@@ -556,6 +572,12 @@ ACTION_FOLLOW_THROUGH_FRAMES: dict[str, ActionFrames] = {
 }
 
 ACTION_ACTING_CUES: dict[str, ActionActingCue] = {
+    # 四态原本没有任何表情线索，眼睛只走默认，所以模型全部读成
+    # “睁眼—眯眼—睁眼”。这里给每个状态一组互斥的眼/眉。
+    "error_autopsy": ("startled_dot", "panic", 1700, False),
+    "thinking_loop": ("peek_up", "curious", 2600, False),
+    "permission_request": ("curious", "curious", 2900, False),
+    "waiting_stare": ("round", "soft", 3400, False),
     "jump": ("wide", "guilty", 1400, False),
     "happy_bounce": ("sparkle", "proud", 1700, False),
     "celebrate": ("sparkle", "proud", 2200, False),
@@ -851,6 +873,12 @@ INNER_GESTURE_FRAMES: dict[str, InnerFrames] = {
 }
 
 ACTION_TAIL_MOTIONS: dict[str, str] = {
+    # agent 状态：盲测显示四态只用 body 一个通道，互相无法区分。
+    # 尾巴给每个状态一个专属剪影。
+    "error_autopsy": "tail_bristle",
+    "thinking_loop": "tail_tip_flick",
+    "waiting_stare": "tail_idle_slow",
+    "permission_request": "tail_tip_flick",
     "happy_bounce": "tail_wag",
     "celebrate": "tail_wag",
     "dance": "tail_wag",
@@ -882,6 +910,11 @@ ACTION_TAIL_MOTIONS: dict[str, str] = {
 
 # inner core (hand/mouth) gestures triggered by actions
 ACTION_INNER_GESTURES: dict[str, str] = {
+    # 内环是最强的语义通道。facepalm 让 error 无法再被读成困倦，
+    # wave 给 permission 一个“请求”的动作关系而不只是睁大眼。
+    "error_autopsy": "inner_facepalm",
+    "thinking_loop": "inner_fidget",
+    "permission_request": "inner_wave",
     "happy_bounce": "inner_wave",
     "celebrate": "inner_thumbs_up",
     "dance": "inner_wave",
@@ -964,6 +997,12 @@ GUILTY_DART_SEQUENCE: tuple[tuple[float, float, int], ...] = (
 # These run in parallel with ACTION_FRAMES, adding head-tilt body language the
 # squash/offset channels cannot express.
 ACTION_BODY_BEND: dict[str, tuple[tuple[float, float, int], ...]] = {
+    # error 明显失衡后回正；thinking 两侧不对称；permission 前倾并保持；
+    # waiting 只有极小的前倾，其余靠静止。
+    "error_autopsy": ((6, -3, 90), (-9, 5, 190), (-7, 5, 520), (0, 0, 240)),
+    "thinking_loop": ((-5, -2, 420), (-6, -3, 460), (4, -2, 380), (0, 0, 240)),
+    "permission_request": ((0, 2, 180), (0, -4, 300), (0, -5, 1300), (0, 0, 220)),
+    "waiting_stare": ((0, -2, 700), (0, -2, 1400), (0, -1, 400)),
     "thinking_tilt": ((-7, 1, 200), (-9, 2, 480), (-4, 1, 180), (0, 0, 150)),
     "curious_lean": ((10, -2, 260), (13, -3, 620), (5, -1, 210), (0, 0, 160)),
     "sneeze": ((-6, -4, 430), (-8, -5, 210), (10, 6, 90), (4, 2, 170), (0, 0, 240)),
