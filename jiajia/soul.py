@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import json
 from pathlib import Path
 from typing import Any
 
@@ -145,6 +146,11 @@ def load_soul(path: Path) -> Soul:
 def _load_yaml(path: Path) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8")
     try:
+        loaded = json.loads(text)
+        return loaded if isinstance(loaded, dict) else {}
+    except json.JSONDecodeError:
+        pass
+    try:
         import yaml  # type: ignore
 
         loaded = yaml.safe_load(text)
@@ -174,8 +180,22 @@ def _parse_block(lines: list[tuple[int, str]], index: int, indent: int) -> tuple
             current_indent, content = lines[index]
             if current_indent != indent or not content.startswith("- "):
                 break
-            values.append(_parse_scalar(content[2:].strip()))
+            item_text = content[2:].strip()
             index += 1
+            item: Any
+            if not item_text:
+                child_indent = lines[index][0] if index < len(lines) else indent + 2
+                item, index = _parse_block(lines, index, child_indent)
+            elif ":" in item_text:
+                key, raw_value = item_text.split(":", 1)
+                item = {key.strip(): _parse_scalar(raw_value.strip()) if raw_value.strip() else {}}
+                if index < len(lines) and lines[index][0] > indent:
+                    child, index = _parse_block(lines, index, lines[index][0])
+                    if isinstance(child, dict):
+                        item.update(child)
+            else:
+                item = _parse_scalar(item_text)
+            values.append(item)
         return values, index
 
     values: dict[str, Any] = {}
@@ -205,6 +225,10 @@ def _parse_scalar(value: str) -> Any:
         return False
     if value in {"null", "None", "~"}:
         return None
+    if value == "[]":
+        return []
+    if value == "{}":
+        return {}
     if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
         return value[1:-1]
     try:
