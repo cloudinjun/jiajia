@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jiajia"
 version = "0.1.0"
-description = "A lightweight Windows desktop paperclip pet with local personality, animation, and low-privacy status monitors."
+description = "A lightweight Windows desktop paperclip pet with local personality, animation, and metadata-only status monitors."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
