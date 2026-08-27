@@ -15,7 +15,7 @@ import tkinter as tk
 
 from .pal_geometry import (
     PAL_CENTER_X, PAL_HEIGHT, PAL_PAD_X, PAL_PAD_Y, PAL_SCALE_CENTER_Y,
-    PAL_WIDTH, _clamp, _geometry_position,
+    PAL_WIDTH, ActionFrames, _clamp, _geometry_position, _geometry_with_size,
 )
 
 GLOBAL_MOUSE_POLL_MS = 24

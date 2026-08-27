@@ -891,3 +891,19 @@ ACTION_SELF_PARTICLES: dict[str, tuple[str, int]] = {
     "moonwalk": ("note", 260),
     "pounce": ("dust", 420),
 }
+
+
+def _acting_frames(frames: ActionFrames, action_name: str) -> ActionFrames:
+    anticipation = ACTION_ANTICIPATION_FRAMES.get(action_name, ())
+    follow_through = ACTION_FOLLOW_THROUGH_FRAMES.get(action_name, ())
+    if not anticipation and not follow_through:
+        return frames
+    base = frames
+    if follow_through and base and _is_neutral_action_frame(base[-1]):
+        base = base[:-1]
+    return (*anticipation, *base, *follow_through)
+
+
+def _is_neutral_action_frame(frame: ActionFrame) -> bool:
+    dx, dy, sx, sy, _delay = frame
+    return abs(dx) < 0.01 and abs(dy) < 0.01 and abs(sx - 1.0) < 0.01 and abs(sy - 1.0) < 0.01

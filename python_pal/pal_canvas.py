@@ -10,6 +10,7 @@ Bubble shape primitives live here too — they are pure canvas geometry.
 from __future__ import annotations
 
 import math
+import time
 import tkinter as tk
 
 from .pal_geometry import (
@@ -17,10 +18,10 @@ from .pal_geometry import (
     LEFT_BROW_START, PAL_CENTER_X, PAL_HEIGHT, PAL_PAD_X, PAL_PAD_Y, PAL_SCALE,
     PAL_SCALE_PIVOT_Y, PAL_WIDTH, PUPIL, RIGHT_BROW_CURVES, RIGHT_BROW_START,
     TAIL_LONG_CURVES, TAIL_LONG_START, TAIL_SHORT_CURVES, TAIL_SHORT_START,
-    WIRE, _brow_pose_coords, _clamp, _oval_bounds, _path_coords, _per_tick,
-    _scale_coords, _smoothstep, _source_point,
+    WIRE, _brow_pose_coords, _clamp, _ease_out_cubic, _oval_bounds,
+    _path_coords, _per_tick, _scale_coords, _smoothstep, _source_point,
 )
-from .pal_motion import TAIL_TIP_LAG_MS
+from .pal_motion import TAIL_TIP_LAG_MS, InnerPose
 from .prop_shapes import EYE_FX_SHAPES, FACE_DECALS
 from .rig_pose import bend_point, posed_chin_points, posed_tail_points
 
