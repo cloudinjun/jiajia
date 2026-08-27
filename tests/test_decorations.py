@@ -13,14 +13,13 @@ import re
 import unittest
 from pathlib import Path
 
-import yaml
-
 from jiajia.identity import load_identity_manifest
 from jiajia.pal_decor import reaction_decoration_cues
 from jiajia.pal_motion import ACTION_DECORATION_CUES, IDENTITY_STATE_CUES
+from jiajia.soul import _load_yaml
 
 ROOT = Path(__file__).resolve().parents[1] / "jiajia"
-DECORATIONS = yaml.safe_load((ROOT / "decorations.yaml").read_text(encoding="utf-8"))["decorations"]
+DECORATIONS = _load_yaml(ROOT / "decorations.yaml")["decorations"]
 MANIFEST = load_identity_manifest(ROOT / "identities.yaml")
 
 # Removed as identity accessories because they duplicated or mislead: the coin
