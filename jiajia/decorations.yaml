@@ -1,0 +1,384 @@
+schema_version: 1
+
+decorations:
+  tiny_terminal:
+    anchor: upper_right
+    dx: 10
+    dy: 10
+    color: "#10a37f"
+    lifetime: identity
+    role: identity_prop
+    shape_type: terminal_box
+    asset: jiajia/assets/decorations/iconpark/icons/terminal.svg
+    asset_scale: 0.82
+    pulse: false
+
+  status_dot:
+    anchor: upper_right
+    dx: 42
+    dy: 8
+    color: "#f0b429"
+    lifetime: state
+    role: state_mark
+    shape_type: status_dot
+    pulse: true
+
+  tiny_checklist:
+    anchor: lower_left
+    dx: 18
+    dy: -18
+    color: "#42a96b"
+    lifetime: identity
+    role: identity_prop
+    shape_type: checklist
+    asset: jiajia/assets/decorations/iconpark/icons/checklist.svg
+    asset_scale: 0.74
+    pulse: false
+
+  thermometer_icon:
+    anchor: upper_left
+    dx: -10
+    dy: 26
+    color: "#d86b6b"
+    lifetime: identity
+    role: identity_prop
+    shape_type: thermometer
+    asset: jiajia/assets/decorations/iconpark/icons/thermometer.svg
+    asset_scale: 0.72
+    pulse: false
+
+  heat_tint:
+    anchor: above_head
+    dx: 6
+    dy: 18
+    color: "#d86b6b"
+    lifetime: state
+    role: state_mark
+    shape_type: heat_wisps
+    pulse: false
+
+  heat_puffs:
+    anchor: above_head
+    dx: 6
+    dy: 18
+    color: "#d86b6b"
+    lifetime: temporary
+    role: state_mark
+    shape_type: heat_wisps
+    pulse: false
+
+  tiny_ledger:
+    anchor: lower_left
+    dx: 12
+    dy: -14
+    color: "#4f7ecf"
+    lifetime: identity
+    role: identity_prop
+    shape_type: ledger
+    asset: jiajia/assets/decorations/iconpark/icons/chart-histogram.svg
+    asset_scale: 0.72
+    pulse: false
+
+  usage_bar:
+    anchor: lower_left
+    dx: 4
+    dy: 18
+    color: "#4f7ecf"
+    lifetime: state
+    role: state_mark
+    shape_type: mini_bar
+    pulse: false
+
+  red_pen:
+    anchor: right_side
+    dx: 12
+    dy: 18
+    color: "#d65b4a"
+    lifetime: identity
+    role: identity_prop
+    shape_type: red_pen
+    asset: jiajia/assets/decorations/iconpark/icons/pencil.svg
+    asset_scale: 0.72
+    pulse: false
+
+  annotation_circle:
+    anchor: right_side
+    dx: 12
+    dy: 12
+    color: "#d65b4a"
+    lifetime: temporary
+    role: performance_accent
+    shape_type: annotation_mark
+    pulse: false
+
+  z_symbol:
+    anchor: above_head
+    dx: 28
+    dy: 2
+    color: "#8a8a8a"
+    lifetime: state
+    role: state_mark
+    shape_type: z_mark
+    pulse: false
+
+  tiny_warning:
+    anchor: upper_left
+    dx: -4
+    dy: 8
+    color: "#d65b4a"
+    lifetime: temporary
+    role: state_mark
+    shape_type: warning
+    asset: jiajia/assets/decorations/iconpark/icons/caution.svg
+    asset_scale: 0.62
+    pulse: true
+
+  tiny_magnifier:
+    anchor: lower_left
+    dx: 14
+    dy: -12
+    color: "#5f6d7a"
+    lifetime: identity
+    role: identity_prop
+    shape_type: magnifier
+    asset: jiajia/assets/decorations/iconpark/icons/search.svg
+    asset_scale: 0.70
+    pulse: false
+
+  stamp:
+    anchor: right_side
+    dx: 14
+    dy: 30
+    color: "#d65b4a"
+    lifetime: temporary
+    role: performance_accent
+    shape_type: stamp
+    asset: jiajia/assets/decorations/iconpark/icons/stamp.svg
+    asset_scale: 0.68
+    pulse: false
+
+  tiny_lock:
+    anchor: upper_right
+    dx: 18
+    dy: 18
+    color: "#6f62b8"
+    lifetime: identity
+    role: identity_prop
+    shape_type: lock
+    asset: jiajia/assets/decorations/iconpark/icons/lock.svg
+    asset_scale: 0.70
+    pulse: false
+
+  tab_bar:
+    anchor: lower_left
+    dx: 4
+    dy: 8
+    color: "#6f62b8"
+    lifetime: temporary
+    role: state_mark
+    shape_type: tab_bar
+    pulse: false
+
+  agent_code_badge:
+    anchor: upper_right
+    dx: 10
+    dy: 36
+    color: "#10a37f"
+    lifetime: identity
+    role: identity_prop
+    shape_type: code_badge
+    asset: jiajia/assets/decorations/iconpark/icons/code-computer.svg
+    asset_scale: 0.70
+    pulse: false
+
+  audit_clipboard:
+    anchor: lower_left
+    dx: 8
+    dy: -28
+    color: "#42a96b"
+    lifetime: identity
+    role: identity_prop
+    shape_type: clipboard
+    asset: jiajia/assets/decorations/iconpark/icons/list-success.svg
+    asset_scale: 0.72
+    pulse: false
+
+  budget_coin:
+    anchor: lower_left
+    dx: 42
+    dy: 10
+    color: "#4f7ecf"
+    lifetime: identity
+    role: identity_prop
+    shape_type: coin
+    asset: jiajia/assets/vendor/lucide/selected/badge-percent.svg
+    asset_scale: 1.35
+    pulse: false
+
+  reset_clock:
+    anchor: upper_left
+    dx: -8
+    dy: 2
+    color: "#4f7ecf"
+    lifetime: state
+    role: state_mark
+    shape_type: clock
+    pulse: false
+
+  quiet_moon:
+    anchor: above_head
+    dx: 34
+    dy: 0
+    color: "#7c8db5"
+    lifetime: identity
+    role: identity_prop
+    shape_type: moon
+    asset: jiajia/assets/decorations/iconpark/icons/moon.svg
+    asset_scale: 0.64
+    pulse: false
+
+  sleepy_cap:
+    anchor: above_head
+    dx: -2
+    dy: -5
+    color: "#AEAEAE"
+    lifetime: identity
+    role: identity_prop
+    shape_type: sleep_cap
+    pulse: false
+
+  draft_blanket:
+    anchor: lower_left
+    dx: 2
+    dy: -26
+    color: "#AEAEAE"
+    lifetime: state
+    role: state_mark
+    shape_type: draft_blanket
+    pulse: false
+
+  paper_surfboard:
+    anchor: lower_left
+    dx: -24
+    dy: 34
+    color: "#402A32"
+    lifetime: temporary
+    role: paper_prop
+    shape_type: paper_surfboard
+    pulse: false
+
+  paper_peek_curtain:
+    anchor: around_character
+    dx: 36
+    dy: 28
+    color: "#402A32"
+    lifetime: temporary
+    role: paper_prop
+    shape_type: paper_peek_curtain
+    pulse: false
+
+  paper_fan:
+    anchor: right_side
+    dx: 18
+    dy: -4
+    color: "#402A32"
+    lifetime: temporary
+    role: paper_prop
+    shape_type: paper_fan
+    pulse: false
+
+  paper_whisper_fan:
+    anchor: upper_left
+    dx: 14
+    dy: 44
+    color: "#402A32"
+    lifetime: temporary
+    role: paper_prop
+    shape_type: paper_whisper_fan
+    pulse: false
+
+  paper_oops_cover:
+    anchor: upper_left
+    dx: -8
+    dy: 34
+    color: "#402A32"
+    lifetime: temporary
+    role: paper_prop
+    shape_type: paper_oops_cover
+    pulse: false
+
+  paper_tent:
+    anchor: lower_left
+    dx: -16
+    dy: -22
+    color: "#402A32"
+    lifetime: temporary
+    role: paper_prop
+    shape_type: paper_tent
+    pulse: false
+
+  paper_pillow:
+    anchor: lower_left
+    dx: -18
+    dy: 2
+    color: "#402A32"
+    lifetime: temporary
+    role: paper_prop
+    shape_type: paper_pillow
+    pulse: false
+
+  paper_stage:
+    anchor: lower_left
+    dx: -30
+    dy: 42
+    color: "#402A32"
+    lifetime: temporary
+    role: paper_prop
+    shape_type: paper_stage
+    pulse: false
+
+  bug_marker:
+    anchor: upper_left
+    dx: -10
+    dy: 8
+    color: "#d65b4a"
+    lifetime: identity
+    role: identity_prop
+    shape_type: bug_mark
+    asset: jiajia/assets/decorations/iconpark/icons/bug.svg
+    asset_scale: 0.68
+    pulse: false
+
+  critic_palette:
+    anchor: right_side
+    dx: 12
+    dy: 0
+    color: "#d65b4a"
+    lifetime: identity
+    role: identity_prop
+    shape_type: palette
+    pulse: false
+
+  tab_stack:
+    anchor: lower_left
+    dx: 4
+    dy: 8
+    color: "#6f62b8"
+    lifetime: identity
+    role: identity_prop
+    shape_type: tab_stack
+    asset: jiajia/assets/vendor/tabler-icons/selected/browser.svg
+    asset_scale: 1.32
+    pulse: false
+
+  bandage_mark:
+    anchor: right_side
+    dx: 6
+    dy: 36
+    color: "#d65b4a"
+    lifetime: identity
+    role: identity_prop
+    shape_type: bandage
+    asset: jiajia/assets/decorations/iconpark/icons/error.svg
+    asset_scale: 0.66
+    pulse: false

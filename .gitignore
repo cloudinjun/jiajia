@@ -9,7 +9,7 @@ claude_account_status.json
 openai_billing_status.json
 gemini_usage_status.json
 settings.json
-python_pal/quiz_store.json
+jiajia/quiz_store.json
 memory/
 .env
 .env.*
@@ -24,10 +24,9 @@ Thumbs.db
 .codex_tmp/
 
 # Local design exploration exports; keep them on disk, do not publish them.
-python_pal/assets/paperclip/ChatGPT Image*.png
-python_pal/assets/paperclip/Gemini_Generated_Image*.png
-python_pal/assets/paperclip/ChatGPT paperclip_pal_36_emotions_assets/
-python_pal/assets/paperclip/ChatGPT paperclip_professions_36_package/
-python_pal/assets/paperclip/ChatGPT_Pro_paperclip_paper_uses_36_package*.zip
-python_pal/assets/paperclip/ChatGpt_Pro_paperclip_draftpaper_36_uses_package*.zip
-python_pal/assets/paperclip/paperclip_pal_melting_keyframes_package.zip
+jiajia/assets/paperclip/ChatGPT*
+jiajia/assets/paperclip/ChatGpt*
+jiajia/assets/paperclip/Gemini*
+jiajia/assets/paperclip/*keyframes_package*.zip
+jiajia/assets/paperclip/*paper_uses*_package*.zip
+jiajia/assets/paperclip/*draftpaper*_package*.zip

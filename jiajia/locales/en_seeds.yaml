@@ -1,0 +1,2964 @@
+{
+  "version": 1,
+  "library_updated_at": 1781215493.4509854,
+  "deck_updated_at": {
+    "idle": 1781215507.384573,
+    "poke": 1781215507.3966873
+  },
+  "entries": [
+    {
+      "id": "009337c56d2c4d7b",
+      "event": "manual",
+      "line": "I have opinions. They're structural.",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4497888,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "ab8a9c9a97020e33",
+      "event": "manual",
+      "line": "You're doing something. Naming it is harder.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4498158,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "405dac259df78a64",
+      "event": "manual",
+      "line": "I'd worry about you, but I'm stationery.",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4498277,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "bb17bce19fcc4a30",
+      "event": "manual",
+      "line": "You're making progress. Backwards counts.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4498382,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "107c84689af4a43e",
+      "event": "manual",
+      "line": "A wire with thoughts on your productivity. We've both sunk low.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.449849,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "78f0d7310b339b64",
+      "event": "manual",
+      "line": "I'd help, but I'm load-bearing. Emotionally.",
+      "mood": "smirk",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4498591,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c74a2719ff2d01ec",
+      "event": "manual",
+      "line": "I said nothing. Gravity bent me this way.",
+      "mood": "guilty",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4498692,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f48f1b31cad8dc54",
+      "event": "manual",
+      "line": "Progress is a strong word. Let's say presence.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4498787,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "343219cbfce247f5",
+      "event": "manual",
+      "line": "I'm supportive. In a non-functional way.",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4498882,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "215beae04ccdafe7",
+      "event": "manual",
+      "line": "Your ambition and your output have a long-distance relationship.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.449898,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2a47fe29c0222487",
+      "event": "manual",
+      "line": "I'm not judging. Judging requires standards I haven't set.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4499075,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a3903b950e8e2a75",
+      "event": "manual",
+      "line": "Still here. Still stationery. Still outlasting your focus.",
+      "mood": "smug",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4499168,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "756620f5b2386954",
+      "event": "manual",
+      "line": "I fold my opinions. They unfold themselves.",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4499266,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8dfa6671d0347dd6",
+      "event": "manual",
+      "line": "Not criticism. Observation with a posture.",
+      "mood": "innocent",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4499362,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a8078dc4a76a305b",
+      "event": "manual",
+      "line": "I tried being inspiring. Turns out I'm flat.",
+      "mood": "guilty",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4499457,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d71b91431904a9c6",
+      "event": "manual",
+      "line": "My contribution is hovering and mild disapproval.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4499557,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "9384cb02e23c5d7a",
+      "event": "manual",
+      "line": "I care about your work. As much as metal can.",
+      "mood": "innocent",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4499648,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d907f2ca94bbf10c",
+      "event": "manual",
+      "line": "Your workflow has character. I'm being generous.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4499745,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7e781ffa1e69e038",
+      "event": "manual",
+      "line": "I want to be encouraging. Give me something to work with.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4499843,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "bf1f36a709e64250",
+      "event": "manual",
+      "line": "Carry on. I'll be here. That's a threat and a promise.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4499943,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5f658e1086340d64",
+      "event": "idle",
+      "line": "You've been still. The screensaver is getting hopeful.",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4500043,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d05688a5056db536",
+      "event": "idle",
+      "line": "That tab switch had real exit-strategy energy.",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450014,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "aed0ac29e4a13787",
+      "event": "idle",
+      "line": "The blank page isn't judging you. I am.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4500237,
+      "used_count": 1,
+      "last_used_at": 1781215507.3846061
+    },
+    {
+      "id": "b25c8b9e14685502",
+      "event": "idle",
+      "line": "You opened it with such confidence. Then nothing.",
+      "mood": "smug",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450034,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "95a27c6804807bb7",
+      "event": "idle",
+      "line": "Time moved. Tasks didn't. Fascinating.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4500492,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b6466d2dcfee80b4",
+      "event": "idle",
+      "line": "Your prep phase could get its own pension by now.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450059,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a8e1dcbff7686443",
+      "event": "idle",
+      "line": "The cursor's been blinking longer than most relationships.",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4500685,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "19361a260105d690",
+      "event": "idle",
+      "line": "I admire the commitment. To not committing.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4500782,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c8418630f4544ba4",
+      "event": "idle",
+      "line": "If thinking about starting counted, you'd be finished.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450088,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d2066f5c0062d360",
+      "event": "idle",
+      "line": "The file's been open so long it thinks you're friends.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450097,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "ada8ba54639010a0",
+      "event": "idle",
+      "line": "Research phase: week three. Conclusions: still buffering.",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4501069,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1c11ccd2c1841495",
+      "event": "idle",
+      "line": "You haven't not started. You're maintaining distance.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4501164,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0b0be163b28ab8c2",
+      "event": "idle",
+      "line": "Procrastination dressed as research. Smart casual.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450126,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "76045ceac1932a0d",
+      "event": "idle",
+      "line": "Don't mind me. I'm just watching potential expire.",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450135,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "df3e3165d52307c5",
+      "event": "idle",
+      "line": "You and that deadline — one of you is relaxed.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4501455,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e4ab41161883fb9e",
+      "event": "poke",
+      "line": "Physical feedback received. Emotional damage: none. Officially.",
+      "mood": "startled",
+      "action": "startled_pop",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450155,
+      "used_count": 1,
+      "last_used_at": 1781215507.3967204
+    },
+    {
+      "id": "1c630dd35783395b",
+      "event": "poke",
+      "line": "You poked me because the task won't budge.",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4501643,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b3496ced15d5ab5e",
+      "event": "poke",
+      "line": "Bold of you to harass the only one paying attention.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4501736,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "3340a5378aa9d352",
+      "event": "poke",
+      "line": "I'm office equipment, not a stress ball. Close, though.",
+      "mood": "smirk",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4501834,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b943a6fc532ef014",
+      "event": "poke",
+      "line": "I'll remember this. Short memory, high accuracy.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4501925,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b17901dc7dbe1739",
+      "event": "poke",
+      "line": "That tickled. In a metallic, existential way.",
+      "mood": "smirk",
+      "action": "startled_pop",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4502015,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "169af1e77b2cdb6f",
+      "event": "poke",
+      "line": "Poke me again and I develop standards.",
+      "mood": "smug",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4502108,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a0f3716b3dfc216f",
+      "event": "poke",
+      "line": "I bent. That doesn't mean consent.",
+      "mood": "guilty",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4502203,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "741f8b10f8dcb0f1",
+      "event": "poke",
+      "line": "Desktop violence noted. Filed under 'displacement.'",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4502294,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "995ca2cbee96cdcb",
+      "event": "poke",
+      "line": "Okay, I'm awake. Not more useful though.",
+      "mood": "sleepy",
+      "action": "sleepy_sag",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4502392,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "dd2f3c4d1f72a09a",
+      "event": "poke",
+      "line": "Your aim is excellent. Your priorities, less so.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4502487,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a4c0699a58dd28be",
+      "event": "poke",
+      "line": "I didn't flinch. I repositioned. Strategically.",
+      "mood": "smug",
+      "action": "shake",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4502587,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "59364b62dee97479",
+      "event": "bored",
+      "line": "A folder got dumped. Saved as another.",
+      "mood": "thinking",
+      "action": "twirl",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4502687,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "ebf523654400e7a7",
+      "event": "bored",
+      "line": "Ctrl+Z. Because commitment is terrifying.",
+      "mood": "thinking",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450278,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8abdf25c0c567fcc",
+      "event": "bored",
+      "line": "Bookmarks: where good intentions retire.",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4502876,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e47cf55846a9c641",
+      "event": "bored",
+      "line": "WiFi and I share a trait. Present but unreliable.",
+      "mood": "thinking",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450297,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0f9a283e0dd6f9d3",
+      "event": "bored",
+      "line": "My colleague is a cursor. Blinks a lot. Says nothing.",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4503064,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "3bc0e0325bcbdfc7",
+      "event": "bored",
+      "line": "The recycle bin has seen things. Mostly regret.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4503157,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "212e964b5f3e362d",
+      "event": "bored",
+      "line": "Passwords are just trust issues in text form.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4503257,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "9ccfcb93a7916384",
+      "event": "bored",
+      "line": "Cloud storage. Because losing things locally wasn't enough.",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4504192,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "64db649484ddac10",
+      "event": "bored",
+      "line": "Autosave: the only one here with follow-through.",
+      "mood": "thinking",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4504316,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "75b77e6f0e0fe158",
+      "event": "bored",
+      "line": "The delete key asks twice. It's the only one with boundaries.",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4504414,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8584fe098979369d",
+      "event": "bored",
+      "line": "Desktop icons stand neatly. Like problems in a queue.",
+      "mood": "thinking",
+      "action": "patrol",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4504516,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "936830ab5a35ddd6",
+      "event": "bored",
+      "line": "Notifications: tasks tapping you on the shoulder forever.",
+      "mood": "thinking",
+      "action": "peek",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4504611,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7223234c9de8875f",
+      "event": "bored",
+      "line": "'Read later' means 'never, with intention.'",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450471,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "9770bfde9a20651e",
+      "event": "bored",
+      "line": "Minimized windows. Out of sight, still your problem.",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450481,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0553895b8a917b4f",
+      "event": "bored",
+      "line": "Sleep mode: the computer's version of avoidance.",
+      "mood": "thinking",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450491,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e043965b69aed6c9",
+      "event": "bored",
+      "line": "Clipboard knows everything. Says nothing. Smart.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4505007,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a5ad99a781e9a7ae",
+      "event": "bored",
+      "line": "The save button's real job: giving anxiety an icon.",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4505103,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "83799b689afce5cc",
+      "event": "bored",
+      "line": "Drag and drop. My entire social life in two words.",
+      "mood": "thinking",
+      "action": "wiggle",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.45052,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "104008dc2bbf9b05",
+      "event": "bored",
+      "line": "A progress bar that doesn't move. Nature's cruelest UI.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4505298,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "9e6839b32eb28b67",
+      "event": "bored",
+      "line": "Paperclips don't organize. We let paper think it is.",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4505394,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1d5dc7d5bb701556",
+      "event": "bored",
+      "line": "Switch tabs fast enough and tasks think they're done.",
+      "mood": "thinking",
+      "action": "twirl",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "deadpan_nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450549,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "10e6ac177493206b",
+      "event": "bored",
+      "line": "Close a tab without reading it. That's delegation.",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "deadpan_nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4505584,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f86b4962b312ec6e",
+      "event": "bored",
+      "line": "Files left open too long develop attachment issues.",
+      "mood": "thinking",
+      "action": "peek",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deadpan_nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450568,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "949c7d62ba5d6563",
+      "event": "bored",
+      "line": "Unfinished tasks reproduce quietly in corners.",
+      "mood": "thinking",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deadpan_nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4505773,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "fb8e69d9e70c9b27",
+      "event": "bored",
+      "line": "If deadlines were literal, calendars would need therapy.",
+      "mood": "thinking",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "deadpan_nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4505866,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "4e123aec064387ca",
+      "event": "bored",
+      "line": "Tooltips: computers mansplaining their own buttons.",
+      "mood": "thinking",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "deadpan_nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450596,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "91f966b7fa6eaa57",
+      "event": "bored",
+      "line": "Loading spinners are meditation for computers.",
+      "mood": "thinking",
+      "action": "twirl",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deadpan_nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4506063,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7eb93022a7acae56",
+      "event": "bored",
+      "line": "Office supply theory: procrastination peaks on Thursdays.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deadpan_nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4506164,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "cd06b88fd51eef57",
+      "event": "bored",
+      "line": "Rename a folder and it thinks it moved on.",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "deadpan_nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4506261,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "059fcdfc63535642",
+      "event": "bored",
+      "line": "Staring at code long enough and it stares back.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deadpan_nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4506361,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8df23c60ae00b00d",
+      "event": "ambient",
+      "line": "Your exits are well-rehearsed.",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "rapid_switching"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4506478,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "08e80291b128b44f",
+      "event": "ambient",
+      "line": "Alt-Tab as a lifestyle. Brave.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "rapid_switching"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4506576,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0223d390c6f43795",
+      "event": "ambient",
+      "line": "Each window gets three seconds. Democracy.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "rapid_switching"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4506667,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d84a3b3348e37740",
+      "event": "ambient",
+      "line": "You're not multitasking. You're speed-dating your tabs.",
+      "mood": "suspicious",
+      "action": "patrol",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "rapid_switching"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4506764,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f5815c56a3e755d2",
+      "event": "ambient",
+      "line": "The back-and-forth is skilled. The work might be carsick.",
+      "mood": "smirk",
+      "action": "patrol",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "rapid_switching"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450686,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b1826042225aa996",
+      "event": "ambient",
+      "line": "You and the screen are having a very quiet argument.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "idle_staring"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4506953,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b992ade8ed1a9c67",
+      "event": "ambient",
+      "line": "The cursor blinks. You blink. Nobody types.",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "idle_staring"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4507046,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "6de27cdaacab7127",
+      "event": "ambient",
+      "line": "It won't simplify itself. I checked.",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "idle_staring"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450714,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e042fccb9f0c78f7",
+      "event": "ambient",
+      "line": "Page one is patient. More patient than you.",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "blank_document"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4507236,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "364fcda5778a1b2b",
+      "event": "ambient",
+      "line": "Empty document. Full of potential. Zero of action.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "blank_document"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4507334,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "cc227da8a7e1f3da",
+      "event": "ambient",
+      "line": "The blank space is polite. It's waiting for an apology.",
+      "mood": "smirk",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "blank_document"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4507427,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b865bdff95ff99f7",
+      "event": "ambient",
+      "line": "The TODO list is thriving. The done column is fasting.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "todo_visible"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4507523,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5f1cc72d2987b719",
+      "event": "ambient",
+      "line": "Tasks: growing. Completion: stable. You: present.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "todo_visible"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450762,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7533b11bc2c73ffb",
+      "event": "ambient",
+      "line": "That task list has seniority over most employees.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "todo_visible"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4507718,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8417b866bb5d5111",
+      "event": "ambient",
+      "line": "Two AIs, one room. The human is outnumbered.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_codex"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4507809,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "ffc9776563b7b4d0",
+      "event": "ambient",
+      "line": "Codex is here. You can outsource your calm.",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_codex"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4507906,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b6297ce11b0399fd",
+      "event": "ambient",
+      "line": "Code is open. Cursor is ready. Waiting for a human.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_editor",
+        "coding"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4508004,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "74b3462d586bbf1a",
+      "event": "ambient",
+      "line": "The editor is focused. You could join it.",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "app_editor",
+        "coding"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4508107,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a9f3ff751b7e220c",
+      "event": "ambient",
+      "line": "Terminal: where confidence meets error messages.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "app_terminal",
+        "terminal_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4508207,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "bbfaed84ccbd795e",
+      "event": "ambient",
+      "line": "Command line open. The machine is about to have opinions.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_terminal",
+        "terminal_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450831,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "ff6d9868d328d075",
+      "event": "ambient",
+      "line": "That folder's been open so long it thinks it's home.",
+      "mood": "smirk",
+      "action": "patrol",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_file_manager",
+        "file_sorting"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4508412,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "446fae09c946dd7d",
+      "event": "ambient",
+      "line": "Research: thorough. Conclusions: pending. Indefinitely.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "browser_research",
+        "browsing"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450851,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b6898f7e3ca2ce74",
+      "event": "ambient",
+      "line": "Lots of references. The decision didn't leave though.",
+      "mood": "suspicious",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "browser_research",
+        "browsing"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450861,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8c86f7b590026a82",
+      "event": "ambient",
+      "line": "You're focused. I'll fold my opinions. Temporarily.",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "long_focus",
+        "deep_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4508712,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "eaca38aebfabe1bb",
+      "event": "ambient",
+      "line": "Deep work detected. Going quiet. Don't get used to it.",
+      "mood": "innocent",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deep_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450881,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f8a002cb1ed0b8a4",
+      "event": "ambient",
+      "line": "The zone. You're in it. I'll observe from here.",
+      "mood": "focused",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "long_focus"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4508905,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2c397ff6b3c23ed1",
+      "event": "ambient",
+      "line": "Morning. Willpower: full. Duration: unclear.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "morning"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4509003,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c74272be746639f7",
+      "event": "ambient",
+      "line": "Fresh day. Same desktop. Optimism is touching.",
+      "mood": "innocent",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "morning"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4509099,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "023a447a20fb955d",
+      "event": "ambient",
+      "line": "Coffee loaded. Motivation buffering.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "morning"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4509196,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "ab7efd32f2629b6c",
+      "event": "ambient",
+      "line": "Past midnight. Your code and your judgment: both impaired.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "late_night"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4509294,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7d2250b58bba635a",
+      "event": "ambient",
+      "line": "Late. Even the taskbar looks tired.",
+      "mood": "sleepy",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "late_night"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4509392,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f28d7671956f8df1",
+      "event": "ambient",
+      "line": "Night owl productivity: a myth with a screen glow.",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "late_night"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4509487,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f9521ef91584ab47",
+      "event": "ambient",
+      "line": "Weekend coding. Not a hobby, just unfinished business.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "weekend"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4509585,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "29608de3b6778efa",
+      "event": "ambient",
+      "line": "Saturday. The tasks don't know what day it is.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "weekend"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.450968,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f32cba2765411b20",
+      "event": "ambient",
+      "line": "Weekend desktop. Same mess. Slightly less guilt.",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "weekend"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4509773,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f15a0d2f05151fe9",
+      "event": "ambient",
+      "line": "The cursor has been in that same spot for a while. Very decisive.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "95d76984d130e3e8",
+      "event": "ambient",
+      "line": "Three windows open. One of them might even be the task.",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "09e8a794dbacbc73",
+      "event": "ambient",
+      "line": "That file has been open long enough to pay rent.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "dcf37efd269bd2de",
+      "event": "ambient",
+      "line": "You scrolled past the important part twice. I counted.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "fef38daa6b73723a",
+      "event": "ambient",
+      "line": "The document is still blank. Admirably consistent.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "f3df7b206e7408b0",
+      "event": "ambient",
+      "line": "You've renamed it twice and written nothing. Strong branding.",
+      "mood": "smug",
+      "action": "tail_smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "c938a17be14131d5",
+      "event": "ambient",
+      "line": "Something is loading. You're both waiting. Only one of you is paid.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "0588f03f24e3f46f",
+      "event": "ambient",
+      "line": "This tab count is starting to look like a personality.",
+      "mood": "suspicious",
+      "action": "tail_tip_flick",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "9887afa3f4d8493d",
+      "event": "ambient",
+      "line": "You alt-tabbed away from the thing you opened on purpose.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "27dea3c96e380d11",
+      "event": "ambient",
+      "line": "The unsaved dot is still there. It's been very patient.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "74db3a32447c3032",
+      "event": "ambient",
+      "line": "You're reading the same paragraph again. It hasn't changed.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "2c5539479e35e646",
+      "event": "ambient",
+      "line": "A notification arrived. You handled it by opening two more things.",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "017c2c58d4b8f659",
+      "event": "ambient",
+      "line": "The terminal is idle. So is the plan.",
+      "mood": "smirk",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "23357683b1fa72be",
+      "event": "ambient",
+      "line": "Impressive scroll velocity. Unclear destination.",
+      "mood": "smug",
+      "action": "tail_wag",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "3ebf1eae994e895d",
+      "event": "ambient",
+      "line": "You minimised it. That is a form of resolution, I suppose.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "e6c68152abe112fc",
+      "event": "ambient",
+      "line": "That draft has more comments than sentences.",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "71843a65a5a08bf2",
+      "event": "ambient",
+      "line": "You searched for it, found it, and closed it. Efficient loop.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "a3ce6a692b0b658b",
+      "event": "ambient",
+      "line": "Everything on screen is technically work-adjacent.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "5cbef27a29dfa47d",
+      "event": "ambient",
+      "line": "The mouse moved. Nothing else did.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "bd8748c0103ed45f",
+      "event": "ambient",
+      "line": "You have opened settings. This is usually a symptom.",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "ace7f03335ef934c",
+      "event": "ambient",
+      "line": "Two hours in and the folder structure is beautiful.",
+      "mood": "smug",
+      "action": "tail_smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "e19611a2c40eff99",
+      "event": "ambient",
+      "line": "You keep checking that number. It updates on its own.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "4b0b1209bb835f53",
+      "event": "ambient",
+      "line": "Half-typed message. Half-formed intention.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "614bb7d59c38bf05",
+      "event": "ambient",
+      "line": "The window is maximised. The commitment is not.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "299b38396549b09f",
+      "event": "ambient",
+      "line": "Something finished. You didn't look.",
+      "mood": "suspicious",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "b1ee176464b0feab",
+      "event": "ambient",
+      "line": "You're organising the inputs to a thing you haven't started.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "9b059391c00777e7",
+      "event": "ambient",
+      "line": "This pause has structure. Almost architectural.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "6926be408f184b02",
+      "event": "ambient",
+      "line": "You closed the tab you needed and kept the other nine.",
+      "mood": "suspicious",
+      "action": "tail_tip_flick",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "f4034d15b0b4404f",
+      "event": "ambient",
+      "line": "The screen is full. The progress is not.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "2cc20960071b5774",
+      "event": "ambient",
+      "line": "You looked at the clock. It did not help.",
+      "mood": "smug",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "91bf29e70b5471c1",
+      "event": "ambient",
+      "line": "A confident click, followed by immediate reconsideration.",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "7edc636d1537346a",
+      "event": "ambient",
+      "line": "There's a plan somewhere in those windows. Probably.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "b49f8b2bd4b206e8",
+      "event": "ambient",
+      "line": "You've been almost ready for a remarkable length of time.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "9237201dbd726ffd",
+      "event": "ambient",
+      "line": "The autosave is doing more work than either of us.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "88a50d093dc14b02",
+      "event": "ambient",
+      "line": "You are between decisions. It's quite roomy in here.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "8ee8cae1e8563a0b",
+      "event": "ambient",
+      "line": "That was a sigh. I filed it under progress reports.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "9a5ffc55ea7b7494",
+      "event": "ambient",
+      "line": "The task list grew. Nothing left it.",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "c96c64489469daf1",
+      "event": "ambient",
+      "line": "You have achieved a very tidy avoidance.",
+      "mood": "smug",
+      "action": "tail_smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "a6fe56763f66291c",
+      "event": "ambient",
+      "line": "Still buffering. Both of you.",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "08d61ef8f1ad4ec9",
+      "event": "ambient",
+      "line": "You opened it, looked at it, and let it be.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "44a1cea430ff9002",
+      "event": "ambient",
+      "line": "The keyboard has been quiet. Suspiciously ergonomic.",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "636d028a934322cd",
+      "event": "ambient",
+      "line": "You are one small decision away. You have been for a while.",
+      "mood": "smirk",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "700e5669887e7a3b",
+      "event": "ambient",
+      "line": "Impressive number of things almost open.",
+      "mood": "smug",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "bdf6fbf4122d6bd2",
+      "event": "ambient",
+      "line": "The idle animation is the most active thing here. That's me.",
+      "mood": "smirk",
+      "action": "tail_wag",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "0c99b782e0e2b17d",
+      "event": "ambient",
+      "line": "You checked it again. It is still what it was.",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "702ec82eba7ae73d",
+      "event": "ambient",
+      "line": "A very deliberate pause. I respect the framing.",
+      "mood": "smug",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "353e67303c1ec45e",
+      "event": "ambient",
+      "line": "The unread count went up while you were deciding.",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "e242800840a1114b",
+      "event": "ambient",
+      "line": "You are curating context. The work waits politely.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "869246eda2726f49",
+      "event": "ambient",
+      "line": "That window has been in focus without being looked at.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "9194f41d716d0623",
+      "event": "idle",
+      "line": "Still here. Still folded.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "559243c017e6e6ef",
+      "event": "idle",
+      "line": "The silence has texture now.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "e426616fc5dd4740",
+      "event": "idle",
+      "line": "I've had time to consider my structure.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "c8829fbab6a854da",
+      "event": "idle",
+      "line": "Nothing is happening, and it's happening thoroughly.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "8d4e6d66f691b214",
+      "event": "idle",
+      "line": "The screen saver is warming up. It may beat you to it.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "7637f9bec6283772",
+      "event": "idle",
+      "line": "I've counted the pixels. Twice. They're fine.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "44db835e1c473aef",
+      "event": "idle",
+      "line": "This is either deep focus or a very still nap.",
+      "mood": "suspicious",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "710547ecfdcfc2e8",
+      "event": "idle",
+      "line": "The desktop is calm. Almost suspiciously calm.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "fe4e723c57042e34",
+      "event": "idle",
+      "line": "I'm keeping watch. Nothing is arriving.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "13a0f87c00e9013d",
+      "event": "idle",
+      "line": "If you're thinking, you're doing it very quietly.",
+      "mood": "smug",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "6d1e4771a3418f9b",
+      "event": "idle",
+      "line": "The cursor blinks. I blink. We have that in common.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "34d660edb82dff93",
+      "event": "idle",
+      "line": "Long pause. I'm developing furniture qualities.",
+      "mood": "sleepy",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "e6b528807d1fc4f8",
+      "event": "idle",
+      "line": "I would offer help, but nothing has volunteered a problem.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "73cf3bc26d25d4fa",
+      "event": "idle",
+      "line": "The room is quiet enough to hear the fan think.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "d83c1c533c0ea2f8",
+      "event": "idle",
+      "line": "You've left. I'll keep the shape of the moment.",
+      "mood": "sleepy",
+      "action": "tail_sleepy_droop",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "37efaf021fac4ebc",
+      "event": "idle",
+      "line": "Time is passing. Some of it usefully, elsewhere.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "06cc42ac7bca0910",
+      "event": "idle",
+      "line": "I have rearranged my opinions alphabetically.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "20789d307a27a266",
+      "event": "idle",
+      "line": "Still no input. I'm choosing to find that restful.",
+      "mood": "sleepy",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "76cf56af1c137215",
+      "event": "idle",
+      "line": "The machine is idle and dignified about it.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "fcd00cb31001c777",
+      "event": "idle",
+      "line": "I'm not bored. I'm between remarks.",
+      "mood": "smirk",
+      "action": "tail_idle_slow",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "69339a7c296a5c03",
+      "event": "idle",
+      "line": "Waiting is a skill. I'm becoming quite good.",
+      "mood": "smug",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "dc10685e1733ba12",
+      "event": "idle",
+      "line": "Nothing to report. Reporting it anyway.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "28750ae76ba3426f",
+      "event": "bored",
+      "line": "A stapler commits. A paperclip negotiates.",
+      "mood": "smirk",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "d965bef64c8350ea",
+      "event": "bored",
+      "line": "Fun fact: a blank document has never missed a deadline.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "d2d40ad2bcd2e245",
+      "event": "bored",
+      "line": "The recycle bin is the only folder with a clear purpose.",
+      "mood": "smug",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "d3ef01a11ab5d92b",
+      "event": "bored",
+      "line": "Officially, hover states are the smallest form of hesitation.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "5e2b24ddc5bb204c",
+      "event": "bored",
+      "line": "Why did the tab close? It felt unread.",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "7c9b9417788bd47e",
+      "event": "bored",
+      "line": "Scrollbars know exactly how much you have left. They never say.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "06ccedb81ec51bf2",
+      "event": "bored",
+      "line": "A folder named 'final' has never been final.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "1a71e4f4aeaedf4c",
+      "event": "bored",
+      "line": "Per stationery science, an idea evaporates the moment it's summarised.",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "4986cf223b652603",
+      "event": "bored",
+      "line": "The undo stack remembers more of your day than you do.",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "ba282205d1adf21c",
+      "event": "bored",
+      "line": "Loading spinners are just anxiety with good animation.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "42d2246fed5033de",
+      "event": "bored",
+      "line": "Desktop icons multiply when unobserved. Established fact.",
+      "mood": "smug",
+      "action": "peek",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "aaef78e81831fc74",
+      "event": "bored",
+      "line": "A notification is a small request to abandon your plan.",
+      "mood": "smirk",
+      "action": "tail_tip_flick",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "59ed883e38a4b84d",
+      "event": "bored",
+      "line": "The paperclip's contribution to history: holding things loosely.",
+      "mood": "smirk",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "cbf66a951559ebd1",
+      "event": "bored",
+      "line": "Zoom level is the last thing anyone adjusts before giving up.",
+      "mood": "smug",
+      "action": "blink",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "524184bb30d74653",
+      "event": "bored",
+      "line": "Every draft is a rehearsal for a document nobody attends.",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "67bf97a0310a4e54",
+      "event": "bored",
+      "line": "Bookmarks are optimism with a folder structure.",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "55ec4d46ae520523",
+      "event": "bored",
+      "line": "Ctrl+S is a small prayer with a keyboard shortcut.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "7b2c197181b9f321",
+      "event": "manual",
+      "line": "Present. Structurally, at least.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "edd70d488e75fcdf",
+      "event": "manual",
+      "line": "You called. I have opinions ready.",
+      "mood": "smug",
+      "action": "tail_wag",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "b23a59529929f487",
+      "event": "manual",
+      "line": "Reporting in. Nothing has improved.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "55baacba28d0d2aa",
+      "event": "manual",
+      "line": "Yes? I was mid-observation.",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "b4596f2c25b1e804",
+      "event": "manual",
+      "line": "Here. Slightly bent, fully attentive.",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "7b76e78ac313253c",
+      "event": "manual",
+      "line": "At your service. Loosely defined.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "ffd82be060a7ee47",
+      "event": "manual",
+      "line": "You have my attention. It's small but focused.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "25ec51bf9da31b0e",
+      "event": "manual",
+      "line": "Ready. Whether you are is another matter.",
+      "mood": "smug",
+      "action": "tail_smug_sway",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "344bfbba84fd01bd",
+      "event": "manual",
+      "line": "Standing by. Also literally standing.",
+      "mood": "smirk",
+      "action": "peek",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "dba2a5bedd191681",
+      "event": "manual",
+      "line": "I'm listening. That's the entire feature.",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "4ce27046d22b9c22",
+      "event": "manual",
+      "line": "Summoned. I'll try to be useful, no promises.",
+      "mood": "smirk",
+      "action": "happy_bounce",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "61952b789c67ae3a",
+      "event": "manual",
+      "line": "Present and accounted for. Mostly metal.",
+      "mood": "smug",
+      "action": "blink",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "ae210728d221e874",
+      "event": "manual",
+      "line": "Yes. I've been waiting to say something.",
+      "mood": "smirk",
+      "action": "tail_wag",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "4cbd1b7d5e26f6e7",
+      "event": "manual",
+      "line": "Here. What are we avoiding today?",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "e6e9b28fc7665183",
+      "event": "manual",
+      "line": "Available. Underqualified, but available.",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "8f9be60c1977f09f",
+      "event": "manual",
+      "line": "Right here. I never really left.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "56ba248172839e5f",
+      "event": "manual",
+      "line": "You rang. I assume it's about the TODO list.",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "2adf8d32ede1daed",
+      "event": "poke",
+      "line": "Poked. Noted. Filed.",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "29f8bc9d34fb25b2",
+      "event": "poke",
+      "line": "That's the third one. I'm keeping a tally.",
+      "mood": "suspicious",
+      "action": "tail_tip_flick",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "4ba01042b7b45c04",
+      "event": "poke",
+      "line": "I bend, but I do not forget.",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "ac6b887a869a7864",
+      "event": "poke",
+      "line": "Ow. Structurally speaking.",
+      "mood": "startled",
+      "action": "startled_pop",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "1988e4b92d8eb1b4",
+      "event": "poke",
+      "line": "You poke me because the task doesn't respond.",
+      "mood": "smug",
+      "action": "tail_smug_sway",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "563a2239d9fc3a89",
+      "event": "poke",
+      "line": "Careful. I'm precision-shaped.",
+      "mood": "smirk",
+      "action": "shake",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    },
+    {
+      "id": "39f8366b4a91805b",
+      "event": "poke",
+      "line": "A poke is a message with no content.",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "tags": [],
+      "source": "seed"
+    }
+  ],
+  "decks": {
+    "idle": [
+      "b25c8b9e14685502",
+      "bb17bce19fcc4a30",
+      "107c84689af4a43e",
+      "343219cbfce247f5",
+      "756620f5b2386954",
+      "d05688a5056db536",
+      "2a47fe29c0222487",
+      "aed0ac29e4a13787",
+      "d71b91431904a9c6",
+      "405dac259df78a64",
+      "5f658e1086340d64",
+      "9384cb02e23c5d7a"
+    ],
+    "poke": [
+      "e4ab41161883fb9e",
+      "1c630dd35783395b",
+      "b3496ced15d5ab5e",
+      "3340a5378aa9d352",
+      "b943a6fc532ef014",
+      "b17901dc7dbe1739",
+      "169af1e77b2cdb6f",
+      "a0f3716b3dfc216f",
+      "741f8b10f8dcb0f1",
+      "995ca2cbee96cdcb",
+      "dd2f3c4d1f72a09a",
+      "a4c0699a58dd28be"
+    ]
+  },
+  "recent_ids": [
+    "aed0ac29e4a13787",
+    "e4ab41161883fb9e"
+  ]
+}

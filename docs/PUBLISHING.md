@@ -41,15 +41,15 @@ GIFs are not blank.
 ## 4. Validate Python Files
 
 ```powershell
-python -m compileall -q python_pal scripts tests
+python -m compileall -q jiajia scripts tests
 python -m unittest discover -s tests
-python -m python_pal.main --self-test
+python -m jiajia.main --self-test
 ```
 
 ## 5. Commit Public Files
 
 Stage only intentional public files. Raw concept exports under
-`python_pal/assets/paperclip/` should stay ignored.
+`jiajia/assets/paperclip/` should stay ignored.
 
 ```powershell
 git status --short
@@ -63,7 +63,7 @@ git push
 After the checks pass:
 
 ```powershell
-gh repo edit cloudinjun/paperclip-pal --visibility public
+gh repo edit cloudinjun/jiajia --visibility public
 ```
 
 GitHub may ask for confirmation. Do not run this until the secret scan and

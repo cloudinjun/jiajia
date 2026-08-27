@@ -1,6 +1,6 @@
 # Britclip Costume Brief
 
-This is the first AI-refined SVG hero costume for Paperclip Pal.
+This is the first AI-refined SVG hero costume for Jiajia.
 
 The costume is genderless. Do not design it as a man, gentleman, butler,
 lord, detective, or mascot with a gendered body. The target is Britclip:
@@ -52,7 +52,7 @@ new anatomy.
 Place final AI output candidates under:
 
 ```text
-python_pal/assets/costumes/britclip/
+jiajia/assets/costumes/britclip/
 ```
 
 Preferred files:
@@ -117,7 +117,7 @@ the hat above the brows in final z-order.
 Use the anchor names from:
 
 ```text
-python_pal/rig.yaml
+jiajia/rig.yaml
 ```
 
 Required anchors:

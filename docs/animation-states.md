@@ -1,6 +1,6 @@
 # Animation State Taxonomy
 
-Paperclip Pal keeps a small semantic state layer above raw Tk actions and procedural performance phrases.
+Jiajia keeps a small semantic state layer above raw Tk actions and procedural performance phrases.
 
 ## Canonical states
 

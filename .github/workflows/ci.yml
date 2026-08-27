@@ -23,14 +23,5 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install ".[media]"
 
-      - name: Action GIF signature test
-        run: python -m unittest discover -s tests -p test_action_gifs.py
-
-      - name: Chat language test
-        run: python -m unittest discover -s tests -p test_chat_language.py
-
-      - name: Quiz engine test
-        run: python -m unittest discover -s tests -p test_quiz_engine.py
-
-      - name: Quiz safety test
-        run: python -m unittest discover -s tests -p test_quiz_safety.py
+      - name: Test suite
+        run: python -m unittest discover -s tests

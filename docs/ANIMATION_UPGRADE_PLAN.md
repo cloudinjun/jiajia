@@ -1,6 +1,6 @@
 # Animation Upgrade Plan
 
-This plan upgrades Paperclip Pal from an action player into a small performer.
+This plan upgrades Jiajia from an action player into a small performer.
 The goal is not bigger motion. The goal is clearer acting: anticipation,
 layered expression, readable state, and after-reaction.
 
@@ -11,7 +11,7 @@ For the long-term production rules behind this plan, see
 
 Do not add a mouth.
 
-Paperclip Pal's identity depends on a mouthless paperclip face. The expressive
+Jiajia's identity depends on a mouthless paperclip face. The expressive
 surface should remain eyes, brows, tail, body timing, bubbles, and small flat
 effects. A mouth would make the character more generic and weaken the
 "innocent stationery item saying sharp things" contrast.
@@ -29,7 +29,7 @@ effects. A mouth would make the character more generic and weaken the
 
 Add non-invasive metadata and anchors before changing more motion code:
 
-- `python_pal/rig.yaml` defines stable body, inner-wire, tail, prop, and bubble
+- `jiajia/rig.yaml` defines stable body, inner-wire, tail, prop, and bubble
   anchors.
 - `performance_phrases.*.lifecycle` classifies animations as `loop`,
   `oneshot_return`, or `transition_to_state`.

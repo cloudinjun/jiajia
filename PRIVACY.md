@@ -1,6 +1,6 @@
 # Privacy
 
-Paperclip Pal is intended to be local-first and low-privacy-risk. Its sensing
+Jiajia is intended to be local-first and low-privacy-risk. Its sensing
 model should be explicit: it may watch system state, but it should not collect
 private content.
 
@@ -61,7 +61,7 @@ Do not commit:
 ## Cost And Balance Reporting
 
 Some providers expose cost usage but not prepaid balance through API keys. In
-that case Paperclip Pal should report the limitation clearly and use a manual
+that case Jiajia should report the limitation clearly and use a manual
 snapshot estimate rather than scraping browser sessions or inventing a balance.
 
 ## Public Sharing Checklist

@@ -1,32 +1,96 @@
-# Paperclip Pal Roadmap
+# Jiajia Roadmap
 
 ## Current state snapshot
 
-| Metric | Value |
-|---|---|
-| Total Python LOC | ~10,700 (body.py alone = 4,747) |
-| Line bank entries | 80 (51 seed + 29 identity_seed, 0 from live Ollama) |
-| Identity packs | 11 |
-| Files with hardcoded Chinese | 19 .py files (~645 lines) + 2 YAML (~175 lines) |
-| Distinct events covered | manual(25), ambient(23), idle(12), bored(12), poke(8) |
-| Animation actions | 28 visible + micro actions |
-| Performance phrases | 6 primary choreographies |
+*Updated 2026-08-26. The plan below was written before Phases 0, 1, 3 and 6.1 were
+built; see "What has shipped" for what is already done.*
+
+| Metric | Then | Now |
+|---|---|---|
+| Total Python LOC | ~10,700 | 22,260 |
+| body.py | 4,747 lines | 4,472 lines; the class itself is 3,019 lines / 142 methods across 8 mixins |
+| Seed entries per language | 51 zh, 0 en | 224 zh, 224 en (full parity) |
+| Identity packs | 11 zh only | 12 zh + 12 en |
+| Animation actions | 28 visible | 68, each with a checked-in GIF |
+| Performance phrases | 6 | 9 primary choreographies |
+| Tests | 23 | 45 |
+
+### What has shipped
+
+**Phase 0 (i18n) — done, with one design change.** The `t(key)` registry in 0.1
+was built and then removed: nothing outside the tests ever called it, and a
+lookup table turned out to be the wrong shape for text that is mostly *generated*
+(status summaries assembled from live numbers) rather than *looked up*. What
+replaced it is side-by-side zh/en branches at each producer, plus locale YAML for
+the creative content (`locales/en_seeds.yaml`, `locales/en_identities.yaml`,
+`soul_en.yaml`). 0.2–0.5 are otherwise complete, including the language menu and
+the chat switch commands.
+
+**Phase 1.1 (seed expansion) — done, plus a bug the plan did not know about.**
+Both seed files parse now. They never had: the loader only understood
+per-event sections, while both files are line-bank exports with a flat `entries`
+array, so zh silently fell back to 54 hardcoded seeds and en loaded nothing at
+all. The stated "0 from live Ollama" symptom was partly this.
+
+**Phase 3 (animation) — done and then some.** 68 actions, emotion props with
+story-driven choreography, a face micro-expression system, and a curvature-based
+tail rig that preserves arc length exactly. `scripts/audit_actions.py --warn` and
+`scripts/generate_action_gifs.py --check` both gate this.
+
+**Phase 6.1 (split body.py) — done.** Split into `pal_geometry`, `pal_motion`,
+`pal_window`, `pal_canvas`, `pal_actions`, `pal_decor`, `pal_panels`, `pal_idle`.
+
+### Bilingual audit — final state
+
+Every row below is covered by a test in `tests/test_english_no_chinese.py`, which
+calls each text producer in English mode and fails on any CJK character.
+
+| Surface | Was | Now |
+|---|---|---|
+| Status monitors (codex, claude account, claude usage, openai billing) | Chinese only | bilingual; each monitor carries `language` |
+| Automatic status broadcasts | Chinese only | routed through the English chat vocabulary |
+| Chat status commands | Chinese via `local_status_reaction` | `status_reaction()` dispatches on `language_mode` |
+| `status_claude_account` | no English builder at all | `_english_claude_account` |
+| Activity presets | Chinese *was* the key | stable keys, localised labels, legacy keys still resolve |
+| Morning digest | Chinese only | bilingual; the English placeholder is gone |
+| Quiz dialogs and report frame | Chinese only | bilingual via `_QUIZ_COPY` and `format_report(language)` |
+| Identity brief (model prompt) | Chinese labels around English values | labels follow the language |
+| Claude activity words | Chinese only, silently dropped in English | `activity_label(activity, language)` |
+| Seed bank | zh 54 hardcoded / en 0 | 224 / 224 |
+
+Two bugs surfaced while doing this and are fixed:
+
+- Making the activity key language-independent broke `activity.py`, which was
+  still keyed by the Chinese label. Every lookup fell through to the normal
+  policy, so quiet and hyper stopped having any effect — silently, with nothing
+  raised. `tests/test_english_no_chinese.py::ActivityKeyTests` now pins this.
+- Chinese status lines appended their own `。` to a summary that already ended
+  in one, producing `。。`, and a leading `。` when the summary was empty.
+
+### Known gaps
+
+- **The only quiz packet is `zh-CN`.** The report frame around it is bilingual,
+  but an English user still gets Chinese questions. This needs an English packet
+  written, not more code.
+- `chat.py` and `body.py` still hold ~470 Chinese string literals. These are the
+  zh branch of bilingual pairs, reached only when the language is Chinese. A raw
+  CJK grep over the tree is no longer a useful signal; the behavioural test is.
 
 ---
 
-## Phase 0 — i18n infrastructure
+## Phase 0 — i18n infrastructure — DONE
 
 **Goal**: Make language switchable without touching content files.
 
-### 0.1 Create `python_pal/i18n.py`
+### 0.1 Create `jiajia/i18n.py` — superseded (see snapshot)
 - Define `Locale` enum: `ZH`, `EN`
 - Load locale from `settings.json` (default `zh`)
 - `t(key, **kwargs) -> str` function that reads from locale YAML
 - Fallback: if key missing in current locale, use zh
 
 ### 0.2 Create locale YAML files
-- `python_pal/locales/zh.yaml` — extract all UI strings: menu labels, status text, reaction templates, chat prompts, frequency preset names ("安静"→"安静", "正常"→"正常")
-- `python_pal/locales/en.yaml` — English equivalents
+- `jiajia/locales/zh.yaml` — extract all UI strings: menu labels, status text, reaction templates, chat prompts, frequency preset names ("安静"→"安静", "正常"→"正常")
+- `jiajia/locales/en.yaml` — English equivalents
 - Scope: only UI chrome and reaction templates. **Line bank content and identity lines stay in their own files** (they're creative content, not UI strings)
 
 ### 0.3 Migrate hardcoded strings
@@ -59,7 +123,7 @@ Files to touch (by priority):
 
 **Goal**: 80 entries → 300+ entries, with better event coverage and tag diversity.
 
-### 1.1 Expand seed entries
+### 1.1 Expand seed entries — DONE (224 per language)
 Current coverage gaps:
 - `ambient` has 12 entries but only ~4 tag combos covered (rapid_switching, idle_staring, blank_document, todo_visible). Need: deep_work, app_terminal, file_sorting, app_codex, app_editor, browser_research, long_focus — at least 3-4 lines each.
 - `bored` has 12 entries (4 cold_joke, 4 cold_fact, 4 nonsense). Target: 30+ (10 each).
@@ -138,10 +202,10 @@ Add `line_bank.prune()` — remove near-duplicate lines (edit distance < 3), cap
 
 ---
 
-## Phase 3 — Animation upgrades
+## Phase 3 — Animation upgrades — DONE
 
 ### 3.1 Particle system
-New file: `python_pal/particles.py`
+New file: `jiajia/particles.py`
 - `Particle` dataclass: x, y, vx, vy, life, color, size
 - `ParticleEmitter`: spawns N particles at a point, updates with gravity + fade
 - `ParticleRenderer`: draws on canvas, cleans up dead particles via `root.after`
@@ -213,7 +277,7 @@ Implement: each variant = a different `_draw_eyes_*` method, selected by mood in
 - Feeds into mood engine: repeated pokes push valence negative
 
 ### 4.4 Work pattern memory
-- New file: `python_pal/memory/patterns.json`
+- New file: `jiajia/memory/patterns.json`
 - Track per-day: first_seen_time, last_seen_time, total_focus_minutes, top_3_apps, poke_count
 - After 7 days: can say "你通常这个时候开始工作" or "比平常晚了一小时"
 - Privacy: only store app categories, never titles or content
@@ -256,12 +320,12 @@ Implement: each variant = a different `_draw_eyes_*` method, selected by mood in
 
 ## Phase 6 — Architecture (ongoing)
 
-### 6.1 Split body.py
+### 6.1 Split body.py — DONE (8 mixin modules)
 Extract from the 4747-line monolith:
-- `python_pal/rendering.py` — `_draw_pal`, `_draw_decoration`, bubble drawing, `_rounded_rect`, `_speech_bubble`, `_thought_bubble`, all canvas geometry helpers (~800 lines)
-- `python_pal/polling.py` — all `_poll_*` methods, `_should_log_*`, `_should_announce_*` methods (~600 lines)
-- `python_pal/interaction.py` — drag, poke, chat input, menu handling (~400 lines)
-- `python_pal/reactions.py` — all `_*_reaction` free functions at bottom of file (~1200 lines)
+- `jiajia/rendering.py` — `_draw_pal`, `_draw_decoration`, bubble drawing, `_rounded_rect`, `_speech_bubble`, `_thought_bubble`, all canvas geometry helpers (~800 lines)
+- `jiajia/polling.py` — all `_poll_*` methods, `_should_log_*`, `_should_announce_*` methods (~600 lines)
+- `jiajia/interaction.py` — drag, poke, chat input, menu handling (~400 lines)
+- `jiajia/reactions.py` — all `_*_reaction` free functions at bottom of file (~1200 lines)
 - body.py retains: init, run, _apply_reaction, action scheduling, core state
 
 ### 6.2 Vision on-demand

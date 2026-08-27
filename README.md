@@ -1,9 +1,9 @@
-# Paperclip Pal
+# Jiajia (夹夹)
 
-[![CI](https://github.com/cloudinjun/paperclip-pal/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudinjun/paperclip-pal/actions/workflows/ci.yml)
+[![CI](https://github.com/cloudinjun/jiajia/actions/workflows/ci.yml/badge.svg)](https://github.com/cloudinjun/jiajia/actions/workflows/ci.yml)
 
 A lightweight Windows desktop pet: a flat paperclip character with reactive
-animation, local personality lines, and low-privacy status monitoring.
+animation, local personality lines, and metadata-only status monitoring.
 
 The character is project-specific vector art. It does not use Microsoft Office
 Assistant assets or Microsoft Agent components.
@@ -44,19 +44,19 @@ works, then get a bubble plus a tiny character performance.
 ## Quick Start
 
 ```powershell
-python -m python_pal.main
+python -m jiajia.main
 ```
 
 Background-style launch on Windows:
 
 ```powershell
-pythonw -B -m python_pal.main
+pythonw -B -m jiajia.main
 ```
 
 Self-test without opening the pet:
 
 ```powershell
-python -m python_pal.main --self-test
+python -m jiajia.main --self-test
 ```
 
 ## Install Extras
@@ -81,7 +81,7 @@ python -m pip install ".[monitoring]"
 
 ## Privacy
 
-Paperclip Pal is designed to observe state, not private content.
+Jiajia is designed to observe state, not private content.
 
 By default it does not read clipboard text, keystroke text, passwords, chat
 contents, raw document text, browser cookies, or full screenshots.
@@ -95,12 +95,12 @@ Details: [PRIVACY.md](PRIVACY.md)
 ## Tests
 
 ```powershell
-python -m compileall -q python_pal scripts tests
+python -m compileall -q jiajia scripts tests
 python -m unittest discover -s tests
-python -m python_pal.main --self-test
+python -m jiajia.main --self-test
 ```
 
-CI runs four public test modules on Windows:
+CI runs the public Python test suite on Windows, including:
 
 - `test_action_gifs.py`
 - `test_chat_language.py`
@@ -117,7 +117,7 @@ python scripts\generate_action_gifs.py
 ## Repository Map
 
 ```text
-python_pal/
+jiajia/
   main.py                  app entry point
   body.py                  app orchestration (mixes the layers below together)
   pal_geometry.py          shared constants, curves and pure geometry
@@ -152,10 +152,10 @@ These are ignored and should stay private:
 - `claude_account_status.json`
 - `openai_billing_status.json`
 - `.env*`
-- raw AI concept exports under `python_pal/assets/paperclip/`
+- raw AI concept exports under `jiajia/assets/paperclip/`
 
 ## License
 
-Project code and original Paperclip Pal assets are MIT licensed. Selected
+Project code and original Jiajia assets are MIT licensed. Selected
 third-party icon references keep their original notices in
-[python_pal/assets/vendor/THIRD_PARTY_NOTICES.md](python_pal/assets/vendor/THIRD_PARTY_NOTICES.md).
+[jiajia/assets/vendor/THIRD_PARTY_NOTICES.md](jiajia/assets/vendor/THIRD_PARTY_NOTICES.md).

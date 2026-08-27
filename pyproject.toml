@@ -3,7 +3,7 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "paperclip-pal"
+name = "jiajia"
 version = "0.1.0"
 description = "A lightweight Windows desktop paperclip pet with local personality, animation, and low-privacy status monitors."
 readme = "README.md"
@@ -27,11 +27,11 @@ all = [
 ]
 
 [tool.setuptools]
-packages = ["python_pal"]
+packages = ["jiajia"]
 include-package-data = true
 
 [tool.setuptools.package-data]
-python_pal = [
+jiajia = [
   "*.yaml",
   "locales/*.yaml",
   "assets/**/*.yaml",
@@ -40,6 +40,6 @@ python_pal = [
   "assets/vendor/**/LICENSE",
 ]
 
-[tool.paperclip_pal]
+[tool.jiajia]
 runtime_dependencies = []
 runtime_note = "The desktop pet runtime uses the Python standard library and Tkinter; optional extras support GIF generation and hardware metrics."

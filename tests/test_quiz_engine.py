@@ -6,8 +6,8 @@ import inspect
 import tempfile
 import unittest
 
-from python_pal.body import PaperclipPalApp
-from python_pal.quiz import (
+from jiajia.body import JiajiaApp
+from jiajia.quiz import (
     QuizSession,
     QuizStore,
     build_report,
@@ -18,7 +18,7 @@ from python_pal.quiz import (
     record_answer,
     score_packet,
 )
-from python_pal.quiz_safety import validate_quiz_packet
+from jiajia.quiz_safety import validate_quiz_packet
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -26,12 +26,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 class QuizEngineTests(unittest.TestCase):
     def test_fallback_quiz_loads_and_validates(self) -> None:
-        packets = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")
+        packets = load_quiz_packets(PROJECT_ROOT / "jiajia" / "quizzes.yaml")
         self.assertGreaterEqual(len(packets), 1)
         self.assertEqual(validate_quiz_packet(packets[0]), [])
 
     def test_session_records_answers_and_scores(self) -> None:
-        packet = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")[0]
+        packet = load_quiz_packets(PROJECT_ROOT / "jiajia" / "quizzes.yaml")[0]
         session = QuizSession.start(packet)
         first_question = current_question(packet, session)
         self.assertIsNotNone(first_question)
@@ -47,7 +47,7 @@ class QuizEngineTests(unittest.TestCase):
         self.assertEqual(choose_result(packet, scores).metric, "scheduler")
 
     def test_report_contains_percent_readings_and_badges(self) -> None:
-        packet = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")[0]
+        packet = load_quiz_packets(PROJECT_ROOT / "jiajia" / "quizzes.yaml")[0]
         session = QuizSession.start(packet)
         while session.state != "completed_waiting_result":
             question = current_question(packet, session)
@@ -64,7 +64,7 @@ class QuizEngineTests(unittest.TestCase):
         self.assertIn("六项读数", formatted)
 
     def test_store_round_trips_packet_and_paused_session(self) -> None:
-        packet = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")[0]
+        packet = load_quiz_packets(PROJECT_ROOT / "jiajia" / "quizzes.yaml")[0]
         with tempfile.TemporaryDirectory() as temp_dir:
             store = QuizStore(Path(temp_dir) / "quiz_store.json")
             store.upsert_packet(packet)
@@ -81,7 +81,7 @@ class QuizEngineTests(unittest.TestCase):
             self.assertEqual(restored.packet_id, packet.id)
 
     def test_completed_waiting_result_survives_store_round_trip(self) -> None:
-        packet = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")[0]
+        packet = load_quiz_packets(PROJECT_ROOT / "jiajia" / "quizzes.yaml")[0]
         with tempfile.TemporaryDirectory() as temp_dir:
             store = QuizStore(Path(temp_dir) / "quiz_store.json")
             store.upsert_packet(packet)
@@ -95,13 +95,13 @@ class QuizEngineTests(unittest.TestCase):
             self.assertEqual(restored.packet_id, packet.id)
 
     def test_answer_handler_does_not_call_brain_or_ollama(self) -> None:
-        source = inspect.getsource(PaperclipPalApp._handle_quiz_answer)
+        source = inspect.getsource(JiajiaApp._handle_quiz_answer)
         blocked = ("brain", "ollama", "respond", "_ask_brain", "chat_brain")
         for term in blocked:
             self.assertNotIn(term, source.lower())
 
     def test_paused_session_offer_bypasses_daily_limit(self) -> None:
-        packet = load_quiz_packets(PROJECT_ROOT / "python_pal" / "quizzes.yaml")[0]
+        packet = load_quiz_packets(PROJECT_ROOT / "jiajia" / "quizzes.yaml")[0]
         session = QuizSession.start(packet)
         session.state = "paused"
 
@@ -109,7 +109,7 @@ class QuizEngineTests(unittest.TestCase):
             def active_session(self) -> QuizSession:
                 return session
 
-        app = PaperclipPalApp.__new__(PaperclipPalApp)
+        app = JiajiaApp.__new__(JiajiaApp)
         app.quiz_store = StoreStub()
         app._quiz_offer_day = date.today()
         app._quiz_offers_today = 999

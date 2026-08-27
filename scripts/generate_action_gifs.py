@@ -1,6 +1,6 @@
-"""Render one GIF per Paperclip Pal action.
+"""Render one GIF per Jiajia action.
 
-Every action listed in `python_pal.actions.ACTION_LABELS` gets a GIF under
+Every action listed in `jiajia.actions.ACTION_LABELS` gets a GIF under
 `docs/media/actions/`, driven by the same keyframe tables, easing curves and
 pose math the live app uses. Regenerate whenever actions are added, retimed, or
 removed:
@@ -30,10 +30,10 @@ if str(REPO_ROOT) not in sys.path:
 
 from PIL import Image, ImageDraw, ImageFont
 
-from python_pal import body as B
-from python_pal.actions import ACTION_LABELS, ACTION_DESCRIPTIONS, ACTION_MENU_GROUPS
-from python_pal.anim_physics import easing_for_action
-from python_pal.prop_shapes import (
+from jiajia import body as B
+from jiajia.actions import ACTION_LABELS, ACTION_DESCRIPTIONS, ACTION_MENU_GROUPS
+from jiajia.anim_physics import easing_for_action
+from jiajia.prop_shapes import (
     ACTION_FACE_SCRIPTS,
     ACTION_PROP_CUES,
     EYE_FX_SHAPES,
@@ -46,7 +46,7 @@ from python_pal.prop_shapes import (
     inertia_step,
     transform_shape,
 )
-from python_pal.rig_pose import bend_point, posed_chin_points, posed_tail_points
+from jiajia.rig_pose import bend_point, posed_chin_points, posed_tail_points
 
 
 # ── stage ────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ OFFSET_Y = REST_TOP - B.PAL_PAD_Y
 Pose = dict
 
 
-# ── base geometry (identical splits to PaperclipPalApp._draw_pal) ─
+# ── base geometry (identical splits to JiajiaApp._draw_pal) ─
 
 # the runtime defaults to the "long" tail mode; render with the same split
 TAIL_MODE = "long"
@@ -251,12 +251,12 @@ def face_tracks(script, length: int):
     for frame in script:
         at_ms, eyes, brows, look = frame[0], frame[1], frame[2], frame[3]
         ex = frame[4] if len(frame) > 4 and frame[4] else {}
-        eye = list(B.PaperclipPalApp._EYE_MAP.get(eyes, NEUTRAL_EYE))
+        eye = list(B.JiajiaApp._EYE_MAP.get(eyes, NEUTRAL_EYE))
         if "pupil" in ex:
             eye[2] *= float(ex["pupil"])
         if "openness" in ex:
             eye[3] = float(ex["openness"])
-        brow = B.PaperclipPalApp._BROW_MAP.get(brows, NEUTRAL_BROW)
+        brow = B.JiajiaApp._BROW_MAP.get(brows, NEUTRAL_BROW)
         brow = (tuple(ex.get("brow_l", brow[0])), tuple(ex.get("brow_r", brow[1])))
         stages.append((at_ms, tuple(eye), brow, look, ex))
 
@@ -339,15 +339,15 @@ def _expression(action: str) -> tuple[tuple[float, float, float, float], tuple]:
     if not cue:
         return NEUTRAL_EYE, NEUTRAL_BROW
     eyes, brows, _hold_ms, _blush = cue
-    eye = B.PaperclipPalApp._EYE_MAP.get(eyes, NEUTRAL_EYE)
-    brow = B.PaperclipPalApp._BROW_MAP.get(brows, NEUTRAL_BROW)
+    eye = B.JiajiaApp._EYE_MAP.get(eyes, NEUTRAL_EYE)
+    brow = B.JiajiaApp._BROW_MAP.get(brows, NEUTRAL_BROW)
     return eye, brow
 
 
 def _window_move_frames(action: str) -> tuple | None:
     """Rebuild the runtime's window-move keyframes deterministically.
 
-    Mirrors PaperclipPalApp._run_window_move_action, which picks a random
+    Mirrors JiajiaApp._run_window_move_action, which picks a random
     distance per call; a fixed seed keeps GIFs reproducible.
     """
     random.seed(f"paperclip-{action}")
@@ -452,8 +452,8 @@ def build_timeline(action: str) -> tuple[list[Pose], str]:
         body = body_track(action, cue["frames"], B._ease_out_sine)
         tail_motion = str(cue.get("tail") or "")
         inner_gesture = str(cue.get("inner") or "")
-        eye = B.PaperclipPalApp._EYE_MAP.get(str(cue.get("eyes") or ""), eye)
-        brow = B.PaperclipPalApp._BROW_MAP.get(str(cue.get("brows") or ""), brow)
+        eye = B.JiajiaApp._EYE_MAP.get(str(cue.get("eyes") or ""), eye)
+        brow = B.JiajiaApp._BROW_MAP.get(str(cue.get("brows") or ""), brow)
         coverage = "body"  # the paper prop itself is a runtime canvas item
     elif action in B.MOVE_IDLE_ACTIONS:
         frames = _window_move_frames(action)
@@ -492,15 +492,15 @@ def build_timeline(action: str) -> tuple[list[Pose], str]:
                 for _ in range(max(1, round(hold / FRAME_MS)))]
     elif action == "oops_innocent_combo":
         look = look_track(((0.0, 0.0), (-2.8, -0.15), (2.7, -0.05), (-1.2, 0.3), (0.0, 0.0)), 190)
-        eye = B.PaperclipPalApp._EYE_MAP["innocent_round"]
-        brow = B.PaperclipPalApp._BROW_MAP["innocent"]
+        eye = B.JiajiaApp._EYE_MAP["innocent_round"]
+        brow = B.JiajiaApp._BROW_MAP["innocent"]
         tail_motion = "tail_frantic_innocent"
         inner_gesture = "inner_cover_oops"
 
     if action in _MICRO_EXPRESSIONS:
         eye_key, brow_key, micro_tail = _MICRO_EXPRESSIONS[action]
-        eye = B.PaperclipPalApp._EYE_MAP.get(eye_key, eye)
-        brow = B.PaperclipPalApp._BROW_MAP.get(brow_key, brow)
+        eye = B.JiajiaApp._EYE_MAP.get(eye_key, eye)
+        brow = B.JiajiaApp._BROW_MAP.get(brow_key, brow)
         tail_motion = tail_motion or micro_tail
 
     # tail-as-hand: while carrying (non-wag-style held cue), the tail holds a
@@ -915,7 +915,7 @@ def write_index(out_dir: Path, coverage: dict[str, str]) -> None:
 # ── entry point ──────────────────────────────────────────────────
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Render one GIF per Paperclip Pal action.")
+    parser = argparse.ArgumentParser(description="Render one GIF per Jiajia action.")
     parser.add_argument("--out", type=Path, default=REPO_ROOT / "docs" / "media" / "actions")
     parser.add_argument("--check", action="store_true",
                         help="Verify GIFs match the current action definitions; write nothing.")

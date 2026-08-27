@@ -1,13 +1,13 @@
 # Animation Authoring Guide
 
-This guide captures the animation production rules for Paperclip Pal. It is
+This guide captures the animation production rules for Jiajia. It is
 not about making the character more visually complex. It is about making a
 simple paperclip feel more alive through timing, layering, state logic, and
 careful review.
 
 ## Core Principle
 
-Paperclip Pal should feel performed, not merely moved.
+Jiajia should feel performed, not merely moved.
 
 Big motion is not the main source of quality. The strongest acting comes from
 small readable changes:
@@ -127,7 +127,7 @@ frames.
 The active anchor contract lives in:
 
 ```text
-python_pal/rig.yaml
+jiajia/rig.yaml
 ```
 
 Useful anchors:
@@ -222,7 +222,7 @@ A good performance phrase has four parts:
 3. Line delivery or silent thought
 4. After-reaction
 
-For Paperclip Pal, the signature phrase is:
+For Jiajia, the signature phrase is:
 
 ```text
 observe -> pause -> side-eye -> roast -> inner cover -> eye panic -> tail betrayal -> fake innocence
@@ -367,7 +367,7 @@ Use it for:
 
 Do not make every tail animation large. A small delayed motion can read better
 than a wide wag. The best tail acting often contradicts the face: innocent eyes
-plus frantic tail is a strong Paperclip Pal beat.
+plus frantic tail is a strong Jiajia beat.
 
 ## Prop Rules
 
@@ -421,7 +421,7 @@ Monitoring states should have visual identity beyond bubble text.
 Shared agent-state visual metadata lives under `agent_state_visuals` in:
 
 ```text
-python_pal/animations.yaml
+jiajia/animations.yaml
 ```
 
 Each monitored state should define:
@@ -457,7 +457,7 @@ top of the character, with the feet planted. `lean` shears the wire sideways
 (proud chest). The bend is folded into `_actor_point`, so eyes, brows, pupils,
 tail, and inner core follow it automatically.
 
-Author per-action bend scripts in `ACTION_BODY_BEND` in `python_pal/body.py` as
+Author per-action bend scripts in `ACTION_BODY_BEND` in `jiajia/body.py` as
 `(lean, hunch, delay_ms)` keyframes ending at `(0, 0)`. They run in parallel
 with `ACTION_FRAMES` when `_run_large_action` or `_run_window_move` starts.
 Three built-in sources also drive the channel:
@@ -478,7 +478,7 @@ body: a question sign for thinking, a halo for fake innocence, a rain cloud for
 sulking, a trophy for celebrating, an umbrella for drop-in, sunglasses for
 smugness, a suitcase for relocations.
 
-The system lives in `python_pal/prop_shapes.py`:
+The system lives in `jiajia/prop_shapes.py`:
 
 - `PROP_SHAPES`: flat vector shapes (line/polygon/oval primitives) in local
   coordinates around the prop's anchor point
@@ -682,7 +682,7 @@ before and after the hop).
 Before calling a major animation done, check:
 
 - It is readable without the bubble text.
-- It still looks like Paperclip Pal.
+- It still looks like Jiajia.
 - It has anticipation or a clear reason not to.
 - It has after-reaction or a clear reason not to.
 - Eyes do not duplicate or leave ghost whites.
@@ -711,7 +711,7 @@ current code, and `tests/test_action_gifs.py` runs the same comparison, so a
 keyframe edit without a re-render fails the test suite.
 
 Because tail and inner-core deformation is shared through
-`python_pal/rig_pose.py`, the GIFs cannot drift from the live rig. Props,
+`jiajia/rig_pose.py`, the GIFs cannot drift from the live rig. Props,
 decorations, particles, and status tints are runtime canvas items and are not
 drawn — the index marks those actions as `body` rather than `full` coverage.
 

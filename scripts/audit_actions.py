@@ -17,9 +17,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from python_pal import body as B
-from python_pal.actions import ACTION_LABELS
-from python_pal.prop_shapes import (
+from jiajia import body as B
+from jiajia.actions import ACTION_LABELS
+from jiajia.prop_shapes import (
     ACTION_FACE_SCRIPTS,
     ACTION_PROP_CUES,
     build_prop_timeline,
@@ -73,7 +73,7 @@ def body_duration_ms(action: str) -> int:
     frames = B.ACTION_FRAMES.get(action)
     if frames:
         return sum(f[4] for f in B._acting_frames(frames, action))
-    return B.PaperclipPalApp._animation_duration_ms(_Dummy(), action)  # type: ignore[arg-type]
+    return B.JiajiaApp._animation_duration_ms(_Dummy(), action)  # type: ignore[arg-type]
 
 
 class _Dummy:

@@ -11,7 +11,7 @@ import json
 import unittest
 from pathlib import Path
 
-from python_pal.actions import ACTION_LABELS
+from jiajia.actions import ACTION_LABELS
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent

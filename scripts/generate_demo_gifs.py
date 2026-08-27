@@ -45,7 +45,7 @@ BODY_CURVES = (
 )
 BODY_MAIN_CURVES = BODY_CURVES[:-1]
 TAIL_START = BODY_CURVES[-2][2]
-# free tip extension, kept in sync with python_pal.body.TAIL_TIP_EXTENSION
+# free tip extension, kept in sync with jiajia.body.TAIL_TIP_EXTENSION
 TAIL_TIP_EXTENSION = (
     ((301.0, 250.726), (312.5, 243.0), (319.0, 233.0)),
     ((319.0, 233.0), (325.5, 223.5), (329.5, 211.0)),
@@ -136,7 +136,7 @@ BROW_POSES: dict[str, BrowPose] = {
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate public demo GIFs for Paperclip Pal.")
+    parser = argparse.ArgumentParser(description="Generate public demo GIFs for Jiajia.")
     parser.add_argument(
         "--out",
         type=Path,

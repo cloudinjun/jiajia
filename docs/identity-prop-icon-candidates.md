@@ -1,7 +1,7 @@
 # Identity Prop Icon Candidates
 
-This is the first curated vendor reference set for Paperclip Pal identity props.
-The SVGs live under `python_pal/assets/vendor/`, with source licenses preserved.
+This is the first curated vendor reference set for Jiajia identity props.
+The SVGs live under `jiajia/assets/vendor/`, with source licenses preserved.
 
 ## Selection Criteria
 
@@ -25,7 +25,7 @@ The SVGs live under `python_pal/assets/vendor/`, with source licenses preserved.
 ## Style Normalization Notes
 
 - Replace `currentColor` with project palette during redraw.
-- Favor 2.5 to 3.5 px apparent stroke at Paperclip Pal scale.
+- Favor 2.5 to 3.5 px apparent stroke at Jiajia scale.
 - Use filled paper shapes sparingly; avoid complex interior text.
 - Keep props outside the eyes and brows unless intentionally layered below brows.
 - Do not let props cover the body silhouette enough to read as a costume.

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from python_pal.chat import ChatMessage
-from python_pal.chat_language import (
+from jiajia.chat import ChatMessage
+from jiajia.chat_language import (
     LANGUAGE_EN,
     LANGUAGE_ZH,
     detect_reply_language,
