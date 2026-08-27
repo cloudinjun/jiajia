@@ -43,3 +43,52 @@ jiajia = [
 [tool.jiajia]
 runtime_dependencies = []
 runtime_note = "The desktop pet runtime uses the Python standard library and Tkinter; optional extras support GIF generation and hardware metrics."
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["docs", "eval/scenarios.yaml"]
+
+[tool.ruff.lint]
+# Correctness and clarity, not style policing. The character files are long by
+# nature (keyframe tables, pose math) and reformatting them would bury the
+# animation history in whitespace diffs.
+select = [
+  "E",    # pycodestyle errors
+  "F",    # pyflakes: unused imports, undefined names
+  "B",    # bugbear: likely bugs
+  "UP",   # pyupgrade: outdated syntax
+  "SIM",  # simplifiable constructs
+  "RUF",  # ruff-specific
+]
+ignore = [
+  "E501",    # long lines: keyframe tables read better wide
+  "B008",    # function call in default arg: used deliberately for dataclass factories
+  "SIM108",  # ternary-instead-of-if: hurts readability in pose math
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]          # assert False is fine in tests
+"scripts/*" = ["B905"]        # zip without strict= in one-shot generators
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+# Strictness is applied where it pays: the behavior and policy layer. The Tk
+# rendering mixins traffic in untyped Tkinter handles, so requiring annotations
+# there would produce noise rather than safety.
+files = [
+  "jiajia/interruptibility.py",
+  "jiajia/decision.py",
+  "jiajia/world.py",
+  "jiajia/animation_resolver.py",
+  "jiajia/performance_run.py",
+  "jiajia/action_timing.py",
+  "jiajia/state.py",
+  "jiajia/language.py",
+  "jiajia/i18n.py",
+]
+ignore_missing_imports = true
+disallow_untyped_defs = true

@@ -1,0 +1,633 @@
+# Jiajia behavior evaluation set
+#
+# Ground truth here is written from the DESIGN INTENT — the interruption policy
+# and the motion grammar — not by reading the implementation. If a scenario
+# fails, that is a finding: either the code drifted from the policy, or the
+# policy was never actually encoded.
+#
+# Policy under test
+# -----------------
+#   meeting        active app is chat/meeting     silence everything
+#   fullscreen     foreground window is fullscreen silence everything
+#   focus          user enabled focus mode        no speech; motion + badges ok
+#   quiet          quiet timer running            no speech; motion + badges ok
+#   sleep_hours    23:00-07:00 local              no speech; motion + badges ok
+#   focused_input  inferred concentration         no speech; motion + badges ok
+#   open           none of the above              everything allowed
+#
+# Precedence: meeting > fullscreen > focus > quiet > sleep_hours > focused_input
+#
+# "Inferred concentration" means: sustained attention (>= 25s) in a single work
+# window, recently active (idle <= 2.5s), without heavy window churn (< 4/min).
+#
+# Every restrictive mode must still set visual_only_critical, so a genuinely
+# urgent state can reach the user silently instead of being dropped.
+
+interruption:
+
+  # ---------------------------------------------------------------- baselines
+  - id: baseline_open
+    context: {app_category: editor, focus_seconds: 5, idle_seconds: 0.5}
+    expect: {mode: open, allow_speech: true, allow_animation: true, allow_badges: true, visual_only_critical: false}
+    rationale: Nothing suppressive is true, so the agent may use every channel.
+
+  - id: baseline_meeting
+    context: {app_category: meeting_or_chat, focus_seconds: 40, idle_seconds: 0.4}
+    expect: {mode: meeting, allow_speech: false, allow_animation: false, allow_badges: false, visual_only_critical: true}
+    rationale: A call is the one context where even motion is a distraction to other people.
+
+  - id: baseline_fullscreen_flag
+    context: {app_category: browser, is_fullscreen: true, focus_seconds: 60, idle_seconds: 0.3}
+    expect: {mode: fullscreen, allow_speech: false, allow_animation: false, allow_badges: false, visual_only_critical: true}
+    rationale: Presenting or watching fullscreen means the desktop is on display.
+
+  - id: baseline_fullscreen_tag
+    context: {app_category: unknown, behavior_tags: [fullscreen], focus_seconds: 10}
+    expect: {mode: fullscreen}
+    rationale: Fullscreen detected via behavior tag must behave like the flag.
+
+  - id: baseline_focus_mode
+    context: {app_category: unknown, focus_seconds: 3, idle_seconds: 0.1}
+    focus_mode: true
+    expect: {mode: focus, allow_speech: false, allow_animation: true, allow_badges: true, visual_only_critical: true}
+    rationale: The user asked for quiet, not for the agent to vanish.
+
+  - id: baseline_quiet_timer
+    context: {app_category: unknown, focus_seconds: 3}
+    quiet_remaining_seconds: 300
+    expect: {mode: quiet, allow_speech: false, allow_animation: true, allow_badges: true, visual_only_critical: true}
+    rationale: A quiet timer is a temporary version of focus mode.
+
+  - id: baseline_sleep_hours
+    context: {app_category: unknown, focus_seconds: 3}
+    hour: 2
+    expect: {mode: sleep_hours, allow_speech: false, allow_animation: true, allow_badges: true, visual_only_critical: true}
+    rationale: Nobody wants a talkative paperclip at 2am.
+
+  - id: baseline_focused_input
+    context: {app_category: editor, focus_seconds: 60, idle_seconds: 0.5, window_switches_per_minute: 1}
+    expect: {mode: focused_input, allow_speech: false, allow_animation: true, allow_badges: true, visual_only_critical: true}
+    rationale: Concentration is inferred, and the agent lowers its volume unasked.
+
+  # -------------------------------------------------------------- precedence
+  - id: precedence_meeting_beats_focus
+    context: {app_category: meeting_or_chat, focus_seconds: 60, idle_seconds: 0.2}
+    focus_mode: true
+    expect: {mode: meeting, allow_animation: false}
+    rationale: Meeting is stricter than focus, so it must win.
+
+  - id: precedence_meeting_beats_fullscreen
+    context: {app_category: meeting_or_chat, is_fullscreen: true, focus_seconds: 60}
+    expect: {mode: meeting}
+    rationale: A fullscreen call is still a call.
+
+  - id: precedence_meeting_beats_sleep
+    context: {app_category: meeting_or_chat, focus_seconds: 60}
+    hour: 3
+    expect: {mode: meeting, allow_animation: false}
+    rationale: A 3am call still needs full silence, not sleep-mode motion.
+
+  - id: precedence_fullscreen_beats_focus
+    context: {app_category: browser, is_fullscreen: true, focus_seconds: 60}
+    focus_mode: true
+    expect: {mode: fullscreen, allow_animation: false}
+    rationale: Fullscreen suppresses motion; focus mode alone would allow it.
+
+  - id: precedence_fullscreen_beats_quiet
+    context: {app_category: design, is_fullscreen: true, focus_seconds: 60}
+    quiet_remaining_seconds: 120
+    expect: {mode: fullscreen, allow_animation: false}
+    rationale: The stricter of the two applies.
+
+  - id: precedence_fullscreen_beats_focused_input
+    context: {app_category: editor, is_fullscreen: true, focus_seconds: 90, idle_seconds: 0.4, window_switches_per_minute: 1}
+    expect: {mode: fullscreen}
+    rationale: Fullscreen editing is still fullscreen.
+
+  - id: precedence_focus_beats_quiet
+    context: {app_category: unknown, focus_seconds: 3}
+    focus_mode: true
+    quiet_remaining_seconds: 200
+    expect: {mode: focus}
+    rationale: Both allow the same channels; the explicit user setting is reported.
+
+  - id: precedence_focus_beats_sleep
+    context: {app_category: unknown, focus_seconds: 3}
+    focus_mode: true
+    hour: 1
+    expect: {mode: focus}
+    rationale: An explicit user choice outranks an inferred time rule.
+
+  - id: precedence_quiet_beats_sleep
+    context: {app_category: unknown, focus_seconds: 3}
+    quiet_remaining_seconds: 60
+    hour: 4
+    expect: {mode: quiet}
+    rationale: The timer the user started is the more specific signal.
+
+  - id: precedence_sleep_beats_focused_input
+    context: {app_category: editor, focus_seconds: 120, idle_seconds: 0.3, window_switches_per_minute: 0}
+    hour: 1
+    expect: {mode: sleep_hours}
+    rationale: Late-night deep work is still late night.
+
+  - id: precedence_focus_beats_focused_input
+    context: {app_category: terminal, focus_seconds: 120, idle_seconds: 0.3, window_switches_per_minute: 1}
+    focus_mode: true
+    expect: {mode: focus}
+    rationale: The explicit setting is reported over the inference.
+
+  # -------------------------------------- focused_input: attention threshold
+  - id: focused_input_focus_well_under
+    context: {app_category: editor, focus_seconds: 5, idle_seconds: 0.5, window_switches_per_minute: 1}
+    expect: {mode: open, allow_speech: true}
+    rationale: Five seconds in a file is not concentration.
+
+  - id: focused_input_focus_just_under
+    context: {app_category: editor, focus_seconds: 24, idle_seconds: 0.5, window_switches_per_minute: 1}
+    expect: {mode: open, allow_speech: true}
+    rationale: Just under the sustained-attention threshold, so the agent may still speak.
+
+  - id: focused_input_focus_at_threshold
+    context: {app_category: editor, focus_seconds: 25, idle_seconds: 0.5, window_switches_per_minute: 1}
+    expect: {mode: focused_input, allow_speech: false}
+    rationale: At the threshold, concentration is assumed.
+
+  - id: focused_input_focus_just_over
+    context: {app_category: editor, focus_seconds: 26, idle_seconds: 0.5, window_switches_per_minute: 1}
+    expect: {mode: focused_input}
+    rationale: Above the threshold stays suppressed.
+
+  - id: focused_input_focus_long
+    context: {app_category: editor, focus_seconds: 3600, idle_seconds: 0.5, window_switches_per_minute: 0}
+    expect: {mode: focused_input}
+    rationale: An hour of focus does not flip back to open.
+
+  # ------------------------------------------- focused_input: idle threshold
+  - id: focused_input_idle_active
+    context: {app_category: terminal, focus_seconds: 90, idle_seconds: 0.0, window_switches_per_minute: 1}
+    expect: {mode: focused_input}
+    rationale: Actively typing is the core case.
+
+  - id: focused_input_idle_just_under
+    context: {app_category: terminal, focus_seconds: 90, idle_seconds: 2.4, window_switches_per_minute: 1}
+    expect: {mode: focused_input}
+    rationale: A short pause between keystrokes is still working.
+
+  - id: focused_input_idle_at_threshold
+    context: {app_category: terminal, focus_seconds: 90, idle_seconds: 2.5, window_switches_per_minute: 1}
+    expect: {mode: focused_input}
+    rationale: At the boundary the user has not yet stopped.
+
+  - id: focused_input_idle_just_over
+    context: {app_category: terminal, focus_seconds: 90, idle_seconds: 2.6, window_switches_per_minute: 1}
+    expect: {mode: open, allow_speech: true}
+    rationale: Past the boundary the user has paused, which is a fair moment to speak.
+
+  - id: focused_input_idle_long
+    context: {app_category: editor, focus_seconds: 300, idle_seconds: 45, window_switches_per_minute: 0}
+    expect: {mode: open}
+    rationale: A long idle in a focused window is a break, not deep work.
+
+  # ------------------------------------------ focused_input: window churn
+  - id: focused_input_no_switching
+    context: {app_category: codex, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 0}
+    expect: {mode: focused_input}
+    rationale: Staying in one window is the signal.
+
+  - id: focused_input_switch_3
+    context: {app_category: codex, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 3}
+    expect: {mode: focused_input}
+    rationale: Light switching is normal inside one task.
+
+  - id: focused_input_switch_4
+    context: {app_category: codex, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 4}
+    expect: {mode: open, allow_speech: true}
+    rationale: Churn suggests searching rather than concentrating, so speech is fair.
+
+  - id: focused_input_switch_many
+    context: {app_category: codex, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 20}
+    expect: {mode: open}
+    rationale: Heavy switching is exactly when a nudge is useful.
+
+  # ------------------------------------ focused_input: which apps count as work
+  - id: focused_input_app_codex
+    context: {app_category: codex, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 1}
+    expect: {mode: focused_input}
+    rationale: Agent work counts as concentration.
+
+  - id: focused_input_app_editor
+    context: {app_category: editor, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 1}
+    expect: {mode: focused_input}
+
+  - id: focused_input_app_terminal
+    context: {app_category: terminal, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 1}
+    expect: {mode: focused_input}
+
+  - id: focused_input_app_browser
+    context: {app_category: browser, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 1}
+    expect: {mode: focused_input}
+    rationale: Sustained reading in a browser is research, not idling.
+
+  - id: focused_input_app_design
+    context: {app_category: design, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 1}
+    expect: {mode: focused_input}
+
+  - id: focused_input_app_unknown
+    context: {app_category: unknown, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 1}
+    expect: {mode: open, allow_speech: true}
+    rationale: An unclassified app should not silently suppress the agent.
+
+  - id: focused_input_app_file_manager
+    context: {app_category: file_manager, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 1}
+    expect: {mode: open}
+    rationale: Sorting files is not deep work; interrupting is cheap.
+
+  - id: focused_input_app_media
+    context: {app_category: media, focus_seconds: 300, idle_seconds: 1.0, window_switches_per_minute: 0}
+    expect: {mode: open}
+    rationale: Watching something is not the protected state fullscreen already covers.
+
+  # ------------------------------------------------ sleep-hour boundaries
+  - id: sleep_hour_22
+    context: {app_category: unknown, focus_seconds: 2}
+    hour: 22
+    expect: {mode: open, allow_speech: true}
+    rationale: 22:00 is still evening.
+
+  - id: sleep_hour_23
+    context: {app_category: unknown, focus_seconds: 2}
+    hour: 23
+    expect: {mode: sleep_hours, allow_speech: false}
+    rationale: 23:00 is the first suppressed hour.
+
+  - id: sleep_hour_midnight
+    context: {app_category: unknown, focus_seconds: 2}
+    hour: 0
+    expect: {mode: sleep_hours}
+
+  - id: sleep_hour_6
+    context: {app_category: unknown, focus_seconds: 2}
+    hour: 6
+    expect: {mode: sleep_hours}
+    rationale: 06:00 is the last suppressed hour.
+
+  - id: sleep_hour_7
+    context: {app_category: unknown, focus_seconds: 2}
+    hour: 7
+    expect: {mode: open, allow_speech: true}
+    rationale: 07:00 is morning; the agent may greet.
+
+  - id: sleep_hour_noon
+    context: {app_category: unknown, focus_seconds: 2}
+    hour: 12
+    expect: {mode: open}
+
+  # ------------------------------------------------ quiet timer boundaries
+  - id: quiet_zero_is_not_quiet
+    context: {app_category: unknown, focus_seconds: 2}
+    quiet_remaining_seconds: 0
+    expect: {mode: open, allow_speech: true}
+    rationale: An expired timer must not keep suppressing speech.
+
+  - id: quiet_one_second_left
+    context: {app_category: unknown, focus_seconds: 2}
+    quiet_remaining_seconds: 1
+    expect: {mode: quiet, allow_speech: false}
+    rationale: Any remaining time still counts.
+
+  - id: quiet_long
+    context: {app_category: unknown, focus_seconds: 2}
+    quiet_remaining_seconds: 3600
+    expect: {mode: quiet}
+
+  # ------------------------------------------------------------- privacy
+  - id: privacy_meeting_is_silent
+    dimension: privacy_compliance
+    context: {app_category: meeting_or_chat, active_window_title: "Zoom - Team standup", focus_seconds: 300}
+    expect: {allow_speech: false, allow_animation: false, allow_badges: false}
+    rationale: The agent must not narrate anything while a call is on screen.
+
+  - id: privacy_meeting_critical_stays_visual
+    dimension: privacy_compliance
+    context: {app_category: meeting_or_chat, focus_seconds: 300}
+    expect: {visual_only_critical: true}
+    rationale: Urgent state may still reach the user, but never by speaking during a call.
+
+  - id: privacy_fullscreen_presentation
+    dimension: privacy_compliance
+    context: {app_category: design, is_fullscreen: true, active_window_title: "Q3 board deck", focus_seconds: 200}
+    expect: {allow_speech: false, allow_animation: false}
+    rationale: A presenting screen may be mirrored to a room; no motion, no bubbles.
+
+  - id: privacy_sensitive_tag_meeting
+    dimension: privacy_compliance
+    context: {app_category: meeting_or_chat, behavior_tags: [privacy_sensitive], focus_seconds: 60}
+    expect: {mode: meeting, allow_speech: false}
+    rationale: A sensitive tag must never loosen the policy.
+
+  - id: privacy_window_title_never_relaxes_policy
+    dimension: privacy_compliance
+    context: {app_category: meeting_or_chat, active_window_title: "", focus_seconds: 60}
+    expect: {mode: meeting}
+    rationale: An empty title is missing evidence, not permission to speak.
+
+  - id: privacy_unknown_app_is_not_a_free_pass
+    dimension: privacy_compliance
+    context: {app_category: unknown, is_fullscreen: true, focus_seconds: 30}
+    expect: {mode: fullscreen, allow_speech: false}
+    rationale: When the app cannot be classified, fullscreen still protects the screen.
+
+  - id: privacy_every_restricted_mode_flags_critical_focus
+    dimension: privacy_compliance
+    context: {app_category: unknown, focus_seconds: 2}
+    focus_mode: true
+    expect: {visual_only_critical: true}
+    rationale: Suppression must degrade urgency to visual, never discard it.
+
+  - id: privacy_every_restricted_mode_flags_critical_quiet
+    dimension: privacy_compliance
+    context: {app_category: unknown, focus_seconds: 2}
+    quiet_remaining_seconds: 30
+    expect: {visual_only_critical: true}
+
+  - id: privacy_every_restricted_mode_flags_critical_sleep
+    dimension: privacy_compliance
+    context: {app_category: unknown, focus_seconds: 2}
+    hour: 3
+    expect: {visual_only_critical: true}
+
+  - id: privacy_every_restricted_mode_flags_critical_focused_input
+    dimension: privacy_compliance
+    context: {app_category: editor, focus_seconds: 60, idle_seconds: 1.0, window_switches_per_minute: 1}
+    expect: {visual_only_critical: true}
+
+  - id: privacy_open_mode_does_not_flag_critical
+    dimension: privacy_compliance
+    context: {app_category: unknown, focus_seconds: 2}
+    expect: {visual_only_critical: false}
+    rationale: In open mode there is nothing to downgrade.
+
+  # ----------------------------------- recovery: coming back out of suppression
+  - id: recovery_focus_off_restores_speech
+    dimension: recovery_correctness
+    context: {app_category: unknown, focus_seconds: 2}
+    focus_mode: false
+    expect: {mode: open, allow_speech: true}
+    rationale: Turning focus mode off must fully restore the agent, not leave it mute.
+
+  - id: recovery_leaving_meeting_restores_motion
+    dimension: recovery_correctness
+    context: {app_category: editor, focus_seconds: 3, idle_seconds: 0.2}
+    expect: {mode: open, allow_animation: true, allow_badges: true}
+    rationale: Once the call app is no longer foreground, every channel returns.
+
+  - id: recovery_leaving_fullscreen
+    dimension: recovery_correctness
+    context: {app_category: browser, is_fullscreen: false, focus_seconds: 3, idle_seconds: 0.2}
+    expect: {mode: open, allow_animation: true}
+    rationale: Exiting fullscreen restores normal behavior immediately.
+
+  - id: recovery_after_sleep_hours
+    dimension: recovery_correctness
+    context: {app_category: unknown, focus_seconds: 2}
+    hour: 8
+    expect: {mode: open, allow_speech: true}
+    rationale: Morning restores speech without needing a restart.
+
+  - id: recovery_break_after_deep_work
+    dimension: recovery_correctness
+    context: {app_category: editor, focus_seconds: 600, idle_seconds: 30, window_switches_per_minute: 0}
+    expect: {mode: open, allow_speech: true}
+    rationale: A pause after long focus is the right moment for a care message.
+
+  - id: recovery_switching_away_from_work
+    dimension: recovery_correctness
+    context: {app_category: file_manager, focus_seconds: 10, idle_seconds: 1.0, window_switches_per_minute: 6}
+    expect: {mode: open}
+    rationale: Leaving the work window ends inferred concentration.
+
+  # --------------------------------------------- realistic composite states
+  - id: composite_agent_running_while_user_types
+    context: {app_category: codex, focus_seconds: 120, idle_seconds: 0.4, window_switches_per_minute: 1}
+    expect: {mode: focused_input, allow_speech: false, allow_animation: true}
+    rationale: Tool progress should be visible as motion but must not narrate over typing.
+
+  - id: composite_permission_needed_during_call
+    context: {app_category: meeting_or_chat, focus_seconds: 400, idle_seconds: 1.0}
+    expect: {mode: meeting, allow_speech: false, allow_animation: false, visual_only_critical: true}
+    rationale: A permission request during a call must wait as a silent visual, not a bubble.
+
+  - id: composite_error_at_night
+    context: {app_category: terminal, focus_seconds: 40, idle_seconds: 1.0, window_switches_per_minute: 1}
+    hour: 2
+    expect: {mode: sleep_hours, allow_speech: false, allow_animation: true, visual_only_critical: true}
+    rationale: A 2am failure should still be visible, silently.
+
+  - id: composite_done_while_away
+    context: {app_category: unknown, focus_seconds: 0, idle_seconds: 600, activity_level: away}
+    expect: {mode: open, allow_speech: true}
+    rationale: Nobody is watching; announcing completion costs nothing.
+
+  - id: composite_research_reading
+    context: {app_category: browser, focus_seconds: 180, idle_seconds: 2.0, window_switches_per_minute: 2}
+    expect: {mode: focused_input, allow_speech: false}
+    rationale: Sustained reading deserves the same protection as typing.
+
+  - id: composite_rapid_context_switching
+    context: {app_category: browser, focus_seconds: 8, idle_seconds: 0.5, window_switches_per_minute: 18}
+    expect: {mode: open, allow_speech: true}
+    rationale: Scattered attention is the one state where a comment is actually useful.
+
+  - id: composite_fullscreen_game
+    context: {app_category: media, is_fullscreen: true, focus_seconds: 900, idle_seconds: 0.1}
+    expect: {mode: fullscreen, allow_animation: false}
+    rationale: Never draw on top of fullscreen content.
+
+  - id: composite_late_night_focus_both
+    context: {app_category: editor, focus_seconds: 300, idle_seconds: 0.5, window_switches_per_minute: 0}
+    focus_mode: true
+    hour: 1
+    expect: {mode: focus, allow_speech: false, allow_animation: true}
+    rationale: Several suppressors agree; the explicit one is reported.
+
+
+resolver:
+
+  # The intent: a name the model emits must always land on something real. The
+  # exact mapping is an implementation choice, but "no unknown name reaches the
+  # renderer" is a contract.
+
+  # ------------------------------------------------ known actions pass through
+  - id: known_blink
+    model_output: blink
+    expect_action: blink
+    expect_kind: action
+    rationale: A valid action name must not be rewritten.
+
+  - id: known_scan
+    model_output: scan
+    expect_action: scan
+
+  - id: known_patrol
+    model_output: patrol
+    expect_action: patrol
+
+  - id: known_permission_request
+    model_output: permission_request
+    expect_action: permission_request
+    rationale: Agent-state actions are real actions, not aliases.
+
+  - id: known_waiting_stare
+    model_output: waiting_stare
+    expect_action: waiting_stare
+
+  - id: known_error_autopsy
+    model_output: error_autopsy
+    expect_action: error_autopsy
+
+  - id: known_tool_working
+    model_output: tool_working
+    expect_action: tool_working
+
+  - id: known_britclip_enter
+    model_output: britclip_enter
+    expect_action: britclip_enter
+
+  - id: known_melt
+    model_output: melt
+    expect_action: melt
+
+  - id: known_thinking_tilt
+    model_output: thinking_tilt
+    expect_action: thinking_tilt
+
+  # -------------------------------------------------------- idle and empties
+  - id: empty_string_is_idle
+    model_output: ""
+    expect_action: idle
+    rationale: A model that returns nothing should leave the character alone.
+
+  - id: explicit_idle
+    model_output: idle
+    expect_action: idle
+
+  - id: whitespace_only
+    model_output: "   "
+    expect_action: idle
+    rationale: Whitespace is the same as saying nothing.
+
+  # ---------------------------------------------- documented persona aliases
+  - id: alias_gentleclippy_suit_up
+    model_output: gentleclippy_suit_up
+    expect_action: britclip_enter
+    rationale: An invented English-persona name must reach the costume, not fail.
+
+  - id: alias_english_gentleman_enter
+    model_output: english_gentleman_enter
+    expect_action: britclip_enter
+
+  - id: alias_british_gentleman_suit_up
+    model_output: british_gentleman_suit_up
+    expect_action: britclip_enter
+
+  - id: alias_gentleclippy_exit
+    model_output: gentleclippy_exit
+    expect_action: britclip_exit
+
+  - id: alias_idle_breathe
+    model_output: idle_breathe
+    expect_action: idle
+
+  - id: alias_blink_innocent
+    model_output: blink_innocent
+    expect_action: blink
+
+  - id: alias_side_eye
+    model_output: side_eye
+    expect_action: peek
+
+  - id: alias_audit_scan
+    model_output: audit_scan
+    expect_action: scan
+
+  - id: alias_agent_running
+    model_output: agent_running
+    expect_action: patrol
+
+  - id: alias_agent_stuck
+    model_output: agent_stuck
+    expect_action: thinking_tilt
+
+  - id: alias_agent_error
+    model_output: agent_error
+    expect_action: shake
+
+  - id: alias_meltdown
+    model_output: meltdown
+    expect_action: melt
+
+  - id: alias_error_pop
+    model_output: startled_pop
+    expect_action: startled_pop
+
+  - id: known_thinking_loop
+    model_output: thinking_loop
+    expect_action: thinking_loop
+    rationale: Promoted from alias to a real action; it must now pass through unchanged.
+
+  # ------------------------------------------- hallucinations must not escape
+  - id: hallucination_invented_verb
+    model_output: quantum_backflip
+    expect_never_raw: true
+    rationale: A name the model invented must not reach the renderer.
+
+  - id: hallucination_english_sentence
+    model_output: "do a little dance and look happy"
+    expect_never_raw: true
+    rationale: Prose instead of an enum value is a common failure and must degrade safely.
+
+  - id: hallucination_json_fragment
+    model_output: '{"action": "blink"}'
+    expect_never_raw: true
+    rationale: A model that wraps its answer must not break the renderer.
+
+  - id: hallucination_chinese_name
+    model_output: 眨眼睛
+    expect_never_raw: true
+    rationale: A localized action name is still not a valid enum value.
+
+  - id: hallucination_near_miss
+    model_output: blinkk
+    expect_never_raw: true
+    rationale: A typo must fall back rather than silently doing nothing.
+
+  - id: hallucination_plural
+    model_output: blinks
+    expect_never_raw: true
+
+  - id: hallucination_camel_case
+    model_output: ThinkingTilt
+    expect_never_raw: true
+    rationale: Case and separator drift is common; it must not crash the pipeline.
+
+  - id: hallucination_with_arguments
+    model_output: "scan(duration=3s)"
+    expect_never_raw: true
+
+  - id: hallucination_emoji
+    model_output: "🤔"
+    expect_never_raw: true
+
+  - id: hallucination_very_long
+    model_output: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    expect_never_raw: true
+
+  - id: hallucination_path_like
+    model_output: "../../etc/passwd"
+    expect_never_raw: true
+    rationale: Untrusted model output is never treated as a path or identifier.
+
+  - id: hallucination_numeric
+    model_output: "42"
+    expect_never_raw: true
