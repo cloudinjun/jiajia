@@ -52,13 +52,18 @@ Three commitments drive every decision in this repository:
 ### 1. Working → waiting for you
 
 The agent is running tools. Jiajia patrols — low amplitude, no speech, easy to
-ignore. The moment the agent needs a permission decision, the character leans
-toward you, holds the request up, and *stops moving*.
+ignore. When the agent needs a permission decision, the character leans toward
+you, holds the request up, and *stops moving*.
 
-The difference is not decoration. `running_tool` is priority 22 and
-interruptible; `permission` is priority 45 and **not** interruptible, with a
+The scheduling half of this works and is verified: `running_tool` is priority 22
+and interruptible; `permission` is priority 45 and **not** interruptible, with a
 2500 ms floor so it cannot be overwritten by a cheerful idle animation before
 you have seen it.
+
+The *legibility* half does not work yet. Blind-tested against ten vision models,
+`permission_request` was recognized 0/10 — read as surprise, alertness or
+focus, but never as a request for authorization. Wide eyes signal attention;
+they do not signal asking. See [the study](#does-any-of-this-actually-read).
 
 ### 2. Error → inspect → explain → recover
 
@@ -66,9 +71,14 @@ A failure does not produce a red banner. It produces `error_autopsy`: the
 character examines the problem, then reports it. Error is priority 50 — the
 highest in the system — and holds for 2400 ms minimum.
 
-The design claim: an agent that *performs* diagnosis is more trustworthy than
-one that prints a stack trace, because the performance communicates "I know
-what went wrong" before you read a word.
+The design claim was that an agent which *performs* diagnosis is more
+trustworthy than one printing a stack trace, because the performance
+communicates "I know what went wrong" before you read a word.
+
+That claim failed its first test: 0/10 recognition, most often read as a slow
+sleepy blink. The narrowing eyelids and gentle sway that were meant to read as
+scrutiny read as drowsiness instead. The state machine is right; the motion
+vocabulary is not.
 
 ### 3. Knowing when to disappear
 
@@ -207,6 +217,47 @@ compliance, semantic fit and recovery. Expectations are written from the design
 intent rather than from the implementation, so a disagreement is a finding in
 either direction. It found four dead entries in the alias table on its first
 run.
+
+### Does any of this actually read?
+
+Everything above verifies that the system does what it was told to do. None of
+it answers the question the whole design rests on: **when the character performs
+a state, does anyone understand it?**
+
+So I tested it. Ten vision models — seven local, three cloud — each saw four
+anonymized animations stripped of their labels, with no candidate answers, and
+reported their first reading. 40 independent judgments.
+
+**The strict hit rate was 5%.**
+
+| State | Recognized | Most common misreading |
+|---|---:|---|
+| `error_autopsy` | 0/10 | slow blink, sleepy, idle |
+| `thinking_loop` | 1/10 | drowsy blink, idle, confused |
+| `permission_request` | 0/10 | surprised, alert, focused |
+| `waiting_stare` | 1/10 | dozing, asleep, low power |
+
+The one `waiting` hit came from a model that answered "idle, waiting for input"
+for *all four* stimuli, so it is response bias rather than discrimination.
+
+The diagnosis is specific and fixable. All four states share the same
+eye-open-squint-open grammar, so the differences between them are invisible.
+`error` has no sharp negative signal. `thinking` borrows drowsiness's exact
+vocabulary. `permission` has wide eyes, which say attention, not asking.
+`waiting` closes its eyes long enough to read as sleep.
+
+Method, per-model results and the proposed orthogonal motion grammar:
+[docs/research/blind-animation-recognition-2026-08-27.md](docs/research/blind-animation-recognition-2026-08-27.md)
+
+This is a proxy pre-screen, not a user study — vision models expose strong
+ambiguity cheaply, but they are not people and a contact sheet is not playback.
+The real bar is 5–8 human participants on the same protocol, with a target of
+60% free recognition and 80% four-alternative forced choice.
+
+I am keeping the negative result in this README rather than fixing the
+animations first and reporting only the second number. The state machine was
+right and the motion vocabulary was wrong, and I would rather show the test that
+told me so.
 
 ## Demo
 

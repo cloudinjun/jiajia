@@ -125,9 +125,17 @@ lost most of its value.
 
 This set scores the deterministic layer — the interruption policy and the
 resolver — because those are the parts with a single defensible answer. It does
-not score whether a given animation *reads* as the emotion intended; that needs
-people, and it is the honest next step rather than something this harness can
-fake.
+not score whether a given animation *reads* as the state intended.
+
+That question got its own pass, outside this harness: ten vision models blind-
+rated four anonymized animations, 40 judgments, **5% strict recognition**. The
+scheduling layer this directory verifies was correct throughout; the motion
+vocabulary it schedules was not.
+[docs/research/blind-animation-recognition-2026-08-27.md](../docs/research/blind-animation-recognition-2026-08-27.md)
+
+That is a proxy pre-screen. Vision models expose strong ambiguity cheaply, but
+they are not people, and a contact sheet is not playback. Real participants are
+still the bar.
 
 The scenarios are also authored by the same person who designed the policy, so
 they inherit that person's blind spots. They catch drift and regression well.
