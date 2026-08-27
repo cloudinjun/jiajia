@@ -1,0 +1,5 @@
+include README.md
+include PRIVACY.md
+include LICENSE
+recursive-include jiajia *.yaml *.md *.svg
+recursive-include jiajia/assets/vendor LICENSE
