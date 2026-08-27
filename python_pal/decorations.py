@@ -17,6 +17,8 @@ class DecorationDefinition:
     lifetime: str = "identity"
     role: str = "identity_prop"
     shape_type: str = "status_dot"
+    asset: str = ""
+    asset_scale: float = 1.0
     pulse: bool = False
 
 
@@ -49,6 +51,8 @@ def _parse_definition(name: str, raw: dict[str, Any]) -> DecorationDefinition:
         lifetime=_key(raw.get("lifetime")) or "identity",
         role=_key(raw.get("role")) or "identity_prop",
         shape_type=_key(raw.get("shape_type")) or "status_dot",
+        asset=str(raw.get("asset") or ""),
+        asset_scale=_float(raw.get("asset_scale"), 1.0),
         pulse=bool(raw.get("pulse", False)),
     )
 
@@ -61,8 +65,8 @@ def _key(value: object) -> str:
     return str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
 
 
-def _float(value: object) -> float:
+def _float(value: object, default: float = 0.0) -> float:
     try:
         return float(value)  # type: ignore[arg-type]
     except (TypeError, ValueError):
-        return 0.0
+        return default

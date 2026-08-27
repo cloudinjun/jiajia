@@ -26,6 +26,11 @@ class AnimationDebug:
     event: str = ""
     state: str = "idle"
     performance: str = ""
+    lifecycle: str = ""
+    source_costume: str = ""
+    target_costume: str = ""
+    duration_ms: int = 0
+    minimum_ms: int = 0
     fallback_action: str = ""
     fallback_reason: str = ""
     source: str = "none"
@@ -36,6 +41,11 @@ class AnimationDebug:
             f"event: {self.event or 'unknown'}\n"
             f"state: {self.state}\n"
             f"performance: {self.performance or 'none'}\n"
+            f"lifecycle: {self.lifecycle or 'unknown'}\n"
+            f"source_costume: {self.source_costume or 'none'}\n"
+            f"target_costume: {self.target_costume or 'none'}\n"
+            f"duration_ms: {self.duration_ms}\n"
+            f"minimum_ms: {self.minimum_ms}\n"
             f"source: {self.source}\n"
             f"steps: {self.step_count}\n"
             f"fallback_action: {self.fallback_action or 'none'}\n"
@@ -63,6 +73,7 @@ class AnimationPlayer:
                 event=event,
                 state=state or "idle",
                 performance=performance_id,
+                lifecycle="unknown",
                 fallback_action=reaction.action,
                 fallback_reason="missing_performance",
                 source="manifest",
@@ -73,6 +84,10 @@ class AnimationPlayer:
                 event=event,
                 state=state or "idle",
                 performance=definition.name,
+                lifecycle=definition.lifecycle,
+                source_costume=definition.source_costume,
+                target_costume=definition.target_costume,
+                minimum_ms=definition.minimum_ms,
                 fallback_action=definition.fallback_action or reaction.action,
                 fallback_reason=f"unsupported_type:{definition.kind}",
                 source="manifest",
@@ -83,6 +98,10 @@ class AnimationPlayer:
                 event=event,
                 state=state or "idle",
                 performance=definition.name,
+                lifecycle=definition.lifecycle,
+                source_costume=definition.source_costume,
+                target_costume=definition.target_costume,
+                minimum_ms=definition.minimum_ms,
                 fallback_action=definition.fallback_action or reaction.action,
                 fallback_reason="empty_sequence",
                 source="manifest",
@@ -122,6 +141,11 @@ class AnimationPlayer:
             event=event,
             state=state or "idle",
             performance=definition.name,
+            lifecycle=definition.lifecycle,
+            source_costume=definition.source_costume,
+            target_costume=definition.target_costume,
+            duration_ms=elapsed,
+            minimum_ms=definition.minimum_ms,
             fallback_action=definition.fallback_action or reaction.action,
             source="manifest",
             step_count=len(definition.sequence),

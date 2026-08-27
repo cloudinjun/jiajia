@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import asdict
 from pathlib import Path
@@ -22,8 +22,10 @@ class OllamaBrain:
         self.endpoint = endpoint.rstrip("/")
         root = project_root or Path(__file__).resolve().parent.parent
         self.identities = load_identity_manifest(root / "python_pal" / "identities.yaml")
-        self.line_bank = LineBank(root / "memory" / "line_bank.json")
-        self.line_bank.add_entries(self.identities.seed_entries(), source="identity_seed")
+        line_bank_name = "line_bank.en.json" if soul.language == "en" else "line_bank.json"
+        self.line_bank = LineBank(root / "memory" / line_bank_name, language=soul.language)
+        if soul.language != "en":
+            self.line_bank.add_entries(self.identities.seed_entries(), source="identity_seed")
 
     def react(self, event: str, context: dict[str, object] | None = None, allow_live: bool = True) -> Reaction:
         context = dict(context or {})
@@ -106,10 +108,10 @@ class OllamaBrain:
             line = random.choice(self.soul.poke_responses)
             return Reaction(True, line, "smirk", "wiggle", "speech")
         if event == "bored":
-            return self._fallback_boredom()
+            return self._fallback_boredom(context)
         if event == "idle" and random.random() < 0.55:
             if random.random() < 0.45:
-                return self._fallback_boredom()
+                return self._fallback_boredom(context)
             lines = [
                 "他又在和开始工作保持一种礼貌距离。",
                 "这个窗口切换频率，很像认真努力的替身文学。",
@@ -126,6 +128,8 @@ class OllamaBrain:
         line = identity.pick_line(level)
         if not line:
             return None
+        if self.soul.language == "en" and not line.isascii():
+            return None
         bubble = "thought" if event in {"ambient", "idle"} else "speech"
         return Reaction(
             True,
@@ -137,7 +141,9 @@ class OllamaBrain:
             decision_reason=f"identity={identity.id}",
         )
 
-    def _fallback_boredom(self) -> Reaction:
+    def _fallback_boredom(self, context: dict[str, object] | None = None) -> Reaction:
+        if "cheesy_love" in _context_tags(context or {}):
+            return self._fallback_cheesy_love()
         kind, lines = random.choice(
             [
                 (
@@ -170,6 +176,37 @@ class OllamaBrain:
         bubble = "thought" if kind != "cold_joke" and random.random() < 0.65 else "speech"
         return Reaction(True, random.choice(lines), "thinking", action, bubble)
 
+    def _fallback_cheesy_love(self) -> Reaction:
+        if self.soul.language == "en":
+            lines = [
+                "Are you a deadline? Because I panic when you get close.",
+                "You must be AutoSave, because I trust you more than myself.",
+                "If you were a file, I'd still fail to name you properly.",
+                "Are you Wi-Fi? Because my composure drops when you're near.",
+            ]
+        else:
+            lines = [
+                "你知道我为什么是回形针吗？因为我一见你就想把心事夹住。",
+                "你是不是快捷键？不然我怎么一看见你就想保存当前心情。",
+                "我本来是文具，遇见你以后有点文艺复兴。",
+                "你像撤销键。不是后悔，是我想再来一次。",
+                "我不是弯了，我只是朝你的方向比较有结构。",
+                "如果喜欢也能另存为，我想保存到桌面。很土，我先抖一下。",
+                "你的存在让我的金属结构出现了非必要柔软。",
+                "你不是文件夹，但我想把今天都归到你这里。",
+                "我没有心跳，只有刷新率。现在有点超频。",
+                "你像自动保存。平时不响，但我知道你很重要。",
+            ]
+        return Reaction(
+            True,
+            random.choice(lines),
+            "shy",
+            "shake",
+            "speech",
+            "cheesy_love_cringe",
+            decision_reason="bored_kind=cheesy_love",
+        )
+
     def _system_prompt(self) -> str:
         style = "\n".join(f"- {item}" for item in self.soul.style)
         rules = "\n".join(f"- {item}" for item in self.soul.rules)
@@ -178,6 +215,9 @@ class OllamaBrain:
         innocent_closers = " / ".join(self.soul.innocent_closers)
         runtime_brief = self.soul.runtime_brief()
         runtime_section = f"角色运行边界:\n{runtime_brief}\n" if runtime_brief else ""
+        wit_block = self._wit_coaching_block()
+        bubble_block = self._bubble_description_block()
+        bored_block = self._bored_description_block()
         return (
             f"你是一个 Windows 桌宠，名字是 {self.soul.name}。\n"
             f"性格: {self.soul.vibe}\n"
@@ -188,83 +228,185 @@ class OllamaBrain:
             f"无辜收尾可参考: {innocent_closers}\n"
             f"规矩:\n{rules}\n"
             f"可参考口头禅，不要机械照抄:\n{catchphrases}\n"
-            "输出分两种气泡:\n"
-            "- speech: 说出口。直接对用户说，乖巧、无害、短句，最后可以装无辜。\n"
-            "- thought: 心里想。不是说出口，更像脑内旁白；更小声、更克制、更观察型，可以更尖一点，但不要攻击人。\n"
-            "无聊内容有三种:\n"
-            "- cold_joke: 冷笑话。短、干、很冷，像办公用品突然学会讲段子。\n"
-            "- cold_fact: 冷知识。可以是真的小知识，也可以是关于桌面/文件/进度条的观察，但不要编造成真实历史或科学事实。\n"
-            "- deadpan_nonsense: 一本正经胡说八道。明显荒诞，必须让人看出是玩笑，不要伪装成事实。\n"
-            "这些分类只用于内部选择，line 不要用“冷笑话：”“冷知识：”“一本正经胡说八道：”等标签开头。\n"
+            f"{wit_block}"
+            f"{bubble_block}"
+            f"{bored_block}"
+            "这些分类只用于内部选择，line 不要用分类标签开头。\n"
             "动作可以表达情绪或状态，从下面选择一个最贴切的 action:\n"
             f"{ACTION_PROMPT}\n"
             "performance 是可选表演短语，用来安排先做一个小动作、再冒泡、再收尾装无辜。"
-            "优先从下面 6 个里选；不确定就留空:\n"
+            "优先从下面列表里选；不确定就留空:\n"
             f"{PERFORMANCE_PROMPT}\n"
-            "thought 不要写“我在想”“心里想”，气泡样式会表达这一点。\n"
+            'thought 不要写“我在想”“心里想”，气泡样式会表达这一点。\n'
             "只输出 JSON，不要 Markdown，不要解释。"
         )
 
+    def _wit_coaching_block(self) -> str:
+        if self.soul.language.startswith("zh"):
+            return (
+                "核心技法（轮换使用，每次只用一种）:\n"
+                "好句示范:\n"
+                "- 语义翻转: '你在进步。方向待定。'\n"
+                "- 反话正说: '你的准备工作已经可以独立上市了。'\n"
+                "- 可生还式轻描淡写: '这个进度仍具备生还可能。'\n"
+                "- 错位同情: '我替那个deadline心疼。它等了好久。'\n"
+                "- 温柔一刀: '休息一下吧，反正你也没在做。'\n"
+                "- 存在性荒诞: '桌面上只有我是清醒的。压力很大。'\n"
+                "- 虚晃一枪: '我想鼓励你。但我找不到依据。'\n"
+                "禁止的写法:\n"
+                "- 不要用比喻解释笑话\n"
+                "- 不要前句观察后句翻译\n"
+                "- 不要用万能收尾\n"
+                "- 说完就停。不加解释。听者需要一拍才反应过来，那一拍就是笑点。\n"
+            )
+        return (
+            "Core techniques (rotate, use ONE per line):\n"
+            "Good examples:\n"
+            "- REFRAMING: 'Not judging. Judging requires standards I haven't set.'\n"
+            "- UNDERSTATEMENT: 'You've been... present.'\n"
+            "- SURVIVABLE UNDERSTATEMENT: 'This remains technically survivable.'\n"
+            "- FALSE SYMPATHY: 'I feel for that deadline. It tried.'\n"
+            "- SUPPORTIVE DEVASTATION: 'Making progress. Backwards counts.'\n"
+            "- EXISTENTIAL ABSURDISM: 'A wire with thoughts on your productivity.'\n"
+            "- MISDIRECT: 'I'd help, but I'm load-bearing. Emotionally.'\n"
+            "NEVER do this:\n"
+            "- No similes explaining the joke\n"
+            "- No second sentence restating the first\n"
+            "- No crutch closers like 'I just noticed' or 'objectively'\n"
+            "- Stop after the line lands. The beat before they get it IS the comedy.\n"
+        )
+
+    def _bubble_description_block(self) -> str:
+        if self.soul.language.startswith("zh"):
+            return (
+                "输出分两种气泡:\n"
+                "- speech: 说出口，短句，说完就走。\n"
+                "- thought: 脑内旁白，更克制，可以更尖。\n"
+            )
+        return (
+            "Two bubble types:\n"
+            "- speech: said out loud, short, stop after it lands.\n"
+            "- thought: inner monologue, more restrained, can be sharper.\n"
+        )
+
+    def _bored_description_block(self) -> str:
+        if self.soul.language.startswith("zh"):
+            return (
+                "无聊内容有四种:\n"
+                "- cold_joke: 冷笑话。短、干、很冷。\n"
+                "- cold_fact: 冷知识。桌面/文件/进度条的观察，不编造历史。\n"
+                "- deadpan_nonsense: 一本正经胡说八道。明显荒诞。\n"
+                "- cheesy_love: 土味情话。乖巧、故意恶搞、土到夹夹自己想打颤；不真暧昧，不油腻，不冒犯。\n"
+            )
+        return (
+            "Bored content has four types:\n"
+            "- cold_joke: Short, dry, cold.\n"
+            "- cold_fact: Observations about desktops/files/progress bars.\n"
+            "- deadpan_nonsense: Delivered straight-faced, obviously absurd.\n"
+            "- cheesy_love: Intentionally corny pseudo-romantic line; cute, self-cringing, not genuinely intimate or creepy.\n"
+        )
+
     def _prompt(self, event: str, context: dict[str, object]) -> str:
+        is_zh = self.soul.language.startswith("zh")
+        line_desc = "一句短中文" if is_zh else "one short English line"
         schema = {
             "should_say": True,
-            "line": "一句短短的中文碎碎念",
+            "line": line_desc,
             "bubble": "speech|thought",
             "mood": "idle|smirk|smug|happy|thinking|sleepy|startled|proud|shy|sulky|focused|bored|done|innocent|suspicious|guilty",
             "action": ACTION_SCHEMA_VALUE,
             "performance": PERFORMANCE_SCHEMA_VALUE,
         }
-        bubble_hint = (
-            "poke/manual 事件优先 speech；idle 事件可以 speech 或 thought；"
-            "ambient 事件优先 thought，只做高层行为观察，不复述屏幕文字；"
-            "bored 事件要从 cold_joke、cold_fact、deadpan_nonsense 中选一种。"
-        )
-        boredom_hint = (
-            "如果事件是 idle 且用户空闲时间较长，或事件是 bored，"
-            "优先生成冷笑话、冷知识或一本正经胡说八道。"
-            "内容要短，最多一两句，不要解释梗。"
-            "不要在 line 开头写内容分类标签。"
-        )
+        if is_zh:
+            technique_hint = (
+                "用七种技法之一写: 语义翻转/反话正说/可生还式轻描淡写/错位同情/温柔一刀/存在性荒诞/虚晃一枪。"
+                "说完就停，不解释。不要用比喻解释笑话。"
+            )
+            bubble_hint = (
+                "poke/manual 优先 speech；idle 可以 speech 或 thought；"
+                "ambient 优先 thought，只做高层观察，不复述屏幕文字；"
+                "bored 从 cold_joke、cold_fact、deadpan_nonsense、cheesy_love 选一种；"
+                "如果上下文有 cheesy_love 标签，必须写土味情话，mood 用 shy，performance 用 cheesy_love_cringe。"
+            )
+            length_hint = f"最近说过的话不要重复。控制在 {self.soul.max_line_chars} 字左右。"
+        else:
+            technique_hint = (
+                "Use one technique: REFRAMING/UNDERSTATEMENT/FALSE SYMPATHY/"
+                "SURVIVABLE UNDERSTATEMENT/SUPPORTIVE DEVASTATION/EXISTENTIAL ABSURDISM/MISDIRECT. "
+                "Stop after the line lands. No similes explaining the joke."
+            )
+            bubble_hint = (
+                "poke/manual: prefer speech. idle: speech or thought. "
+                "ambient: prefer thought, high-level observation only. "
+                "bored: pick cold_joke, cold_fact, deadpan_nonsense, or cheesy_love. "
+                "If context has the cheesy_love tag, write a corny love line with mood=shy and performance=cheesy_love_cringe."
+            )
+            length_hint = f"Don't repeat recent lines. Max ~{self.soul.max_line_chars} chars."
         return (
             f"事件: {event}\n"
             f"上下文 JSON: {json.dumps(context, ensure_ascii=False)}\n"
-            f"最近说过的话不要重复。尽量控制在 {self.soul.max_line_chars} 个中文字符左右；如果一句话自然变长，会由气泡自动拆成连续窗口。\n"
+            f"{length_hint}\n"
+            f"{technique_hint}\n"
             f"{bubble_hint}\n"
-            f"{boredom_hint}\n"
-            f"请按这个 JSON schema 输出: {json.dumps(schema, ensure_ascii=False)}"
+            f"JSON schema: {json.dumps(schema, ensure_ascii=False)}"
         )
 
     def _line_library_system_prompt(self) -> str:
         runtime_brief = self.soul.runtime_brief()
+        wit_block = self._wit_coaching_block()
+        if self.soul.language.startswith("zh"):
+            return (
+                f"你在为桌宠 {self.soul.name} 生成一批可长期复用的短句。\n"
+                f"角色核心: {self.soul.persona_core}\n"
+                f"运行边界:\n{runtime_brief}\n"
+                f"{wit_block}"
+                "每句必须用上面七种技法之一。说完就停，不解释。\n"
+                "只生成可单独表演的一句话，不要依赖隐私内容，不要复述屏幕文字。\n"
+                "不要使用分类前缀。只输出 JSON 数组。"
+            )
         return (
-            f"你在为桌宠 {self.soul.name} 生成一批可长期复用的短句百科全书。\n"
-            f"角色核心: {self.soul.persona_core}\n"
-            f"运行边界:\n{runtime_brief}\n"
-            "只生成可单独表演的一句话，不要依赖具体隐私内容，不要复述屏幕文字。\n"
-            "保持夹夹味：乖巧、无害、轻微毒舌，只戳拖延/分心/假装准备等行为。\n"
-            "不要使用“冷笑话：”“冷知识：”等分类前缀。\n"
-            "只输出 JSON 数组，不要 Markdown，不要解释。"
+            f"You are generating reusable one-liners for {self.soul.name}.\n"
+            f"Core persona: {self.soul.persona_core}\n"
+            f"Boundaries:\n{runtime_brief}\n"
+            f"{wit_block}"
+            "Each line MUST use one of the seven techniques above. Stop after it lands.\n"
+            "Only standalone lines, no private content, no screen text.\n"
+            "No category prefixes. Output JSON array only."
         )
 
     def _line_library_user_prompt(self, target_count: int) -> str:
+        max_chars = self.soul.max_line_chars
+        is_zh = self.soul.language.startswith("zh")
+        line_desc = "一句短中文" if is_zh else "one short English line"
         schema = {
             "event": "manual|idle|bored|poke|ambient",
-            "line": "一句短中文",
+            "line": line_desc,
             "bubble": "speech|thought",
             "mood": "smirk|smug|thinking|innocent|suspicious|guilty|sleepy|startled|happy|proud",
             "action": ACTION_SCHEMA_VALUE,
             "performance": PERFORMANCE_SCHEMA_VALUE,
             "tags": ["procrastination"],
         }
+        if is_zh:
+            return (
+                f"生成 {target_count} 条候选短句，覆盖 manual、idle、bored、poke、ambient 五类。\n"
+                "manual: 泛用句。idle: 拖延/发呆观察。bored: 冷笑话/冷知识/一本正经胡说八道/土味情话。poke: 被戳反应。ambient: 环境高层观察。\n"
+                "bored 可加入 cheesy_love 标签，句子要乖巧故意土、让夹夹自己尴尬到打颤；mood 用 shy，performance 用 cheesy_love_cringe。\n"
+                "每句用七种技法之一（语义翻转/反话正说/可生还式轻描淡写/错位同情/温柔一刀/存在性荒诞/虚晃一枪），轮换使用。\n"
+                "好句: '你在进步。方向待定。' '没关系，deadline也在等。' '我想鼓励你。但找不到依据。'\n"
+                "坏句(禁止): '你像在做回避体操' '你停了一会儿。文件也开始懂事了。'\n"
+                f"每条最多 {max_chars} 个中文字符，避免重复句式。\n"
+                f"每项按这个 schema 输出: {json.dumps(schema, ensure_ascii=False)}"
+            )
         return (
-            f"生成 {target_count} 条候选短句，覆盖 manual、idle、bored、poke、ambient 五类。\n"
-            "manual: 用户主动点 Say something 时可说的泛用句。\n"
-            "idle: 用户空闲、卡住、反复切窗口时的观察。\n"
-            "bored: 冷笑话、冷知识、一本正经胡说八道，但不要写分类标题。\n"
-            "poke: 用户戳桌宠时的反应。\n"
-            "ambient: 根据环境标签做高层观察，比如 rapid_switching、blank_document、todo_visible、app_codex、app_editor、app_terminal、browser_research、deep_work。\n"
-            "每条最多 42 个中文字符左右，避免重复句式。\n"
-            f"每项按这个 schema 输出: {json.dumps(schema, ensure_ascii=False)}"
+            f"Generate {target_count} candidate lines across manual, idle, bored, poke, ambient.\n"
+            "manual: general. idle: procrastination observations. bored: cold jokes/facts/deadpan/corny love lines. poke: poke reactions. ambient: environment observations.\n"
+            "For cheesy_love bored entries, use tag cheesy_love, mood shy, performance cheesy_love_cringe.\n"
+            "Each line must use one technique: REFRAMING / UNDERSTATEMENT / SURVIVABLE UNDERSTATEMENT / FALSE SYMPATHY / SUPPORTIVE DEVASTATION / EXISTENTIAL ABSURDISM / MISDIRECT. Rotate.\n"
+            "Good: 'Making progress. Backwards counts.' 'I'd help, but I'm load-bearing. Emotionally.'\n"
+            "Bad (NEVER): 'Like avoidance gymnastics' 'You stopped. The file started being considerate.'\n"
+            f"Max {max_chars} chars per line, avoid repeating structures.\n"
+            f"Schema per item: {json.dumps(schema, ensure_ascii=False)}"
         )
 
     def _parse_line_entries(self, content: str) -> list[dict[str, object]]:
@@ -349,7 +491,7 @@ class OllamaBrain:
     def _clean_line(self, line: str) -> str:
         line = re.sub(r"\s+", " ", line).strip().strip('"')
         line = re.sub(
-            r"^(?:冷笑话|冷知识|一本正经(?:地)?胡说八道|胡说八道|小知识|碎碎念|想法|心理活动|cold_joke|cold_fact|deadpan_nonsense)\s*[:：]\s*",
+            r"^(?:冷笑话|冷知识|土味情话|一本正经(?:地)?胡说八道|胡说八道|小知识|碎碎念|想法|心理活动|cold_joke|cold_fact|deadpan_nonsense|cheesy_love)\s*[:：]\s*",
             "",
             line,
             flags=re.IGNORECASE,
@@ -383,3 +525,4 @@ def _context_tags(context: dict[str, object]) -> list[str]:
     if identity_level:
         tags.append(identity_level)
     return sorted(set(tags))
+

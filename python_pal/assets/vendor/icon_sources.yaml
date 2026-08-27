@@ -1,0 +1,83 @@
+schema_version: 1
+
+sources:
+  tabler_icons:
+    repo: https://github.com/tabler/tabler-icons
+    license: MIT
+    license_file: python_pal/assets/vendor/tabler-icons/LICENSE
+    selected_dir: python_pal/assets/vendor/tabler-icons/selected
+    style_notes:
+      - 24x24 outline icons
+      - 2px stroke
+      - strong enough for tiny desktop prop silhouettes
+  lucide:
+    repo: https://github.com/lucide-icons/lucide
+    license: ISC
+    license_file: python_pal/assets/vendor/lucide/LICENSE
+    selected_dir: python_pal/assets/vendor/lucide/selected
+    style_notes:
+      - 24x24 outline icons
+      - 2px stroke
+      - lighter and cleaner than Tabler for subtle props
+
+selected_icons:
+  task_auditor:
+    tabler:
+      - clipboard-check.svg
+      - list-check.svg
+    redraw_as:
+      - small audit clipboard
+      - checklist slip
+  agent_supervisor:
+    tabler:
+      - terminal.svg
+    lucide:
+      - terminal.svg
+    redraw_as:
+      - tiny terminal monitor
+      - status console badge
+  thermal_technician:
+    tabler:
+      - temperature.svg
+    lucide:
+      - thermometer.svg
+      - gauge.svg
+    redraw_as:
+      - flat side heat gauge
+      - tiny temperature tick
+  usage_accountant:
+    tabler:
+      - receipt.svg
+    lucide:
+      - receipt-text.svg
+      - badge-percent.svg
+    redraw_as:
+      - tiny receipt ledger
+      - percent badge
+  bug_coroner:
+    tabler:
+      - bug.svg
+    lucide:
+      - bug.svg
+      - search.svg
+    redraw_as:
+      - evidence tag bug mark
+      - magnifier badge
+  tab_warden:
+    tabler:
+      - browser.svg
+    lucide:
+      - panels-top-left.svg
+    redraw_as:
+      - stacked browser tabs
+
+runtime_policy:
+  direct_use: false
+  strategy: redraw_as_project_flat_vector
+  color_palette:
+    wire_gray: "#AEAEAE"
+    paper: "#F8F5EA"
+    ink: "#402A32"
+    accent_blue: "#4F7ECF"
+    warning_red: "#D65B4A"
+

@@ -29,8 +29,11 @@ bubble and a small character performance.
 - Transparent, always-on-top Windows desktop pet.
 - Drag to move, double-click to poke, right-click menu for actions and status.
 - Flat vector paperclip body with layered eyes, pupils, brows, and tail.
-- Procedural animation actions: blink, scan, wiggle, jump, flop, dance, twirl,
-  stretch, sleepy sag, smug sway, tail wag, and more.
+- Procedural animation actions: blink, scan, wiggle, jump, spin jump, flop,
+  dance, twirl, excited spin, stretch, sneeze, shiver, peekaboo, curious lean,
+  sleepy sag, smug sway, tail wag, and more.
+- Playful desktop movement: zoomies dashes, moonwalk slides, pounce leaps,
+  hop relocations, and corner retreats — all clamped to stay on screen.
 - Performance phrases such as `cold_arrow_then_innocent`,
   `suspicious_observe`, `fake_sulk`, and `tiny_celebrate`.
 - Speech and thought bubbles with Codex/Claude/OpenAI/hardware accent colors.
@@ -89,6 +92,9 @@ The character should stay simple:
 
 Most personality should come from timing, eye movement, brow movement,
 squash/stretch, pauses, and after-reactions.
+
+Animation production rules live in
+[`docs/ANIMATION_AUTHORING_GUIDE.md`](docs/ANIMATION_AUTHORING_GUIDE.md).
 
 The base SVG is:
 
@@ -198,16 +204,39 @@ The local chat context is intentionally compact: status summaries, hardware
 metrics, activity mode, app category, and recent pal lines. It should not
 include raw screen text, clipboard text, keystrokes, or full screenshots.
 
+## Action GIF Library
+
+Every action has a rendered GIF in
+[`docs/media/actions/`](docs/media/actions/README.md), useful for reviewing
+timing and for sharing individual moves. They are drawn from the same keyframe
+tables, easing curves, and pose math the live app uses, so they are not
+hand-animated approximations.
+
+Regenerate after adding, retiming, or removing any action:
+
+```powershell
+python scripts\generate_action_gifs.py
+```
+
+Verify the library is in sync without rewriting anything:
+
+```powershell
+python scripts\generate_action_gifs.py --check
+```
+
+`tests/test_action_gifs.py` runs that same check, so a keyframe edit without a
+re-render fails the test suite.
+
 ## Generate Demo GIFs
 
-The public GIFs in `docs/media/` are generated from the same flat character
-asset and `ACTION_FRAMES` definitions used by the app.
+The README hero and feature GIFs in `docs/media/` are generated from the same
+flat character asset and `ACTION_FRAMES` definitions used by the app.
 
 ```powershell
 python scripts\generate_demo_gifs.py
 ```
 
-The script requires Pillow:
+Both GIF scripts require Pillow:
 
 ```powershell
 python -m pip install pillow
@@ -224,12 +253,15 @@ python_pal/
   soul.yaml                personality and behavior rules
   assets/paperclip/        base flat vector character asset
   assets/decorations/      small accessory references
+  rig_pose.py              shared tail/inner-core pose math (runtime + renderer)
 scripts/
   set_codex_status.ps1     local Codex status bridge helper
   set_codex_usage.ps1      local Codex usage bridge helper
   generate_demo_gifs.py    reproducible public GIF generator
+  generate_action_gifs.py  per-action GIF library generator (--check to verify)
 docs/media/
   *.gif                    generated animation demos for README
+  actions/*.gif            one GIF per action, plus manifest.json and an index
 ```
 
 ## Local Runtime Files

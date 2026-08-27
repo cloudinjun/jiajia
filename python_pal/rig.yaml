@@ -1,0 +1,154 @@
+schema_version: 1
+
+# Normalized anchors for Paperclip Pal's current drawing canvas.
+# Values are expressed as [x, y] in the character's local 0..1 bounding space.
+# Runtime systems should attach props and secondary motion to these anchors
+# instead of guessing absolute canvas coordinates.
+
+rig:
+  body_root:
+    pivot: [0.50, 0.56]
+    role: stable whole-body reference
+
+  body_main:
+    parent: body_root
+    pivot: [0.50, 0.56]
+    role: main paperclip body without tail segment
+
+  body_contact:
+    parent: body_root
+    pivot: [0.50, 0.92]
+    role: lowest visual contact point
+
+  inner_root:
+    parent: body_root
+    pivot: [0.49, 0.43]
+    role: fixed start of the inner wire
+
+  inner_tip:
+    parent: inner_root
+    pivot: [0.50, 0.78]
+    role: expressive end of the inner wire
+
+  tail_root:
+    parent: body_root
+    pivot: [0.78, 0.72]
+    role: fixed start of the tail wire
+
+  tail_mid:
+    parent: tail_root
+    pivot: [0.88, 0.69]
+    role: secondary bend point for delayed tail motion
+
+  tail_tip:
+    parent: tail_root
+    pivot: [0.96, 0.74]
+    role: expressive end of the tail wire
+    # NOTE: the wire now continues past the classic silhouette via
+    # body.TAIL_TIP_EXTENSION, ending up-right of this anchor; the free tip
+    # also plays the pose ~130ms behind the root (body.TAIL_TIP_LAG_MS)
+    # for follow-through.
+
+  tail_grip:
+    parent: tail_tip
+    pivot: [0.94, 0.70]
+    role: prop pickup and carry point for costume animations
+
+  left_eye:
+    parent: body_root
+    pivot: [0.27, 0.34]
+    role: left eye center
+
+  right_eye:
+    parent: body_root
+    pivot: [0.63, 0.42]
+    role: right eye center
+
+  left_brow:
+    parent: body_root
+    pivot: [0.29, 0.18]
+    role: left brow pivot
+
+  right_brow:
+    parent: body_root
+    pivot: [0.64, 0.27]
+    role: right brow pivot
+
+  hat_anchor:
+    parent: body_root
+    pivot: [0.49, 0.17]
+    role: forehead and dome-top hat attachment
+
+  bow_tie_anchor:
+    parent: body_root
+    pivot: [0.50, 0.56]
+    role: neutral bow-tie attachment, below face and away from brows
+
+  cane_anchor:
+    parent: tail_root
+    pivot: [0.91, 0.70]
+    role: cane resting point beside the body
+
+  ground_anchor:
+    parent: body_contact
+    pivot: [0.50, 0.94]
+    role: ground tap and cane contact point
+
+  prop_spawn_anchor:
+    parent: tail_root
+    pivot: [0.98, 0.65]
+    role: off-body prop spawn point near the tail, not a visible socket
+
+  paper_prop_anchor:
+    parent: body_root
+    pivot: [0.18, 0.70]
+    role: draft-paper prop attachment
+
+  decoration_anchor:
+    parent: body_root
+    pivot: [0.83, 0.34]
+    role: role/status decoration attachment
+
+  bubble_anchor:
+    parent: body_root
+    pivot: [0.50, 0.02]
+    role: speech/thought bubble stem target
+
+motion_rules:
+  inner_wire:
+    root_must_remain_attached: true
+    primary_motion: self-covering sway
+    avoid:
+      - mouth open-close
+      - functional grasping
+      - outward pointing as the default gesture
+
+  tail_wire:
+    root_must_remain_attached: true
+    primary_motion: delayed emotional subtext
+    split_from_body_wire_required_for_svg_master: true
+    avoid:
+      - constant large wagging
+      - motion that competes with reading text
+
+  props:
+    must_follow_parent_anchor: true
+    keep_brows_readable: true
+    costume_layer: costume
+    avoid:
+      - floating above the body
+      - tiny details below desktop-pet readability
+      - independent screen-space drift
+
+costumes:
+  britclip:
+    language_mode: en
+    style: genderless British-inspired
+    layer_order: [base_character, costume, identity, state, temporary, effects]
+    persistent_until: next_costume_or_language_exit
+    anchors:
+      hat: hat_anchor
+      bow_tie: bow_tie_anchor
+      cane: cane_anchor
+      prop_spawn: prop_spawn_anchor
+      tail_grip: tail_grip

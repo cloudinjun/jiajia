@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import time
 
+from .claude_account_usage import ClaudeAccountUsageStatus
 from .claude_status import ClaudeOverview
 from .claude_usage import ClaudeUsageStatus
 from .codex_status import CodexStatus
@@ -38,6 +39,7 @@ class WorldState:
     codex_usage: CodexUsageStatus
     claude: ClaudeOverview
     claude_usage: ClaudeUsageStatus
+    claude_account_usage: ClaudeAccountUsageStatus
     openai_billing: OpenAIBillingStatus
     hardware: HardwareSnapshot
     pal: PalState
@@ -59,6 +61,7 @@ class WorldState:
         elif self.claude.total_alive:
             tags.add("claude_idle")
         tags.update(self.claude_usage.tags)
+        tags.update(self.claude_account_usage.tags)
         tags.update(self.openai_billing.tags)
         tags.update(self.hardware.tags)
         return sorted(tags)
@@ -74,6 +77,7 @@ class WorldState:
             **self.codex.as_dict(),
             **self.codex_usage.as_dict(),
             **self.claude_usage.as_dict(),
+            **self.claude_account_usage.as_dict(),
             **self.openai_billing.as_dict(),
             **self.hardware.as_dict(),
             "claude_total_alive": self.claude.total_alive,

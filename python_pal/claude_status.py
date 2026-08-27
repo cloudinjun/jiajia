@@ -47,7 +47,7 @@ class ClaudeSession:
     idle_seconds: float
 
     def label(self) -> str:
-        return "Claude"
+        return "Claude Desktop" if self.kind == "desktop" else "Claude"
 
     def activity_zh(self) -> str:
         return ACTIVITY_ZH.get(self.activity, self.activity)
@@ -84,6 +84,9 @@ class ClaudeStatusMonitor:
 
     def sample(self) -> ClaudeOverview:
         sessions = self._scan()
+        desktop = self._scan_desktop()
+        if desktop:
+            sessions.append(desktop)
         parts = [f"{s.pid}:{s.activity}" for s in sessions if s.alive]
         return ClaudeOverview(tuple(sessions), "|".join(parts))
 
@@ -96,6 +99,21 @@ class ClaudeStatusMonitor:
             if s:
                 results.append(s)
         return results
+
+    def _scan_desktop(self) -> ClaudeSession | None:
+        pid = _find_process("Claude.exe")
+        if not pid:
+            return None
+        return ClaudeSession(
+            pid=pid,
+            session_id="desktop",
+            project="Desktop",
+            kind="desktop",
+            entrypoint="desktop",
+            alive=True,
+            activity="running",
+            idle_seconds=0,
+        )
 
     def _read_one(self, path: Path) -> ClaudeSession | None:
         try:
@@ -116,7 +134,6 @@ class ClaudeStatusMonitor:
         project = _display_name(cwd)
         alive = _pid_alive(pid)
         if not alive:
-            # 进程已退出，清理残留的 session 文件
             try:
                 path.unlink(missing_ok=True)
             except OSError:
@@ -127,6 +144,50 @@ class ClaudeStatusMonitor:
         jsonl = self._projects_dir / slug / f"{sid}.jsonl"
         activity, idle = _check_activity(jsonl)
         return ClaudeSession(pid, sid, project, kind, entry, True, activity, idle)
+
+
+def _find_process(name: str) -> int:
+    try:
+        import ctypes
+        import ctypes.wintypes
+
+        TH32CS_SNAPPROCESS = 0x00000002
+
+        class PROCESSENTRY32(ctypes.Structure):
+            _fields_ = [
+                ("dwSize", ctypes.wintypes.DWORD),
+                ("cntUsage", ctypes.wintypes.DWORD),
+                ("th32ProcessID", ctypes.wintypes.DWORD),
+                ("th32DefaultHeapID", ctypes.POINTER(ctypes.c_ulong)),
+                ("th32ModuleID", ctypes.wintypes.DWORD),
+                ("cntThreads", ctypes.wintypes.DWORD),
+                ("th32ParentProcessID", ctypes.wintypes.DWORD),
+                ("pcPriClassBase", ctypes.c_long),
+                ("dwFlags", ctypes.wintypes.DWORD),
+                ("szExeFile", ctypes.c_char * 260),
+            ]
+
+        kernel32 = ctypes.windll.kernel32
+        snapshot = kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
+        if snapshot == -1:
+            return 0
+        try:
+            entry = PROCESSENTRY32()
+            entry.dwSize = ctypes.sizeof(PROCESSENTRY32)
+            if not kernel32.Process32First(snapshot, ctypes.byref(entry)):
+                return 0
+            target = name.lower().encode("utf-8", errors="replace")
+            while True:
+                exe = entry.szExeFile.split(b"\x00", 1)[0].lower()
+                if exe == target:
+                    return entry.th32ProcessID
+                if not kernel32.Process32Next(snapshot, ctypes.byref(entry)):
+                    break
+        finally:
+            kernel32.CloseHandle(snapshot)
+    except Exception:
+        pass
+    return 0
 
 
 def _pid_alive(pid: int) -> bool:
@@ -201,7 +262,6 @@ def _extract_activity(entry: dict[str, Any]) -> str:
     for block in content:
         if isinstance(block, dict) and block.get("type") == "tool_use":
             name = str(block.get("name", ""))
-            # MCP 工具名格式: mcp__server__tool
             base = name.split("__")[-1] if "__" in name else name
             return TOOL_ACTIVITY.get(name, TOOL_ACTIVITY.get(base, "thinking"))
     for block in content:

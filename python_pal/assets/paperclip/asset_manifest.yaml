@@ -1,5 +1,157 @@
 schema_version: 1
 
+reference_source_policy:
+  summary: >
+    Keep paperclip-pal-refined.svg as the authoritative body silhouette.
+    Generated image sets are references for expression cues, prop ideas, and
+    identity overlays, not replacements for the live character.
+  ranking:
+    primary_engineering_reference: gpt_pro_structured_assets
+    secondary_expression_reference: gpt_thinking_png_expression_boards
+    tertiary_idea_reference: gemini_concept_png_boards
+  public_repo_note: >
+    Treat generated sheets as personal design references unless their usage
+    status is reviewed before publication. Runtime visuals should be redrawn as
+    native flat vector code or small project-owned SVG snippets.
+
+reference_sources:
+  base_user_svg:
+    path: python_pal/assets/paperclip/paperclip-pal-refined.svg
+    role: authoritative_character_shape
+    use_for:
+      - body_wire_silhouette
+      - eye_size_and_spacing
+      - brow_color_and_weight
+      - no_mouth_identity
+    status: keep_as_source_of_truth
+  gpt_pro_emotions:
+    paths:
+      sheet_png: python_pal/assets/paperclip/ChatGPT paperclip_pal_36_emotions_assets/paperclip_pal_36_emotions_sheet.png
+      preview_png: python_pal/assets/paperclip/ChatGPT paperclip_pal_36_emotions_assets/paperclip_pal_36_emotions_preview.png
+      manifest_json: python_pal/assets/paperclip/ChatGPT paperclip_pal_36_emotions_assets/manifest.json
+      svg_dir: python_pal/assets/paperclip/ChatGPT paperclip_pal_36_emotions_assets/svg
+      png_dir: python_pal/assets/paperclip/ChatGPT paperclip_pal_36_emotions_assets/png
+    model_source: ChatGPT Pro
+    rank: 1
+    best_for:
+      - structured_expression_catalog
+      - eye_pose_reference
+      - brow_pose_reference
+      - small_symbol_effects
+      - procedural_animation_targets
+    avoid_direct_use:
+      - mouth_shapes
+      - overdecorated_face_marks
+      - any expression that weakens no_mouth_identity
+    implementation_strategy: translate_to_eye_brow_inner_tail_parameters
+  gpt_pro_professions:
+    paths:
+      overview_png: python_pal/assets/paperclip/ChatGPT paperclip_professions_36_package/paperclip_professions_36_overview.png
+      overview_svg: python_pal/assets/paperclip/ChatGPT paperclip_professions_36_package/paperclip_professions_36_overview.svg
+      manifest_json: python_pal/assets/paperclip/ChatGPT paperclip_professions_36_package/paperclip_professions_36/manifest.json
+      manifest_csv: python_pal/assets/paperclip/ChatGPT paperclip_professions_36_package/paperclip_professions_36/manifest.csv
+      svg_dir: python_pal/assets/paperclip/ChatGPT paperclip_professions_36_package/paperclip_professions_36/svg
+      png_dir: python_pal/assets/paperclip/ChatGPT paperclip_professions_36_package/paperclip_professions_36/png
+    model_source: ChatGPT Pro
+    rank: 1
+    best_for:
+      - identity_overlay_ideas
+      - prop_silhouette_reference
+      - hats_badges_tools_books_terminal_shapes
+      - manifest_driven_asset_selection
+    avoid_direct_use:
+      - full_outfits_that_cover_body
+      - hands_or_arm_like_props
+      - complex_costume_layers
+      - illustration_style_shadows
+    implementation_strategy: redraw_as_small_native_decorations
+  gpt_thinking_png_expression_boards:
+    paths:
+      - python_pal/assets/paperclip/ChatGPT Image Jun 12, 2026, 09_16_14 PM.png
+      - python_pal/assets/paperclip/ChatGPT Image Jun 12, 2026, 09_16_34 PM.png
+      - python_pal/assets/paperclip/ChatGPT Image Jun 12, 2026, 09_55_42 PM.png
+    model_source: ChatGPT thinking
+    rank: 2
+    best_for:
+      - character_attitude_calibration
+      - mischievous_brow_language
+      - side_eye_and_fake_innocent_reference
+      - body_tilt_reference
+    avoid_direct_use:
+      - runtime_png_import
+      - exact_pose_copying
+    implementation_strategy: use_as_expression_moodboard_only
+  gemini_emotion_board:
+    path: python_pal/assets/paperclip/Gemini_Generated_Image_3xblim3xblim3xbl.png
+    model_source: Gemini
+    rank: 3
+    best_for:
+      - eyelid_variants
+      - softer_emotion_labels
+      - alternate_brow_pose_checks
+    avoid_direct_use:
+      - primary_character_style
+      - overly_soft_personality_direction
+    implementation_strategy: tertiary_reference_only
+  gemini_profession_board:
+    path: python_pal/assets/paperclip/Gemini_Generated_Image_1k1t411k1t411k1t.png
+    model_source: Gemini
+    rank: 3
+    best_for:
+      - broad_prop_brainstorming
+      - occupation_concepts
+      - quick_readability_checks_for_props
+    avoid_direct_use:
+      - human_hand_logic
+      - illustration_shading
+      - external_tools_that_make_clip_too_complex
+      - full_costume_import
+    implementation_strategy: idea_pool_only
+
+reference_adoption_rules:
+  - preserve_current_body_silhouette
+  - preserve_no_mouth_identity
+  - preserve_no_hands_no_feet
+  - prefer_eye_brow_tail_inner_core_animation_over_extra_face_parts
+  - generated_assets_are_reference_not_runtime_default
+  - redraw_selected_props_in_project_flat_style
+  - use_structured_gpt_pro_manifests_for_selection
+  - use_gpt_thinking_pngs_for_attitude_not_assets
+  - use_gemini_boards_for_broad_ideas_not_style
+  - reject_assets_that_make_the_character_look_like_a_generic_mascot
+
+reference_extraction_shortlist:
+  expression_targets_from_gpt_pro:
+    - neutral
+    - suspicious
+    - skeptical
+    - guilty
+    - proud
+    - sleepy
+    - bored
+    - annoyed
+    - confused
+    - relieved
+  prop_targets_from_gpt_pro_professions:
+    agent_supervisor:
+      references: [programmer, engineer, reporter]
+      extract: [tiny_terminal, small_badge, clipboard_or_status_panel]
+    usage_accountant:
+      references: [banker, librarian, teacher]
+      extract: [ledger, small_book, tiny_bar_chart]
+    thermal_technician:
+      references: [scientist, firefighter, mechanic]
+      extract: [thermometer, heat_mark, warning_tool]
+    critic_clip:
+      references: [designer, painter, teacher]
+      extract: [red_pen, annotation_circle, palette_dot]
+    sleepy_clip:
+      references: [bored, tired, sleepy]
+      extract: [z_mark, droopy_eyelids, soft_brow]
+    britclip:
+      references: [dry_british_courtesy, old_club_attendant, understated_formality]
+      extract: [charcoal_hat, wine_bow_tie, cane, restrained_side_eye]
+
 style_rules:
   rendering: pure_flat_vector
   colors:

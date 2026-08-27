@@ -22,6 +22,7 @@ READ_ONLY_COMMANDS = {
     "status_claude",
     "status_hardware",
     "status_usage",
+    "status_claude_account",
 }
 
 
@@ -107,7 +108,7 @@ class PalChatBrain:
             "你正在和用户短聊，不是通用客服，也不替用户操作电脑。\n"
             "回答要短，通常 1-3 句。可以乖巧、无害、轻微毒舌，但只戳行为，不评价人格。\n"
             "如果用户表达累、焦虑、难过、不舒服、崩溃，进入 comfort mode：不毒舌，短句，降低存在感。\n"
-            "你可以引用给定的低隐私桌面状态：Codex、Claude、硬件、Codex usage、Claude usage、OpenAI API billing、活跃度、最近自己说过的话。\n"
+            "你可以引用给定的低隐私桌面状态：Codex、Claude、硬件、Codex usage、Claude usage、Claude 账号额度、OpenAI API billing、活跃度、最近自己说过的话。\n"
             "不要声称看到了上下文里没有的数据。状态未知就直接说未知，带一点夹夹味。\n"
             "输出 JSON，不要 Markdown，不要解释。"
         )
@@ -220,6 +221,7 @@ def build_chat_context(
     hardware = world.hardware
     claude = world.claude
     claude_usage = world.claude_usage
+    claude_account = world.claude_account_usage
     openai_billing = world.openai_billing
     return {
         "activity": {
@@ -264,6 +266,14 @@ def build_chat_context(
             "recent_5h_requests": claude_usage.recent_5h.requests,
             "recent_5h_total_tokens": claude_usage.recent_5h.total_tokens,
             "recent_models": list(claude_usage.recent_5h.models),
+        },
+        "claude_account": {
+            "level": claude_account.level,
+            "remaining_percent": _round_or_none(claude_account.usage_remaining_percent),
+            "reset_in_label": _claude_account_reset_label(claude_account.as_dict()),
+            "summary": claude_account.summary_line,
+            "plan": claude_account.plan,
+            "stale": claude_account.stale,
         },
         "openai_billing": {
             "level": openai_billing.level,
@@ -316,6 +326,8 @@ def detect_chat_command(message: str) -> str:
     if _has_any(compact, ("闭嘴", "别说话", "安静半小时", "quiet30", "shutup", "shush")):
         return "quiet_30m"
 
+    if "claude" in compact and _has_any(compact, ("账号", "account", "订阅", "subscription", "配额", "消息", "remaining", "剩余", "还能用")):
+        return "status_claude_account"
     if "claude" in compact and _has_any(compact, ("usage", "用量", "额度", "token", "tokens", "账单", "账本", "今天用了多少", "花了多少")):
         return "status_claude_usage"
     if _has_any(compact, ("openaiapi余额", "openai余额", "api余额", "api账单", "api花费", "api费用", "openaibilling", "openai账单", "openai花费", "openai费用", "billing")):
@@ -356,6 +368,8 @@ def local_status_reaction(command: str, context: dict[str, object]) -> Reaction 
         return _claude_status_reaction(context)
     if command == "status_claude_usage":
         return _claude_usage_status_reaction(context)
+    if command == "status_claude_account":
+        return _claude_account_status_reaction(context)
     if command == "status_openai_billing":
         return _openai_billing_status_reaction(context)
     if command == "status_hardware":
@@ -440,6 +454,40 @@ def _claude_usage_status_reaction(context: dict[str, object]) -> Reaction:
     return Reaction(True, line, mood, "scan", "claude_speech", performance, event="chat_claude_usage")
 
 
+def _claude_account_status_reaction(context: dict[str, object]) -> Reaction:
+    account = _dict(context.get("claude_account"))
+    level = str(account.get("level") or "unavailable")
+    percent = account.get("remaining_percent")
+    reset = str(account.get("reset_in_label") or "").strip()
+    summary = str(account.get("summary") or "").strip()
+    plan = str(account.get("plan") or "").strip()
+    if level == "unavailable":
+        return Reaction(
+            True,
+            summary or "还没有 Claude 账号 usage 数据。需要先用脚本写入 claude_account_status.json。",
+            "sleepy",
+            "blink",
+            "usage_speech",
+            "fake_sulk",
+            event="chat_claude_account_status",
+        )
+    percent_text = "未知" if percent is None else f"{float(percent):.0f}%"
+    reset_text = f"，{reset} 后回血" if reset and reset != "现在" else ""
+    plan_text = f"（{plan}）" if plan else ""
+    line = f"Claude 账号{plan_text}还剩 {percent_text}{reset_text}。"
+    if level in {"low", "critical"}:
+        line += " 长对话先缓缓，等额度回来。"
+    elif level == "watch":
+        line += " 不急，但别开太多重对话。"
+    elif level == "reset_soon":
+        line += " 饭点快到了，再忍忍。"
+    else:
+        line += " 额度充裕，想聊就聊。"
+    mood = "sulky" if level in {"low", "critical"} else "thinking"
+    performance = "usage_low_sag" if level in {"low", "critical"} else "quiet_companion"
+    return Reaction(True, line, mood, "thinking_tilt", "usage_speech", performance, event="chat_claude_account_status")
+
+
 def _openai_billing_status_reaction(context: dict[str, object]) -> Reaction:
     billing = _dict(context.get("openai_billing"))
     level = str(billing.get("level") or "unavailable")
@@ -517,6 +565,7 @@ def _overview_reaction(context: dict[str, object]) -> Reaction:
     usage = _dict(context.get("codex_usage"))
     claude = _dict(context.get("claude"))
     claude_usage = _dict(context.get("claude_usage"))
+    claude_account = _dict(context.get("claude_account"))
     openai_billing = _dict(context.get("openai_billing"))
     parts = [
         f"活跃度 {activity.get('mode') or '未知'}",
@@ -525,6 +574,7 @@ def _overview_reaction(context: dict[str, object]) -> Reaction:
         f"硬件 {hardware.get('level') or 'unknown'}",
         f"Codex usage {usage.get('level') or 'unknown'}",
         f"Claude usage {claude_usage.get('level') or 'unknown'}",
+        f"Claude 账号 {claude_account.get('level') or 'unknown'}",
         f"OpenAI billing {openai_billing.get('level') or 'unknown'}",
     ]
     return Reaction(
@@ -619,3 +669,7 @@ def _round_or_none(value: float | None) -> float | None:
 
 def _usage_reset_label(data: dict[str, object]) -> str:
     return str(data.get("codex_usage_reset_in_label") or "")
+
+
+def _claude_account_reset_label(data: dict[str, object]) -> str:
+    return str(data.get("claude_account_reset_in_label") or "")

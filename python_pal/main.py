@@ -5,6 +5,8 @@ from pathlib import Path
 
 from .body import PaperclipPalApp
 from .brain_ollama import OllamaBrain
+from .chat_language import install_chat_language_support
+from .language import load_language_setting, soul_path_for_language
 from .soul import load_soul
 
 
@@ -15,12 +17,15 @@ def main() -> None:
     args = parser.parse_args()
     package_root = Path(__file__).resolve().parent
     project_root = package_root.parent
-    soul = load_soul(package_root / "soul.yaml")
+    language = load_language_setting(project_root)
+    soul = load_soul(soul_path_for_language(package_root, language))
+    soul.language = language
     if args.self_test:
         brain = OllamaBrain(soul, project_root=project_root)
         reaction = brain.react("self-test", {"active_window_title": "Codex", "idle_seconds": 0})
         print(f"{soul.name}: {reaction.line}")
         return
+    install_chat_language_support(PaperclipPalApp)
     app = PaperclipPalApp(soul, project_root)
     if args.demo:
         app.root.after(1000, app._run_scripted_demo)

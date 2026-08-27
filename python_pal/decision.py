@@ -21,6 +21,9 @@ INTERESTING_AMBIENT_TAGS = {
     "app_file_manager",
     "codex_waiting_user",
     "claude_active",
+    "morning",
+    "late_night",
+    "weekend",
 }
 
 HIGH_SIGNAL_TAGS = {
@@ -34,6 +37,7 @@ HIGH_SIGNAL_TAGS = {
 QUIET_TAGS = {
     "long_focus",
     "deep_work",
+    "late_night",
 }
 
 PRIVACY_TAGS = {

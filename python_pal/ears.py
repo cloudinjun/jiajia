@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import ctypes
 from ctypes import wintypes
+from datetime import datetime
 from pathlib import Path
 import time
 
@@ -213,6 +214,26 @@ def _activity_level(idle_seconds: float) -> str:
     return "active"
 
 
+def _time_tags() -> list[str]:
+    now = datetime.now()
+    hour = now.hour
+    tags: list[str] = []
+    if 6 <= hour <= 11:
+        tags.append("morning")
+    elif 12 <= hour <= 17:
+        tags.append("afternoon")
+    elif 18 <= hour <= 22:
+        tags.append("evening")
+    else:
+        tags.append("late_night")
+    weekday = now.weekday()
+    if weekday >= 5:
+        tags.append("weekend")
+    if weekday == 0:
+        tags.append("monday")
+    return tags
+
+
 def _behavior_tags(
     category: str,
     process: str,
@@ -224,6 +245,7 @@ def _behavior_tags(
     is_fullscreen: bool,
 ) -> list[str]:
     tags = {f"app_{category}", activity}
+    tags.update(_time_tags())
     text = f"{process} {title}".lower()
     if switches_per_minute >= 8:
         tags.add("rapid_switching")

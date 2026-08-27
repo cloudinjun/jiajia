@@ -1,0 +1,195 @@
+schema_version: 1
+
+id: britclip
+display_name: Britclip / 英伦夹
+style_role: genderless British-inspired formality
+purpose: Enter a persistent English-language costume with restrained British dry humor.
+
+trigger_policy:
+  enter:
+    - explicit_language_mode_en
+    - explicit_command_switch_to_english
+  exit:
+    - explicit_language_mode_zh
+    - explicit_command_switch_to_chinese
+    - next_costume_transition
+  avoid_auto_trigger_from_single_english_word: true
+
+lifecycle:
+  type: persistent_costume
+  enter_animation: britclip_enter
+  exit_animation: britclip_exit
+  persists_until_next_costume: true
+  independent_from_identity: true
+
+assets:
+  source_svg: britclip-rigged.svg
+  preview_png: generated_at_build_time
+  fallback: procedural_costume_overlay
+
+style:
+  rendering: pure_flat_vector
+  body_wire: "#AEAEAE"
+  pupil_and_brow: "#402A32"
+  hat: "#30353B"
+  hat_band: "#6E2638"
+  bow_tie: "#7A263B"
+  cane: "#5A3828"
+  cane_tip: "#B08A43"
+  cane_shape: short_crook_handle_walking_cane
+  constraints:
+    - genderless
+    - no_mouth
+    - no_hands
+    - no_feet
+    - no_monocle
+    - no_moustache
+    - no_beard
+    - no_flag_motif
+    - no_masculine_suit_body
+    - no_gendered_human_role
+    - no_staff
+    - no_wand
+    - no_sceptre
+    - no_pointer
+    - no_gradients
+    - no_highlights
+    - no_shadows
+    - no_opacity_effects
+    - solid_flat_fills_only
+    - keep_main_paperclip_silhouette
+    - tail_must_render_above_cane
+    - tail_uses_same_stroke_width_color_and_round_cap_as_body_wire
+    - tail_end_is_natural_stroke_cap
+    - no_separate_tail_tip_shape
+    - no_paw_mitten_fist_or_added_hand_shape
+    - tail_simulates_support_by_curve_contact_and_overlap_only
+    - cane_handle_must_read_as_crook_not_arrow
+    - cane_top_must_meet_tail_tip_underside
+    - cane_bottom_must_match_body_visual_bottom
+
+render_order:
+  - body_root
+  - costume_back
+  - tail_root
+  - costume_front
+  - optional_identity_prop
+  - state_mark
+  - performance_accent
+  - bubble
+
+layers:
+  body_root:
+    children: [body_wire, left_eye_white, right_eye_white, left_pupil, right_pupil, left_brow, right_brow]
+  costume_back:
+    children: [cane]
+  tail_root:
+    children: [tail_wire]
+    z_rule: foreground_over_cane
+    semantic_rule: same_wire_construction_as_body
+  costume_front:
+    children: [top_hat, bow_tie]
+  top_hat:
+    children: [hat_crown, hat_band, hat_brim]
+  bow_tie:
+    children: [bow_left, bow_right, bow_knot]
+  cane:
+    children: [cane_body, cane_tip]
+
+anchors:
+  body_anchor: [158, 286]
+  tail_root_anchor: [257.5, 322.226]
+  tail_tip_anchor: [340, 266]
+  tail_support_anchor: [340, 281]
+  tail_tip_bottom_anchor: [340, 281]
+  prop_spawn_anchor: [286, 320]
+  hat_anchor: [160, 22]
+  bow_tie_anchor: [158, 254]
+  cane_anchor: [340, 296]
+  cane_contact_anchor: [340, 281]
+  body_visual_bottom_anchor: [180, 560]
+  cane_bottom_anchor: [333, 560]
+  ground_anchor: [180, 560]
+
+enter_storyboard:
+  duration_ms: 3100
+  lifecycle: transition_to_state
+  target_costume: britclip
+  beats:
+    - id: notice_language_change
+      start_ms: 0
+      duration_ms: 300
+      action: eyes_follow_tail_then_body_straightens
+    - id: retrieve_hat
+      start_ms: 300
+      duration_ms: 750
+      action: tail_reaches_prop_spawn_hat_unfolds_and_is_placed
+    - id: retrieve_bow_tie
+      start_ms: 1050
+      duration_ms: 700
+      action: tail_retrieves_folded_ribbon_flicks_open_and_fastens
+    - id: retrieve_cane
+      start_ms: 1750
+      duration_ms: 800
+      action: tail_retrieves_folded_cane_cane_extends_and_tail_end_settles_over_handle
+    - id: settle_pose
+      start_ms: 2550
+      duration_ms: 550
+      action: straighten_tip_hat_cane_tap_polite_bow_hold
+
+exit_storyboard:
+  duration_ms: 2400
+  lifecycle: transition_to_state
+  source_costume: britclip
+  target_costume: none
+  beats:
+    - id: lift_cane
+      start_ms: 0
+      duration_ms: 500
+    - id: collapse_cane
+      start_ms: 500
+      duration_ms: 400
+    - id: remove_bow_tie
+      start_ms: 900
+      duration_ms: 500
+    - id: remove_hat_and_bow
+      start_ms: 1400
+      duration_ms: 600
+    - id: restore_base_pose
+      start_ms: 2000
+      duration_ms: 400
+
+costume_idle:
+  pose: britclip_cane_support
+  expression:
+    eyes: restrained_side_eye
+    brows: proud_soft
+  secondary_motion:
+    hat_settle: very_low
+    bow_tie_breathe: low
+    cane_tap_chance: rare
+    tail_end_flex: subtle
+
+costume_action_map:
+  idle_breathe: courtesy_idle
+  blink: dignified_blink
+  thinking_tilt: courtesy_consider
+  happy_bounce: restrained_celebrate
+  tail_wag: cane_tap
+  roast_and_scoot: tip_hat_and_scoot
+
+validation:
+  - costume_remains_visible_after_enter_animation
+  - costume_survives_identity_switches
+  - tail_wire_matches_body_wire_stroke_style
+  - tail_end_is_only_the_round_cap_of_tail_wire
+  - no_separate_tail_tip_geometry
+  - no_added_hand_like_shape
+  - tail_renders_above_cane_at_handle_intersection
+  - cane_top_meets_tail_tip_underside
+  - cane_reads_as_walking_cane_not_staff_or_wand
+  - cane_bottom_matches_body_visual_bottom
+  - hat_and_bow_tie_follow_body_transform
+  - no_highlight_or_shadow_layers
+  - no_canvas_clipping_at_1x
+  - readable_without_text_at_1x

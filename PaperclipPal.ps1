@@ -30,6 +30,7 @@ $xaml = @'
       <Canvas.RenderTransform>
         <TransformGroup>
           <RotateTransform x:Name="BodyTilt" Angle="0"/>
+          <RotateTransform x:Name="NodTilt" Angle="0"/>
           <TranslateTransform x:Name="BodyShift" X="0" Y="0"/>
       </TransformGroup>
     </Canvas.RenderTransform>
@@ -66,22 +67,22 @@ $xaml = @'
               Data="M 181 201 C 190 181 201 164 211 157"/>
       </Canvas>
 
-      <Ellipse x:Name="LeftEye" Canvas.Left="58" Canvas.Top="98" Width="58" Height="57" Fill="{StaticResource EyeBrush}" RenderTransformOrigin="0.5,0.5">
+      <Ellipse x:Name="LeftEye" Canvas.Left="58" Canvas.Top="98" Width="58" Height="57" Fill="{StaticResource EyeBrush}" RenderTransformOrigin="0.5,0.78">
         <Ellipse.RenderTransform>
           <ScaleTransform x:Name="LeftBlink" ScaleX="1" ScaleY="1"/>
         </Ellipse.RenderTransform>
       </Ellipse>
-      <Ellipse x:Name="RightEye" Canvas.Left="119" Canvas.Top="110" Width="58" Height="57" Fill="{StaticResource EyeBrush}" RenderTransformOrigin="0.5,0.5">
+      <Ellipse x:Name="RightEye" Canvas.Left="119" Canvas.Top="110" Width="58" Height="57" Fill="{StaticResource EyeBrush}" RenderTransformOrigin="0.5,0.78">
         <Ellipse.RenderTransform>
           <ScaleTransform x:Name="RightBlink" ScaleX="1" ScaleY="1"/>
         </Ellipse.RenderTransform>
       </Ellipse>
-      <Ellipse x:Name="LeftPupil" Canvas.Left="77" Canvas.Top="115" Width="31" Height="31" Fill="#3A2734" RenderTransformOrigin="0.5,0.5">
+      <Ellipse x:Name="LeftPupil" Canvas.Left="77" Canvas.Top="115" Width="31" Height="31" Fill="#3A2734" RenderTransformOrigin="0.5,0.9">
         <Ellipse.RenderTransform>
           <ScaleTransform x:Name="LeftPupilBlink" ScaleX="1" ScaleY="1"/>
         </Ellipse.RenderTransform>
       </Ellipse>
-      <Ellipse x:Name="RightPupil" Canvas.Left="139" Canvas.Top="128" Width="31" Height="31" Fill="#3A2734" RenderTransformOrigin="0.5,0.5">
+      <Ellipse x:Name="RightPupil" Canvas.Left="139" Canvas.Top="128" Width="31" Height="31" Fill="#3A2734" RenderTransformOrigin="0.5,0.9">
         <Ellipse.RenderTransform>
           <ScaleTransform x:Name="RightPupilBlink" ScaleX="1" ScaleY="1"/>
         </Ellipse.RenderTransform>
@@ -112,6 +113,7 @@ $bubbleText = $window.FindName('BubbleText')
 $idleBob = $window.FindName('IdleBob')
 $bounceScale = $window.FindName('BounceScale')
 $bodyTilt = $window.FindName('BodyTilt')
+$nodTilt = $window.FindName('NodTilt')
 $bodyShift = $window.FindName('BodyShift')
 $wireTilt = $window.FindName('WireTilt')
 $wireShift = $window.FindName('WireShift')
@@ -147,44 +149,89 @@ function Show-Bubble([string]$text, [int]$milliseconds = 2600) {
   $timer.Start()
 }
 
-function Start-Wiggle {
-  $anim = New-Object Windows.Media.Animation.DoubleAnimation
-  $anim.From = 1.0
-  $anim.To = 1.08
-  $anim.Duration = [TimeSpan]::FromMilliseconds(130)
-  $anim.AutoReverse = $true
-  $anim.RepeatBehavior = New-Object Windows.Media.Animation.RepeatBehavior 2
-  $bounceScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $anim)
-  $bounceScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $anim.Clone())
+# --- animation helpers ------------------------------------------------------
+# Keyframe animation from a list of hashtables: @{ v = value; t = ms; s = KeySpline }
+# First frame (t=0) should omit 's' (discrete start). FillBehavior.Stop means the
+# property snaps back to its base value at the end, so animations never lock out
+# the idle timer's manual writes (the old HoldEnd bug).
+function New-Spline([double]$x1, [double]$y1, [double]$x2, [double]$y2) {
+  New-Object Windows.Media.Animation.KeySpline $x1, $y1, $x2, $y2
 }
 
-function Start-Blink {
-  $blink = New-Object Windows.Media.Animation.DoubleAnimationUsingKeyFrames
-  $blink.KeyFrames.Add((New-Object Windows.Media.Animation.DiscreteDoubleKeyFrame 1.0, ([System.Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds(0)))))
-  $blink.KeyFrames.Add((New-Object Windows.Media.Animation.SplineDoubleKeyFrame 0.08, ([System.Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds(70)))))
-  $blink.KeyFrames.Add((New-Object Windows.Media.Animation.SplineDoubleKeyFrame 1.0, ([System.Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds(155)))))
+$script:easeOut = New-Spline 0.0 0.0 0.25 1.0
+$script:easeIn = New-Spline 0.45 0.0 1.0 1.0
+$script:easeInOut = New-Spline 0.4 0.0 0.25 1.0
+
+function New-KeyAnim($frames) {
+  $anim = New-Object Windows.Media.Animation.DoubleAnimationUsingKeyFrames
+  $anim.FillBehavior = [Windows.Media.Animation.FillBehavior]::Stop
+  foreach ($f in $frames) {
+    $keyTime = [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds($f.t))
+    if ($f.ContainsKey('s')) {
+      $frame = New-Object Windows.Media.Animation.SplineDoubleKeyFrame $f.v, $keyTime
+      $frame.KeySpline = $f.s
+    } else {
+      $frame = New-Object Windows.Media.Animation.DiscreteDoubleKeyFrame $f.v, $keyTime
+    }
+    [void]$anim.KeyFrames.Add($frame)
+  }
+  $anim
+}
+
+# Squash & stretch with (approximate) volume conservation: scaleX ~ 1/scaleY.
+function Start-Wiggle {
+  $squashY = New-KeyAnim @(
+    @{ v = 1.0;   t = 0 },
+    @{ v = 0.90;  t = 90;  s = $script:easeOut },
+    @{ v = 1.07;  t = 210; s = $script:easeInOut },
+    @{ v = 0.965; t = 330; s = $script:easeInOut },
+    @{ v = 1.0;   t = 470; s = $script:easeOut }
+  )
+  $squashX = New-KeyAnim @(
+    @{ v = 1.0;   t = 0 },
+    @{ v = 1.10;  t = 90;  s = $script:easeOut },
+    @{ v = 0.94;  t = 210; s = $script:easeInOut },
+    @{ v = 1.035; t = 330; s = $script:easeInOut },
+    @{ v = 1.0;   t = 470; s = $script:easeOut }
+  )
+  $bounceScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $squashY)
+  $bounceScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $squashX)
+}
+
+# Asymmetric blink: fast close (~70ms), slow open (~170ms). Eyes scale toward a
+# low origin so the closure reads as an eyelid dropping, not the eye imploding.
+function Start-Blink([bool]$double = $false) {
+  $frames = @(
+    @{ v = 1.0;  t = 0 },
+    @{ v = 0.06; t = 70;  s = $script:easeIn },
+    @{ v = 1.0;  t = 240; s = $script:easeOut }
+  )
+  if ($double) {
+    $frames += @(
+      @{ v = 0.06; t = 330; s = $script:easeIn },
+      @{ v = 1.0;  t = 520; s = $script:easeOut }
+    )
+  }
+  $blink = New-KeyAnim $frames
   $leftBlink.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $blink)
   $rightBlink.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $blink.Clone())
   $leftPupilBlink.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $blink.Clone())
   $rightPupilBlink.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $blink.Clone())
 }
 
+# Nod with anticipation -> action -> overshoot -> settle. Runs on its own
+# NodTilt transform so it never fights the idle timer's BodyTilt writes.
+# The wire is NOT animated here: it follows via the spring in the idle tick.
 function Start-Nod {
-  $tilt = New-Object Windows.Media.Animation.DoubleAnimation
-  $tilt.From = -2.2
-  $tilt.To = 2.4
-  $tilt.Duration = [TimeSpan]::FromMilliseconds(210)
-  $tilt.AutoReverse = $true
-  $tilt.RepeatBehavior = New-Object Windows.Media.Animation.RepeatBehavior 2
-  $bodyTilt.BeginAnimation([Windows.Media.RotateTransform]::AngleProperty, $tilt)
-
-  $wire = New-Object Windows.Media.Animation.DoubleAnimation
-  $wire.From = 1.6
-  $wire.To = -1.8
-  $wire.Duration = [TimeSpan]::FromMilliseconds(260)
-  $wire.AutoReverse = $true
-  $wire.RepeatBehavior = New-Object Windows.Media.Animation.RepeatBehavior 2
-  $wireTilt.BeginAnimation([Windows.Media.RotateTransform]::AngleProperty, $wire)
+  $nod = New-KeyAnim @(
+    @{ v = 0.0;  t = 0 },
+    @{ v = -2.5; t = 90;  s = $script:easeOut },
+    @{ v = 5.5;  t = 230; s = $script:easeInOut },
+    @{ v = -1.5; t = 380; s = $script:easeInOut },
+    @{ v = 0.6;  t = 520; s = $script:easeInOut },
+    @{ v = 0.0;  t = 650; s = $script:easeOut }
+  )
+  $nodTilt.BeginAnimation([Windows.Media.RotateTransform]::AngleProperty, $nod)
 }
 
 $root.Add_MouseLeftButtonDown({
@@ -213,6 +260,9 @@ $lookX = 0.0
 $lookY = 0.0
 $targetLookX = 1.2
 $targetLookY = 0.8
+$lookSpeed = 0.13     # saccade: spikes on retarget, decays to slow settle
+$wireAngle = 0.0      # wire follow-through spring state
+$wireVel = 0.0
 $tickCount = 0
 $random = New-Object System.Random
 $idle = New-Object Windows.Threading.DispatcherTimer
@@ -224,26 +274,38 @@ $idle.Add_Tick({
   if (($script:tickCount % 42) -eq 0) {
     $script:targetLookX = $script:random.NextDouble() * 10.0 - 5.0
     $script:targetLookY = $script:random.NextDouble() * 5.0 - 2.0
+    $script:lookSpeed = 0.55
+    if ($script:random.NextDouble() -lt 0.2) { Start-Blink }
   }
 
   if (($script:tickCount % 95) -eq 0 -and $script:random.NextDouble() -lt 0.72) {
-    Start-Blink
+    Start-Blink ($script:random.NextDouble() -lt 0.25)
   }
 
   if (($script:tickCount % 180) -eq 0 -and $script:random.NextDouble() -lt 0.55) {
     Start-Nod
   }
 
-  $script:lookX += ($script:targetLookX - $script:lookX) * 0.13
-  $script:lookY += ($script:targetLookY - $script:lookY) * 0.13
+  # Saccade: dart quickly to the new target, then settle.
+  $script:lookSpeed += (0.10 - $script:lookSpeed) * 0.18
+  $script:lookX += ($script:targetLookX - $script:lookX) * $script:lookSpeed
+  $script:lookY += ($script:targetLookY - $script:lookY) * $script:lookSpeed
 
   $idleBob.Y = [Math]::Sin($script:phase) * 3.0
   $bodyShift.X = [Math]::Sin($script:phase * 0.45) * 1.2
   $bodyShift.Y = [Math]::Sin($script:phase * 0.7) * 1.0
   $bodyTilt.Angle = [Math]::Sin($script:phase * 0.33) * 1.5
-  $wireShift.X = [Math]::Sin($script:phase * 0.54 + 1.8) * 1.2
-  $wireShift.Y = [Math]::Sin($script:phase * 0.62 + 0.4) * 0.9
-  $wireTilt.Angle = [Math]::Sin($script:phase * 0.38 + 0.8) * 1.9
+
+  # Wire follow-through: a spring chasing the body's total angle (idle + nod),
+  # so the tail lags behind, overshoots, and keeps swinging after the body stops.
+  $drive = ($bodyTilt.Angle + $nodTilt.Angle) * 1.6
+  $script:wireVel += ($drive - $script:wireAngle) * 0.18 - $script:wireVel * 0.25
+  $script:wireAngle += $script:wireVel
+  $wireTilt.Angle = $script:wireAngle
+
+  # Wire drift shares the body's frequencies with a phase lag (led, not parallel).
+  $wireShift.X = [Math]::Sin($script:phase * 0.45 - 0.9) * 1.2
+  $wireShift.Y = [Math]::Sin($script:phase * 0.7 - 0.9) * 0.9
 
   $leftPupil.SetValue([System.Windows.Controls.Canvas]::LeftProperty, 77.0 + $script:lookX)
   $leftPupil.SetValue([System.Windows.Controls.Canvas]::TopProperty, 115.0 + $script:lookY)

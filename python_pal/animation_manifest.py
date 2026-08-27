@@ -22,6 +22,12 @@ class AnimationStep:
 class PerformanceDefinition:
     name: str
     kind: str = "procedural"
+    lifecycle: str = "oneshot_return"
+    source_state: str = ""
+    target_state: str = ""
+    source_costume: str = ""
+    target_costume: str = ""
+    minimum_ms: int = 0
     fallback_action: str = "idle"
     locks_cursor_follow: bool = False
     sequence: tuple[AnimationStep, ...] = ()
@@ -33,6 +39,19 @@ class LogicalState:
     performance: str = ""
     fallback_action: str = "idle"
     meaning: str = ""
+    lifecycle: str = ""
+    minimum_ms: int = 0
+    priority: int = 0
+    interruptible: bool = True
+
+
+@dataclass(frozen=True)
+class AgentStateVisual:
+    name: str
+    animation: str = ""
+    minimum_ms: int = 0
+    priority: int = 0
+    interruptible: bool = True
 
 
 @dataclass(frozen=True)
@@ -59,6 +78,7 @@ class AnimationManifest:
     states: dict[str, LogicalState] = field(default_factory=dict)
     rules: tuple[StateRule, ...] = ()
     performances: dict[str, PerformanceDefinition] = field(default_factory=dict)
+    agent_visuals: dict[str, AgentStateVisual] = field(default_factory=dict)
 
     def state_for_reaction(self, mood: str, action: str, bubble: str) -> str:
         mood = _key(mood)
@@ -80,6 +100,9 @@ class AnimationManifest:
     def performance(self, name: str) -> PerformanceDefinition | None:
         return self.performances.get(_key(name))
 
+    def agent_visual(self, name: str) -> AgentStateVisual | None:
+        return self.agent_visuals.get(_key(name))
+
 
 def load_animation_manifest(path: Path) -> AnimationManifest:
     data = _load_yaml(path) if path.exists() else {}
@@ -89,6 +112,10 @@ def load_animation_manifest(path: Path) -> AnimationManifest:
             performance=_key(_dict(raw).get("performance")),
             fallback_action=_key(_dict(raw).get("fallback_action")) or "idle",
             meaning=str(_dict(raw).get("meaning") or ""),
+            lifecycle=_key(_dict(raw).get("lifecycle")),
+            minimum_ms=_int(_dict(raw).get("minimum_ms"), 0),
+            priority=_int(_dict(raw).get("priority"), 0),
+            interruptible=bool(_dict(raw).get("interruptible", True)),
         )
         for name, raw in _dict(data.get("logical_states")).items()
     }
@@ -97,7 +124,16 @@ def load_animation_manifest(path: Path) -> AnimationManifest:
         _key(name): _parse_performance(_key(name), raw)
         for name, raw in _dict(data.get("performance_phrases")).items()
     }
-    return AnimationManifest(states=states, rules=rules, performances=performances)
+    agent_visuals = {
+        _key(name): _parse_agent_visual(_key(name), raw)
+        for name, raw in _dict(data.get("agent_state_visuals")).items()
+    }
+    return AnimationManifest(
+        states=states,
+        rules=rules,
+        performances=performances,
+        agent_visuals=agent_visuals,
+    )
 
 
 def bubble_shape_for(bubble: str) -> str:
@@ -124,9 +160,26 @@ def _parse_performance(name: str, raw: object) -> PerformanceDefinition:
     return PerformanceDefinition(
         name=name,
         kind=_key(data.get("type")) or "procedural",
+        lifecycle=_key(data.get("lifecycle")) or "oneshot_return",
+        source_state=_key(data.get("source_state")),
+        target_state=_key(data.get("target_state")),
+        source_costume=_key(data.get("source_costume")),
+        target_costume=_key(data.get("target_costume")),
+        minimum_ms=_int(data.get("minimum_ms"), 0),
         fallback_action=_key(data.get("fallback_action")) or "idle",
         locks_cursor_follow=bool(data.get("locks_cursor_follow", False)),
         sequence=sequence,
+    )
+
+
+def _parse_agent_visual(name: str, raw: object) -> AgentStateVisual:
+    data = _dict(raw)
+    return AgentStateVisual(
+        name=name,
+        animation=_key(data.get("animation")) or "idle_breathe",
+        minimum_ms=_int(data.get("minimum_ms"), 0),
+        priority=_int(data.get("priority"), 0),
+        interruptible=bool(data.get("interruptible", True)),
     )
 
 

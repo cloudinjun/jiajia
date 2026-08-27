@@ -1,0 +1,29 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<title>农民 / Farmer paperclip character</title>
+<desc>Flat vector profession identity state based on the uploaded no-mouth cartoon character. Transparent background.</desc>
+<g id="behind_accessories"></g>
+<g id="character" transform="translate(135 45) scale(0.75)">
+<g id="body_wire">
+<path d="M124 267.226C124 267.226 113.008 384.271 158 407.226C182.5 419.726 210.918 399.226 206 369.226C200.18 333.727 196 265.226 206 202.226C214.622 147.907 214.983 149.226 231.5 96.7265C248.017 44.2265 201 -1.42701 148 20.7265C72.5 52.2846 42.7789 215.226 53.4999 312.226C67.2106 436.276 101.591 483.694 130 509.226C169.5 544.726 222.497 545.135 254 500.226C277.5 466.726 254 374.226 257.5 322.226C259.216 296.726 275.5 267.226 301 250.726" stroke="#AEAEAE" stroke-width="30" stroke-linecap="round"/>
+</g>
+<g id="left_eye_white">
+<circle cx="57" cy="154.726" r="57" fill="#ECECEC"/>
+</g>
+<g id="right_eye_white">
+<ellipse cx="213" cy="195.226" rx="57" ry="56.5" fill="#ECECEC"/>
+</g>
+<g id="right_pupil">
+<circle cx="203" cy="192.726" r="39" fill="#402A32"/>
+</g>
+<g id="left_pupil">
+<circle cx="64" cy="154.726" r="39" fill="#402A32"/>
+</g>
+<g id="left_brow">
+<path d="M64 56.7265C64 56.7265 81.7087 52.8505 93.2292 52.7265C105.734 52.5919 125 56.7265 125 56.7265" stroke="#402A32" stroke-width="30" stroke-linecap="round"/>
+</g>
+<g id="right_brow">
+<path d="M204 92.7265C204 92.7265 219.1 90.4067 228.302 92.7265C242.828 96.388 259 115.726 259 115.726" stroke="#402A32" stroke-width="30" stroke-linecap="round"/>
+</g>
+</g>
+<g id="profession_accessories"><ellipse cx="238" cy="110" rx="100" ry="28" fill="#EACB75" stroke="#402A32" stroke-width="5"/><path d="M 178 101 C 202 62 278 62 300 101 Z" fill="#D9A94F" stroke="#402A32" stroke-width="5"/><path d="M 176 330 C 210 365 282 365 318 330 L 343 430 C 303 459 214 463 166 426 Z" fill="#3FA66B" stroke="#402A32" stroke-width="6" stroke-linejoin="round"/><rect x="284" y="367" width="45" height="26" rx="7" fill="#FFE7A0" stroke="#402A32" stroke-width="4"/><line x1="354" y1="310" x2="354" y2="430" stroke="#A66A3F" stroke-width="8" stroke-linecap="round"/><line x1="333" y1="312" x2="375" y2="312" stroke="#A66A3F" stroke-width="8" stroke-linecap="round"/><line x1="337" y1="312" x2="337" y2="340" stroke="#A66A3F" stroke-width="6" stroke-linecap="round"/><line x1="354" y1="312" x2="354" y2="345" stroke="#A66A3F" stroke-width="6" stroke-linecap="round"/><line x1="371" y1="312" x2="371" y2="340" stroke="#A66A3F" stroke-width="6" stroke-linecap="round"/><path d="M 168 418 C 189 390 213 391 232 418" fill="none" stroke="#3FA66B" stroke-width="10" stroke-linecap="round"/><circle cx="204" cy="396" r="8" fill="#3FA66B"/></g>
+</svg>

@@ -26,42 +26,142 @@ logical_states:
     performance: ""
     fallback_action: idle
     meaning: normal quiet standby
+    lifecycle: loop
+    minimum_ms: 1000
+    priority: 0
   suspicious:
     performance: suspicious_observe
     fallback_action: thinking_tilt
     meaning: noticed avoidance or odd context
+    lifecycle: oneshot_return
+    minimum_ms: 1400
+    priority: 20
   cold_arrow:
     performance: cold_arrow_then_innocent
     fallback_action: thinking_tilt
     meaning: soft roast followed by fake innocence
+    lifecycle: oneshot_return
+    minimum_ms: 3600
+    priority: 30
+  grand_dame_roast:
+    performance: grand_dame_whisper_roast
+    fallback_action: paper_whisper_fan
+    meaning: sharp spoken roast hidden behind a draft-paper fan
+    lifecycle: oneshot_return
+    minimum_ms: 2800
+    priority: 32
+  smug_thought:
+    performance: thought_roast_smug
+    fallback_action: smug_sway
+    meaning: private roast with cocky body language
+    lifecycle: oneshot_return
+    minimum_ms: 1800
+    priority: 22
   guilty:
     performance: smug_but_caught
     fallback_action: blink
     meaning: caught after being smug
+    lifecycle: oneshot_return
+    minimum_ms: 3200
+    priority: 26
   comfort:
     performance: quiet_companion
     fallback_action: blink
     meaning: low-pressure companionship
+    lifecycle: loop
+    minimum_ms: 1600
+    priority: 10
   sleeping:
     performance: fake_sulk
     fallback_action: sleepy_sag
     meaning: low energy or dramatic collapse
+    lifecycle: transition_to_state
+    target_state: sleep
+    minimum_ms: 2200
+    priority: 12
+    interruptible: false
   waking:
     performance: quiet_companion
     fallback_action: startled_pop
     meaning: returning from low energy
+    lifecycle: transition_to_state
+    source_state: sleep
+    target_state: idle
+    minimum_ms: 1600
+    priority: 18
   poke:
     performance: smug_but_caught
     fallback_action: wiggle
     meaning: touch reaction
+    lifecycle: oneshot_return
+    minimum_ms: 1200
+    priority: 40
   celebrate:
     performance: tiny_celebrate
     fallback_action: happy_bounce
     meaning: small success celebration
+    lifecycle: oneshot_return
+    minimum_ms: 1800
+    priority: 24
   error:
     performance: fake_sulk
     fallback_action: shake
     meaning: error or blocked frustration
+    lifecycle: oneshot_return
+    minimum_ms: 2400
+    priority: 50
+
+agent_state_visuals:
+  idle:
+    minimum_ms: 1000
+    animation: idle_breathe
+    priority: 0
+    interruptible: true
+  thinking:
+    minimum_ms: 1400
+    animation: thinking_loop
+    priority: 18
+    interruptible: true
+  running_tool:
+    minimum_ms: 1200
+    animation: tool_working
+    priority: 22
+    interruptible: true
+  editing:
+    minimum_ms: 1400
+    animation: paper_editing
+    priority: 24
+    interruptible: true
+  waiting_user:
+    minimum_ms: 2200
+    animation: waiting_stare
+    priority: 35
+    interruptible: false
+  permission:
+    minimum_ms: 2500
+    animation: permission_request
+    priority: 45
+    interruptible: false
+  compacting:
+    minimum_ms: 1600
+    animation: paper_sorting
+    priority: 26
+    interruptible: true
+  reconnecting:
+    minimum_ms: 1800
+    animation: reconnect_scan
+    priority: 38
+    interruptible: true
+  done:
+    minimum_ms: 1800
+    animation: tiny_celebrate
+    priority: 28
+    interruptible: true
+  error:
+    minimum_ms: 2400
+    animation: error_autopsy
+    priority: 50
+    interruptible: false
 
 state_rules:
   - state: celebrate
@@ -77,13 +177,22 @@ state_rules:
     actions: [scan, peek, patrol]
   - state: guilty
     moods: [guilty]
+  - state: grand_dame_roast
+    actions: [roast_and_scoot, paper_whisper_fan]
+    bubble_shapes: [speech]
   - state: cold_arrow
     moods: [smirk, smug]
     bubble_shapes: [speech]
+  - state: smug_thought
+    moods: [smirk, smug]
+    actions: [smug_sway]
+    bubble_shapes: [thought]
 
 performance_phrases:
   cold_arrow_then_innocent:
     type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 3600
     fallback_action: thinking_tilt
     locks_cursor_follow: true
     sequence:
@@ -99,17 +208,85 @@ performance_phrases:
       - pause_ms: 160
       - bubble: speak
         duration_ms: 120
-      - brows: innocent
-        eyes: round
-        duration_ms: 80
-      - action: blink
+      # 死寂冻结：说完不动，斜眼盯着，让笑点落地
+      - eyes: side_eye
+        brows: judge
+        duration_ms: 700
+      # 硬切装乖：快得可疑
+      - action: micro_snap_innocent
+        duration_ms: 140
+      - pause_ms: 480
+      # 慢眨眼收尾："我说完了，就这样"
+      - action: slow_blink
+        duration_ms: 780
+      - reset: expression
+
+  thought_roast_smug:
+    type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 1800
+    fallback_action: smug_sway
+    locks_cursor_follow: true
+    sequence:
+      - action: smug_sway
+        duration_ms: 360
+      - action: inner_side_smirk
+        duration_ms: 140
+      - action: tail_smug_sway
         duration_ms: 180
-      - action: nod
+      - brows: judge
+        eyes: side_eye
+        duration_ms: 120
+      - pause_ms: 90
+      - bubble: speak
+        duration_ms: 120
+      - action: inner_side_smirk
+        duration_ms: 120
+      - action: tail_tip_flick
+        duration_ms: 170
+      - action: micro_holding_laugh
+        duration_ms: 460
+      - action: slow_blink
+        duration_ms: 720
+      - reset: expression
+
+  grand_dame_whisper_roast:
+    type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 2800
+    fallback_action: paper_whisper_fan
+    locks_cursor_follow: true
+    sequence:
+      - action: micro_focus_pause
+        duration_ms: 140
+      - action: thinking_tilt
+        duration_ms: 520
+      - action: paper_whisper_fan
         duration_ms: 260
+      - eyes: side_eye
+        brows: smug_arch
+        duration_ms: 180
+      - action: inner_cover_oops
+        duration_ms: 120
+      - pause_ms: 120
+      - bubble: speak
+        duration_ms: 140
+      - action: tail_smug_sway
+        duration_ms: 120
+      # 扇子后的死寂注视
+      - eyes: side_eye
+        brows: smug_arch
+        duration_ms: 620
+      - action: oops_innocent_combo
+        duration_ms: 880
+      - action: slow_blink
+        duration_ms: 720
       - reset: expression
 
   smug_but_caught:
     type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 3200
     fallback_action: blink
     locks_cursor_follow: true
     sequence:
@@ -121,18 +298,23 @@ performance_phrases:
       - pause_ms: 80
       - bubble: speak
         duration_ms: 90
-      - brows: guilty
-        eyes: round
-        duration_ms: 240
-      - brows: innocent
-        eyes: round
-        duration_ms: 180
-      - action: blink
-        duration_ms: 180
+      # 被抓包的僵住才是笑点：冻结加长
+      - action: micro_caught_guilty
+        duration_ms: 560
+      # 眼神回环：瞟你→移开→定住→飘回
+      - action: micro_guilty_dart
+        duration_ms: 1240
+      - action: micro_snap_innocent
+        duration_ms: 140
+      - pause_ms: 420
+      - action: slow_blink
+        duration_ms: 780
       - reset: expression
 
   fake_sulk:
     type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 1800
     fallback_action: sulk
     sequence:
       - action: sulk
@@ -152,6 +334,8 @@ performance_phrases:
 
   suspicious_observe:
     type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 1800
     fallback_action: scan
     locks_cursor_follow: true
     sequence:
@@ -166,13 +350,19 @@ performance_phrases:
       - pause_ms: 120
       - bubble: speak
         duration_ms: 140
+      # 说完保持审视，deadpan 停顿
+      - eyes: side_eye
+        brows: judge
+        duration_ms: 640
+      - action: slow_blink
+        duration_ms: 720
       - reset: expression
-        duration_ms: 180
-      - action: blink
         duration_ms: 180
 
   quiet_companion:
     type: procedural
+    lifecycle: loop
+    minimum_ms: 1600
     fallback_action: blink
     sequence:
       - brows: soft
@@ -192,6 +382,8 @@ performance_phrases:
 
   tiny_celebrate:
     type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 1800
     fallback_action: happy_bounce
     sequence:
       - brows: proud
@@ -209,8 +401,38 @@ performance_phrases:
         duration_ms: 220
       - reset: expression
 
+  cheesy_love_cringe:
+    type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 2200
+    fallback_action: shake
+    locks_cursor_follow: true
+    sequence:
+      - brows: innocent
+        eyes: soft
+        duration_ms: 140
+      - action: inner_cover_oops
+        duration_ms: 180
+      - action: tail_tip_flick
+        duration_ms: 160
+      - pause_ms: 90
+      - bubble: speak
+        duration_ms: 130
+      - brows: guilty
+        eyes: guilty_round
+        duration_ms: 120
+      - action: shake
+        duration_ms: 360
+      - action: tail_frantic_innocent
+        duration_ms: 260
+      - action: oops_innocent_combo
+        duration_ms: 760
+      - reset: expression
+
   roast_and_scoot:
     type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 1600
     fallback_action: roast_and_scoot
     sequence:
       - action: thinking_tilt
@@ -229,6 +451,8 @@ performance_phrases:
 
   agent_stuck_stare:
     type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 2200
     fallback_action: scan
     sequence:
       - action: scan
@@ -245,6 +469,8 @@ performance_phrases:
 
   hardware_hot_sag:
     type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 2200
     fallback_action: shake
     sequence:
       - action: shake
@@ -260,6 +486,8 @@ performance_phrases:
 
   usage_low_sag:
     type: procedural
+    lifecycle: oneshot_return
+    minimum_ms: 2000
     fallback_action: sulk
     sequence:
       - action: sleepy_sag
@@ -275,6 +503,9 @@ performance_phrases:
 
   sleep_loop:
     type: procedural
+    lifecycle: loop
+    target_state: sleep
+    minimum_ms: 2600
     fallback_action: sleepy_sag
     sequence:
       - brows: soft
@@ -289,6 +520,10 @@ performance_phrases:
 
   wake_startled:
     type: procedural
+    lifecycle: transition_to_state
+    source_state: sleep
+    target_state: idle
+    minimum_ms: 1600
     fallback_action: startled_pop
     sequence:
       - action: startled_pop
@@ -307,6 +542,9 @@ performance_phrases:
 
   retreat_to_corner:
     type: procedural
+    lifecycle: transition_to_state
+    target_state: hidden_corner
+    minimum_ms: 1600
     fallback_action: retreat_to_corner
     sequence:
       - brows: sulk
@@ -320,6 +558,10 @@ performance_phrases:
 
   drop_in:
     type: procedural
+    lifecycle: transition_to_state
+    source_state: hidden_corner
+    target_state: idle
+    minimum_ms: 1600
     fallback_action: drop_in
     sequence:
       - action: drop_in
@@ -331,4 +573,34 @@ performance_phrases:
         duration_ms: 120
       - action: nod
         duration_ms: 220
+      - reset: expression
+
+  britclip_enter:
+    type: procedural
+    lifecycle: transition_to_state
+    target_costume: britclip
+    minimum_ms: 3100
+    fallback_action: britclip_enter
+    locks_cursor_follow: true
+    sequence:
+      - eyes: side_eye
+        brows: proud
+        duration_ms: 240
+      - action: britclip_enter
+        duration_ms: 3100
+
+  britclip_exit:
+    type: procedural
+    lifecycle: transition_to_state
+    source_costume: britclip
+    target_costume: none
+    minimum_ms: 2200
+    fallback_action: britclip_exit
+    locks_cursor_follow: true
+    sequence:
+      - eyes: round
+        brows: guilty
+        duration_ms: 160
+      - action: britclip_exit
+        duration_ms: 2200
       - reset: expression

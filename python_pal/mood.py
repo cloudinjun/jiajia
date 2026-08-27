@@ -30,11 +30,11 @@ MOOD_IMPULSE: dict[str, tuple[float, float]] = {
 }
 
 MICRO_BEHAVIORS: dict[str, list[tuple[str, float]]] = {
-    "excited":  [("happy_bounce", 3), ("dance", 2), ("celebrate", 1), ("jump", 1)],
-    "agitated": [("shake", 3), ("startled_pop", 2), ("patrol", 2)],
-    "content":  [("smug_sway", 3), ("nod", 2), ("stretch", 1)],
+    "excited":  [("happy_bounce", 3), ("dance", 2), ("celebrate", 1), ("jump", 1), ("spin_jump", 1), ("excited_spin", 1), ("zoomies", 0.6), ("peekaboo", 0.6)],
+    "agitated": [("shake", 3), ("startled_pop", 2), ("patrol", 2), ("shiver", 1)],
+    "content":  [("smug_sway", 3), ("nod", 2), ("stretch", 1), ("moonwalk", 0.6), ("curious_lean", 1.5)],
     "sluggish": [("sleepy_sag", 3), ("flop", 2), ("sulk", 2), ("hide", 1)],
-    "neutral":  [("scan", 2), ("thinking_tilt", 2), ("wiggle", 1), ("blink", 2), ("peek", 1)],
+    "neutral":  [("scan", 2), ("thinking_tilt", 2), ("wiggle", 1), ("blink", 2), ("peek", 1), ("curious_lean", 1), ("sneeze", 0.3)],
 }
 
 FREQUENCY_PRESETS: tuple[tuple[str, float], ...] = (

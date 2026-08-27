@@ -1,0 +1,37 @@
+index,slug,zh,en,svg_file,png_file
+1,doctor,医生,Doctor,svg/01_doctor.svg,png/01_doctor.png
+2,nurse,护士,Nurse,svg/02_nurse.svg,png/02_nurse.png
+3,teacher,教师,Teacher,svg/03_teacher.svg,png/03_teacher.png
+4,police,警察,Police,svg/04_police.svg,png/04_police.png
+5,firefighter,消防员,Firefighter,svg/05_firefighter.svg,png/05_firefighter.png
+6,chef,厨师,Chef,svg/06_chef.svg,png/06_chef.png
+7,engineer,工程师,Engineer,svg/07_engineer.svg,png/07_engineer.png
+8,programmer,程序员,Programmer,svg/08_programmer.svg,png/08_programmer.png
+9,designer,设计师,Designer,svg/09_designer.svg,png/09_designer.png
+10,astronaut,宇航员,Astronaut,svg/10_astronaut.svg,png/10_astronaut.png
+11,pilot,飞行员,Pilot,svg/11_pilot.svg,png/11_pilot.png
+12,courier,快递员,Courier,svg/12_courier.svg,png/12_courier.png
+13,construction_worker,建筑工人,Construction Worker,svg/13_construction_worker.svg,png/13_construction_worker.png
+14,farmer,农民,Farmer,svg/14_farmer.svg,png/14_farmer.png
+15,scientist,科学家,Scientist,svg/15_scientist.svg,png/15_scientist.png
+16,photographer,摄影师,Photographer,svg/16_photographer.svg,png/16_photographer.png
+17,judge,法官,Judge,svg/17_judge.svg,png/17_judge.png
+18,lawyer,律师,Lawyer,svg/18_lawyer.svg,png/18_lawyer.png
+19,musician,音乐人,Musician,svg/19_musician.svg,png/19_musician.png
+20,painter,画家,Painter,svg/20_painter.svg,png/20_painter.png
+21,barista,咖啡师,Barista,svg/21_barista.svg,png/21_barista.png
+22,librarian,图书管理员,Librarian,svg/22_librarian.svg,png/22_librarian.png
+23,athlete,运动员,Athlete,svg/23_athlete.svg,png/23_athlete.png
+24,mechanic,机械师,Mechanic,svg/24_mechanic.svg,png/24_mechanic.png
+25,electrician,电工,Electrician,svg/25_electrician.svg,png/25_electrician.png
+26,security_guard,保安,Security Guard,svg/26_security_guard.svg,png/26_security_guard.png
+27,reporter,记者,Reporter,svg/27_reporter.svg,png/27_reporter.png
+28,dentist,牙医,Dentist,svg/28_dentist.svg,png/28_dentist.png
+29,veterinarian,兽医,Veterinarian,svg/29_veterinarian.svg,png/29_veterinarian.png
+30,architect,建筑师,Architect,svg/30_architect.svg,png/30_architect.png
+31,banker,银行职员,Banker,svg/31_banker.svg,png/31_banker.png
+32,salesperson,销售员,Salesperson,svg/32_salesperson.svg,png/32_salesperson.png
+33,cleaner,清洁工,Cleaner,svg/33_cleaner.svg,png/33_cleaner.png
+34,baker,烘焙师,Baker,svg/34_baker.svg,png/34_baker.png
+35,bus_driver,公交司机,Bus Driver,svg/35_bus_driver.svg,png/35_bus_driver.png
+36,mail_carrier,邮递员,Mail Carrier,svg/36_mail_carrier.svg,png/36_mail_carrier.png

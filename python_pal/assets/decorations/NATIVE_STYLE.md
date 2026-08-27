@@ -2,8 +2,8 @@
 
 Paperclip Pal decorations should look like small doodles that belong to the
 paperclip character, not like UI toolbar icons attached to a floating widget.
-Imported icon packs may stay in `assets/decorations` as semantic references,
-but the runtime look should be native Canvas/SVG doodle art.
+Imported icon packs may be used directly when they already match the native
+Canvas/SVG doodle style.
 
 ## Core Rule
 
@@ -47,7 +47,7 @@ when the event requires them, but they should not stack into a HUD.
 
 ## First Native Pass
 
-The first pass standardizes these six runtime decorations:
+The first pass standardizes these runtime decorations:
 
 - `tiny_terminal`: rounded terminal sticker, no text glyphs.
 - `tiny_checklist`: soft paper scrap with drawn checks.

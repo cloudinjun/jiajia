@@ -1,0 +1,29 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<title>画家 / Painter paperclip character</title>
+<desc>Flat vector profession identity state based on the uploaded no-mouth cartoon character. Transparent background.</desc>
+<g id="behind_accessories"></g>
+<g id="character" transform="translate(135 45) scale(0.75)">
+<g id="body_wire">
+<path d="M124 267.226C124 267.226 113.008 384.271 158 407.226C182.5 419.726 210.918 399.226 206 369.226C200.18 333.727 196 265.226 206 202.226C214.622 147.907 214.983 149.226 231.5 96.7265C248.017 44.2265 201 -1.42701 148 20.7265C72.5 52.2846 42.7789 215.226 53.4999 312.226C67.2106 436.276 101.591 483.694 130 509.226C169.5 544.726 222.497 545.135 254 500.226C277.5 466.726 254 374.226 257.5 322.226C259.216 296.726 275.5 267.226 301 250.726" stroke="#AEAEAE" stroke-width="30" stroke-linecap="round"/>
+</g>
+<g id="left_eye_white">
+<circle cx="57" cy="154.726" r="57" fill="#ECECEC"/>
+</g>
+<g id="right_eye_white">
+<ellipse cx="213" cy="195.226" rx="57" ry="56.5" fill="#ECECEC"/>
+</g>
+<g id="right_pupil">
+<circle cx="203" cy="192.726" r="39" fill="#402A32"/>
+</g>
+<g id="left_pupil">
+<circle cx="64" cy="154.726" r="39" fill="#402A32"/>
+</g>
+<g id="left_brow">
+<path d="M64 56.7265C64 56.7265 81.7087 52.8505 93.2292 52.7265C105.734 52.5919 125 56.7265 125 56.7265" stroke="#402A32" stroke-width="30" stroke-linecap="round"/>
+</g>
+<g id="right_brow">
+<path d="M204 92.7265C204 92.7265 219.1 90.4067 228.302 92.7265C242.828 96.388 259 115.726 259 115.726" stroke="#402A32" stroke-width="30" stroke-linecap="round"/>
+</g>
+</g>
+<g id="profession_accessories"><path d="M 181 93 C 207 57 272 57 302 92 C 282 91 254 103 235 119 C 217 134 197 131 181 93 Z" fill="#DD5353" stroke="#402A32" stroke-width="5" stroke-linejoin="round"/><path d="M 176 330 C 210 365 282 365 318 330 L 343 430 C 303 459 214 463 166 426 Z" fill="#F6EAC8" stroke="#402A32" stroke-width="6" stroke-linejoin="round"/><rect x="285" y="368" width="45" height="26" rx="7" fill="#E77C70" stroke="#402A32" stroke-width="4"/><circle cx="176" cy="374" r="44" fill="#F2D6A2" stroke="#402A32" stroke-width="5"/><circle cx="160" cy="361" r="8" fill="#E84B4B"/><circle cx="181" cy="350" r="8" fill="#2F7DE1"/><circle cx="200" cy="368" r="8" fill="#3FA66B"/><circle cx="173" cy="391" r="8" fill="#7C5CC4"/><line x1="296" y1="408" x2="378" y2="320" stroke="#A66A3F" stroke-width="10" stroke-linecap="round"/><path d="M 368 310 C 394 304 405 326 379 346 Z" fill="#6CC0E5" stroke="#402A32" stroke-width="5"/><line x1="357" y1="343" x2="368" y2="354" stroke="#402A32" stroke-width="5" stroke-linecap="round"/></g>
+</svg>
