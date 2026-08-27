@@ -1,6 +1,6 @@
-﻿# Absurd Quiz Engine / 夹夹无责任小测验系统
+# Absurd Quiz Engine / 夹夹无责任小测验系统
 
-This document is an implementation brief for Codex. The feature should let Paperclip Pal occasionally prepare and deliver light, absurd, internet-style quizzes when the user is not busy. It is not a medical, psychological, career, legal, or financial assessment system.
+This document is an implementation brief for Codex. The feature should let Jiajia occasionally prepare and deliver light, absurd, internet-style quizzes when the user is not busy. It is not a medical, psychological, career, legal, or financial assessment system.
 
 The desired product behavior is: **the LLM writes the script in the background; the foreground pet only performs a prepared script.**
 
@@ -8,7 +8,7 @@ Do not call an LLM when the user clicks an answer. Do not block the UI while gen
 
 ## Product goal
 
-Paperclip Pal should sometimes offer a playful quiz such as:
+Jiajia should sometimes offer a playful quiz such as:
 
 - “你今天像哪种电脑后台进程”
 - “你的文件命名犯罪等级测试”
@@ -71,12 +71,12 @@ Implement a minimal but complete version:
 ## Suggested files
 
 ```text
-python_pal/quiz.py
-python_pal/brain_prep.py
-python_pal/quizzes.yaml
-python_pal/quiz_store.json      # runtime-created, gitignored if desired
-python_pal/quiz_prompts.py
-python_pal/quiz_safety.py
+jiajia/quiz.py
+jiajia/brain_prep.py
+jiajia/quizzes.yaml
+jiajia/quiz_store.json      # runtime-created, gitignored if desired
+jiajia/quiz_prompts.py
+jiajia/quiz_safety.py
 tests/test_quiz_engine.py
 tests/test_quiz_safety.py
 ```
@@ -151,7 +151,7 @@ heavy LLM full generation
 
 ## Data model
 
-Use dataclasses in `python_pal/quiz.py`.
+Use dataclasses in `jiajia/quiz.py`.
 
 ```python
 @dataclass
@@ -275,10 +275,10 @@ The output is playful, not diagnostic.
 
 ## Topic generation prompt
 
-Put this in `python_pal/quiz_prompts.py` as a template.
+Put this in `jiajia/quiz_prompts.py` as a template.
 
 ```text
-You are the absurd quiz writer for Paperclip Pal, a tiny desktop pet.
+You are the absurd quiz writer for Jiajia, a tiny desktop pet.
 
 Generate 8 candidate themes for lightweight, funny, internet-style pseudo-psychology quizzes.
 
@@ -314,7 +314,7 @@ Return JSON only:
 ## Full packet generation prompt
 
 ```text
-You are writing one complete prepared quiz packet for Paperclip Pal.
+You are writing one complete prepared quiz packet for Jiajia.
 
 Theme:
 {theme_json}
@@ -375,7 +375,7 @@ Schema:
 
 ## Safety validator
 
-`python_pal/quiz_safety.py` should reject packets containing terms like:
+`jiajia/quiz_safety.py` should reject packets containing terms like:
 
 ```text
 ADHD
@@ -490,7 +490,7 @@ Do not require typed answers.
 
 ## Integration notes for `body.py`
 
-Suggested new methods on `PaperclipPalApp`:
+Suggested new methods on `JiajiaApp`:
 
 ```python
 _schedule_quiz_heartbeat()
@@ -530,7 +530,7 @@ MVP can run at most one background generation thread at a time.
 
 ## Local fallback quiz
 
-Add one fixed fallback quiz in `python_pal/quizzes.yaml` so the feature can be tested without LLM.
+Add one fixed fallback quiz in `jiajia/quizzes.yaml` so the feature can be tested without LLM.
 
 Suggested fallback title:
 
@@ -571,7 +571,7 @@ A manual Windows/Tk run should support this flow:
 
 1. App starts.
 2. A fallback or pre-generated QuizPacket exists.
-3. When user is lightly available, Paperclip Pal invites the user.
+3. When user is lightly available, Jiajia invites the user.
 4. User can start, answer one question at a time with buttons, pause, resume, or abandon.
 5. No LLM call happens during answering.
 6. After completion, result waits for a polite moment.

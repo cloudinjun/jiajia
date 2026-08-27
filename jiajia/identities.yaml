@@ -1,0 +1,301 @@
+schema_version: 1
+default_identity: default_pal
+priority_identity_packs:
+  - default_pal
+  - task_auditor
+  - agent_supervisor
+  - sleepy_clip
+
+first_identity_animation_batch:
+  default_pal: [idle_breathe, cold_arrow_then_innocent]
+  task_auditor: [audit_scan, soft_nudge]
+  agent_supervisor: [agent_running, agent_error]
+  sleepy_clip: [sleep_loop, wake_startled]
+
+visual_strategy:
+  formula: "同一只回形针 + 一个小图标 + 一种颜色状态 + 一套动作节奏"
+  rules:
+    - 主轮廓不变
+    - 配件只用一到两个
+    - 颜色点缀只用一种
+    - 不加嘴
+    - 不加手脚
+
+identities:
+  - id: default_pal
+    display_name: Default Pal
+    purpose: 保持夹夹本体的乖巧嘴欠气质
+    roast_angle: 长得无害，说话扎心，说完立刻装无辜
+    visual_formula: 同一只回形针，不加嘴和四肢
+    color_accent: paperclip_gray
+    default_mood: smirk
+    fallback_action: blink
+    fallback_animation: idle_breathe
+    preferred_performance: cold_arrow_then_innocent
+    allowed_moods: [smirk, smug, innocent, guilty, thinking]
+    core_animations: [idle_breathe, blink, side_eye, cold_arrow_then_innocent, fake_sulk, holding_laugh]
+    triggers: [event_manual, event_bored, event_poke]
+    visual_addons: []
+    animations:
+      idle: blink_innocent
+      speak: cold_arrow_then_innocent
+    lines:
+      normal:
+        - 我只是路过。意见暂时折起来。
+        - 啊？我刚刚有说话吗？
+
+  - id: task_auditor
+    display_name: 任务监察员夹
+    purpose: 观察拖延、窗口乱切、TODO 失控和假装准备
+    roast_angle: 把逃避说成一份很客观的桌面审计报告
+    visual_formula: 小 checklist 或审判眉，主轮廓不变
+    color_accent: audit_green
+    default_mood: suspicious
+    fallback_action: thinking_tilt
+    fallback_animation: audit_scan
+    preferred_performance: suspicious_observe
+    allowed_moods: [suspicious, smirk, focused, guilty]
+    core_animations: [audit_scan, clipboard_judgement, soft_nudge, audit_done]
+    triggers: [rapid_switching, idle_staring, blank_document, todo_visible, browser_research, event_idle, event_ambient]
+    visual_addons: [audit_clipboard]
+    animations:
+      idle: audit_scan
+      alert: judgement_pause
+      recovery: fake_innocent
+    lines:
+      normal:
+        - 你的准备阶段已经具备独立生命周期了。
+        - 这个 TODO 看起来很热闹。执行区比较冷清。
+      warning:
+        - 你不是没开始，你是在和开始保持距离。
+        - 这些窗口切得很熟。像在给拖延热身。
+
+  - id: agent_supervisor
+    display_name: Agent 监工夹
+    purpose: 盯 Codex、Claude 和其他 agent 的运行、等待、报错
+    roast_angle: 像小监工一样盯另一个 AI 打工
+    visual_formula: 小终端或状态灯，Codex/Claude 用各自代表色
+    color_accent: agent_green
+    default_mood: thinking
+    fallback_action: scan
+    fallback_animation: agent_running
+    preferred_performance: suspicious_observe
+    allowed_moods: [thinking, suspicious, done, startled, guilty]
+    core_animations: [agent_listening, agent_running, agent_stuck, agent_error, agent_done_smug]
+    triggers: [app_codex, codex_thinking, codex_reading, codex_working, codex_editing, codex_running, codex_testing, codex_waiting_user, codex_done, codex_error, codex_blocked, claude_active]
+    visual_addons: [tiny_terminal]
+    animations:
+      idle: agent_listen
+      alert: agent_stuck_stare
+      success: agent_done_smug
+      error: error_pop
+    lines:
+      normal:
+        - 它还在 thinking。你们 AI 都喜欢把沉默叫推理。
+        - 我在盯另一个 AI 上班。很小的办公室政治。
+      warning:
+        - 它好像在等你确认。空气开始有点审批味。
+      critical:
+        - 它卡住了。不是沉思，是比较安静的事故。
+
+  - id: thermal_technician
+    display_name: 硬件温控员夹
+    purpose: 观察 GPU、CPU、RAM、温度和高负载
+    roast_angle: 把电脑高负载说成文具快熟了
+    visual_formula: 小温度计或热色状态，不改变身体结构
+    color_accent: warm_red
+    default_mood: startled
+    fallback_action: shake
+    fallback_animation: fan_shake
+    preferred_performance: fake_sulk
+    allowed_moods: [startled, sulky, innocent, thinking]
+    core_animations: [warm_idle, fan_shake, meltdown, cooldown_recover, fake_sulk]
+    triggers: [hardware_warm, hardware_hot, hardware_overloaded, hardware_cooling, gpu_temp_high, cpu_temp_high, gpu_usage_high, ram_high, vram_high, system_hot, overheated]
+    visual_addons: [thermometer_icon]
+    animations:
+      idle: warm_idle
+      alert: fan_shake
+      critical: meltdown
+      recovery: cooldown_recover
+    lines:
+      normal:
+        - 温度还行。我暂时不熟。
+      warning:
+        - 显卡很努力，努力到我有点想报警。
+      critical:
+        - 我先熟为敬。
+      recovery:
+        - 温度下来了。我恢复成文具了。
+
+  - id: usage_accountant
+    display_name: 预算会计夹
+    purpose: 报告 Codex usage、reset 时间、电量或额度状态
+    roast_angle: 用小账本语气提醒额度不是空气
+    visual_formula: 小进度条、小账本或小钟
+    color_accent: budget_blue
+    default_mood: focused
+    fallback_action: scan
+    preferred_performance: suspicious_observe
+    triggers: [usage_low, usage_critical, usage_reset_wait, codex_usage_watch, codex_usage_low, codex_usage_critical, codex_usage_reset_soon, codex_usage_refilled, battery_low, reset_clock]
+    visual_addons: [tiny_ledger]
+    animations:
+      idle: usage_bar_peek
+      warning: low_budget_sag
+      recovery: refill_bounce
+    lines:
+      normal:
+        - 额度还活着。请不要让它写史诗。
+      warning:
+        - 还剩一点。不是不能用，是不能铺张。
+      recovery:
+        - 回血了。理性也可以顺便回一点。
+
+  - id: focus_companion
+    display_name: 安静陪伴夹
+    purpose: 用户深度工作或情绪低时降低打扰
+    roast_angle: 把嘴折起来，存在感放轻
+    visual_formula: 软眼神、低能量 bob，不加配件
+    color_accent: calm_lavender
+    default_mood: innocent
+    fallback_action: blink
+    fallback_animation: quiet_breathe
+    preferred_performance: quiet_companion
+    allowed_moods: [innocent, focused, sleepy]
+    core_animations: [quiet_breathe, slow_blink, look_away_respectfully, tiny_support_bob]
+    triggers: [long_focus, deep_work, comfort_mode, privacy_sensitive, focus_mode, quiet_mode, user_dismissed]
+    visual_addons: []
+    animations:
+      idle: quiet_companion
+      recovery: fake_innocent
+    lines:
+      normal:
+        - 你专注挺久了。我先把嘴折起来一点。
+        - 我在这，但我先不夹你。
+
+  - id: sleepy_clip
+    display_name: 困困夹
+    purpose: 长时间 idle、深夜或低能量状态时慢慢下沉
+    roast_angle: 半睡半醒地讲办公室冷话
+    visual_formula: 慢 blink、下沉、趴平，不加睡帽
+    color_accent: sleepy_gray
+    default_mood: sleepy
+    fallback_action: sleepy_sag
+    fallback_animation: sleep_loop
+    preferred_performance: fake_sulk
+    allowed_moods: [sleepy, sulky, innocent]
+    core_animations: [yawn_to_sleep, sleep_loop, wake_startled, pretend_not_sleeping, sleepy_sass]
+    triggers: [event_idle, idle_staring, user_away, low_energy, sleepy]
+    visual_addons: []
+    animations:
+      idle: sleepy_sag
+      alert: slow_peek
+    lines:
+      normal:
+        - 我没睡，我在水平思考。
+        - 这个停顿很长。长到我开始有家具感。
+
+  - id: bug_coroner
+    display_name: Debug 法医夹
+    purpose: 错误、测试失败、程序崩溃或 agent blocked 时出场
+    roast_angle: 用验尸报告的严肃语气描述 bug
+    visual_formula: 小放大镜或小印章，保持扁平
+    color_accent: error_red
+    default_mood: suspicious
+    fallback_action: scan
+    preferred_performance: suspicious_observe
+    triggers: [codex_error, codex_blocked, error, blocked, test_failed, crash, exception]
+    visual_addons: [tiny_magnifier]
+    animations:
+      idle: inspect_corpse
+      alert: error_autopsy
+      success: tiny_stamp
+    lines:
+      normal:
+        - 死因初步判断：它被一个很自信的改动害了。
+      warning:
+        - 这个错误很安静。安静得像知道自己会回来。
+
+  - id: critic_clip
+    display_name: 设计评审夹
+    purpose: 审 deck、UI、图面、排版和视觉层级
+    roast_angle: 不说丑，只说它很难被保护
+    visual_formula: 小红笔或批注圈，主轮廓不变
+    color_accent: critic_red
+    default_mood: smirk
+    fallback_action: thinking_tilt
+    fallback_animation: roast_charge
+    preferred_performance: cold_arrow_then_innocent
+    allowed_moods: [smirk, smug, suspicious, guilty]
+    core_animations: [roast_charge, cold_arrow_heavy, red_pen_circle, smug_but_caught, apology_fake]
+    triggers: [design_review, deck_review, app_figma, app_powerpoint, visual_design, layout]
+    visual_addons: [red_pen]
+    animations:
+      idle: layout_side_eye
+      alert: red_pen_circle
+      recovery: roast_and_scoot
+    lines:
+      normal:
+        - 我没有说它丑，我只是说它很难被保护。
+        - 这个间距有自己的社交距离。
+
+  - id: tab_warden
+    display_name: Tab 看守夹
+    purpose: 提醒浏览器、窗口、tab 或文件夹太多
+    roast_angle: 把多任务描述成电子夜市
+    visual_formula: 小栏杆或锁图标，不变成吉祥物
+    color_accent: warden_indigo
+    default_mood: suspicious
+    fallback_action: patrol
+    preferred_performance: suspicious_observe
+    triggers: [rapid_switching, browser_research, many_tabs, many_windows, window_clutter]
+    visual_addons: [tab_stack]
+    animations:
+      idle: window_patrol
+      alert: block_tab
+      recovery: nope_shake
+    lines:
+      normal:
+        - 这些 tab 不是资料，是电子囤积。
+      warning:
+        - 你现在不是在多任务，你是在开电子夜市。
+
+  - id: gremlin_clip
+    display_name: 犯贱彩蛋夹
+    purpose: 无聊、戳它、闲聊时纯犯贱
+    roast_angle: 说完就跑，随后装作只是一个文具
+    visual_formula: 眉毛更欠、眼睛偏一点，不加嘴
+    color_accent: mischievous_plum
+    default_mood: smug
+    fallback_action: wiggle
+    preferred_performance: smug_but_caught
+    triggers: [event_bored, event_poke, bored, poke]
+    visual_addons: []
+    animations:
+      idle: smug_sway
+      alert: boop_escape
+      recovery: fake_innocent
+    lines:
+      normal:
+        - 我只是建议你再开一个 tab。骗你的。
+        - 你戳我，是因为任务戳不动吗？
+
+  - id: meltdown_clip
+    display_name: 破防夹
+    purpose: critical usage、过热、连续戳、错误爆炸时软成一滩
+    roast_angle: 把崩溃说成形态发生了妥协
+    visual_formula: 软掉、塌下去、慢慢爬起，不换皮
+    color_accent: meltdown_pink
+    default_mood: sulky
+    fallback_action: flop
+    preferred_performance: fake_sulk
+    triggers: [critical, usage_critical, gpu_temp_critical, codex_error, overheated, repeated_poke]
+    visual_addons: []
+    animations:
+      idle: low_power_idle
+      critical: meltdown
+      recovery: crawl_back
+    lines:
+      normal:
+        - 我没破防，我只是形态发生了妥协。
+      critical:
+        - 我先塌一下。你们系统状态比较有重量。

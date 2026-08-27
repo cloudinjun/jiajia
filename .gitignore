@@ -1,5 +1,6 @@
 __pycache__/
 *.py[cod]
+*.egg-info/
 
 # Local runtime state
 codex_status.json
@@ -8,7 +9,7 @@ claude_account_status.json
 openai_billing_status.json
 gemini_usage_status.json
 settings.json
-python_pal/quiz_store.json
+jiajia/quiz_store.json
 memory/
 .env
 .env.*
@@ -21,3 +22,11 @@ Thumbs.db
 
 # Generated local scratch
 .codex_tmp/
+
+# Local design exploration exports; keep them on disk, do not publish them.
+jiajia/assets/paperclip/ChatGPT*
+jiajia/assets/paperclip/ChatGpt*
+jiajia/assets/paperclip/Gemini*
+jiajia/assets/paperclip/*keyframes_package*.zip
+jiajia/assets/paperclip/*paper_uses*_package*.zip
+jiajia/assets/paperclip/*draftpaper*_package*.zip

@@ -1,0 +1,3651 @@
+{
+  "version": 1,
+  "library_updated_at": 1781215498.3755198,
+  "deck_updated_at": {
+    "idle": 1781215498.4156742,
+    "poke": 1781215498.4298847
+  },
+  "entries": [
+    {
+      "id": "de786a50fb06f528",
+      "event": "manual",
+      "line": "我在。用途待定。",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3997703,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "42346b09cf8362c8",
+      "event": "manual",
+      "line": "我有意见。但我是文具。",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3998084,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "635589d8ae6b585c",
+      "event": "manual",
+      "line": "我想鼓励你。但我找不到依据。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3998222,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a9e6cb9e3bd991f1",
+      "event": "manual",
+      "line": "一根弯铁丝在评价你的人生。我们都完了。",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3998344,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "3b0fbf1fa82bdcc2",
+      "event": "manual",
+      "line": "你很努力。努力地不开始。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3998458,
+      "used_count": 1,
+      "last_used_at": 1781215498.4157457
+    },
+    {
+      "id": "222f7d1487e70cf2",
+      "event": "manual",
+      "line": "你点了我。说明任务那边没什么进展。",
+      "mood": "smirk",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.399858,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "896690b073689985",
+      "event": "manual",
+      "line": "我什么都没说。我只是弯成了这个形状。",
+      "mood": "guilty",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.399869,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "22deccb74a7f5339",
+      "event": "manual",
+      "line": "我的专业是夹纸。副业是说实话。",
+      "mood": "smirk",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3998804,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e9c02610960211fb",
+      "event": "manual",
+      "line": "有什么需要我不帮忙的吗？",
+      "mood": "smirk",
+      "action": "bob",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3998914,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "6e2261def08b4009",
+      "event": "manual",
+      "line": "意见比较尖是结构问题。",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.399902,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7b3bd1d479cf84dc",
+      "event": "manual",
+      "line": "你来得很及时。任务也这么觉得。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3999133,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5c4c975bec5f4b1e",
+      "event": "manual",
+      "line": "我能做的不多。但比你目前的进度多。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.399924,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1a29dbaa9bf6c12e",
+      "event": "manual",
+      "line": "桌面上只有我是清醒的。压力很大。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.399935,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5d24c13c6645843b",
+      "event": "manual",
+      "line": "我没有催。催促通常比我高一点。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3999457,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "53cd7c4b6a76852c",
+      "event": "manual",
+      "line": "空气安静了。很客观。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3999565,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "ee271927dd05c190",
+      "event": "manual",
+      "line": "你又来找我了。你的社交圈还好吗。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.3999836,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "22e74a23410d2e68",
+      "event": "manual",
+      "line": "我是桌面上唯一不会崩溃的东西。大概。",
+      "mood": "proud",
+      "action": "bob",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.399999,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "350218a930a3077d",
+      "event": "manual",
+      "line": "你点我的频率比保存文件还高。很有主次。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400011,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8bbf283358dac307",
+      "event": "manual",
+      "line": "我试着给你加油。但我是金属做的，比较冷。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4000223,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "3f281a8a5cc64828",
+      "event": "manual",
+      "line": "不是批评。是办公用品的客观反光。",
+      "mood": "smirk",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400034,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "effb50ae82a9f4b3",
+      "event": "manual",
+      "line": "需要我假装很懂吗？收费另算。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4000742,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "fb1892715a1f68ff",
+      "event": "manual",
+      "line": "被需要的感觉不错。虽然需求内容不明。",
+      "mood": "shy",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4000878,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1d75f37a1ea267ca",
+      "event": "manual",
+      "line": "你继续。我会假装没发现。",
+      "mood": "smirk",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4000998,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a24f5a603b4b8553",
+      "event": "manual",
+      "line": "我观察了一下。结论先不说了。",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4001112,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "85a1e2ab000be05e",
+      "event": "manual",
+      "line": "你叫了我。我感到被需要，原因不详。",
+      "mood": "shy",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4001224,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "22be49e37a628299",
+      "event": "manual",
+      "line": "我在角落待着。安静，客观，微微反光。",
+      "mood": "proud",
+      "action": "bob",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4001336,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "09b11ef0782fa770",
+      "event": "manual",
+      "line": "我本来想夸你。然后我看了一眼屏幕。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4001446,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "888720686dfa5d40",
+      "event": "manual",
+      "line": "如果发呆也算技能，你早就转正了。",
+      "mood": "smug",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4001563,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "bfcc82f05b11f982",
+      "event": "manual",
+      "line": "你的存在感刚才闪了一下。谢谢。",
+      "mood": "happy",
+      "action": "happy_bounce",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4001675,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "6437c21c40dfff02",
+      "event": "manual",
+      "line": "我弯成这样不是为了表态。大概。",
+      "mood": "guilty",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4001784,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "db06c719d74df0be",
+      "event": "idle",
+      "line": "你在进步。方向待定。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4001899,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5c27c592d0279a0e",
+      "event": "idle",
+      "line": "我替那个deadline心疼。它等了好久。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4002008,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a1f8ad4add3ae8c5",
+      "event": "idle",
+      "line": "休息一下吧，反正你也没在做。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400212,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c83b2d0db7b2a9fc",
+      "event": "idle",
+      "line": "不是没开始。是在和开始保持距离。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4002235,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a53db4688b18fe75",
+      "event": "idle",
+      "line": "你这个准备阶段，已经可以独立上市了。",
+      "mood": "suspicious",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4002345,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "19144436819ef478",
+      "event": "idle",
+      "line": "我先不说话。这个停顿自己已经说完了。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4002454,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "37b260ee2817899f",
+      "event": "idle",
+      "line": "屏幕亮着，人在发呆。节能模式建议关掉其中一个。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4002569,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7734e82baa602f4b",
+      "event": "idle",
+      "line": "拖延包装成信息收集后，确实更体面了。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4002678,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e79af2c387a7581c",
+      "event": "idle",
+      "line": "参考资料够多了。它们开始互相参考了。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400279,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "96459bed8a69dcf1",
+      "event": "idle",
+      "line": "空白文档很有耐心。它大概是这里最成熟的。",
+      "mood": "smirk",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.40029,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0d5c486676a0ed19",
+      "event": "idle",
+      "line": "没关系，deadline也在等。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4003005,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2dff972396b714bb",
+      "event": "idle",
+      "line": "目前的工作进度是：成功打开了工作。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4003112,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "03487b3b96037ae3",
+      "event": "idle",
+      "line": "鼠标在同一个位置待了很久。它可能生根了。",
+      "mood": "thinking",
+      "action": "peek",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4003222,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7e265249a264da96",
+      "event": "idle",
+      "line": "TODO 很热闹。执行区比较冷清。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4003332,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "68fd800dfc4eded9",
+      "event": "idle",
+      "line": "这不是拖延。这是拖延的升级版。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4003441,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "073c9e3dc6a74c4a",
+      "event": "idle",
+      "line": "你目前最大的产出，是让椅子保持温热。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4003549,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7a055b61a632d0e2",
+      "event": "idle",
+      "line": "任务还在原地。它大概也习惯了。",
+      "mood": "thinking",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400366,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "3f9cfa55b94fecaa",
+      "event": "idle",
+      "line": "工作没有自己完成的能力。我确认过了。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4003768,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2b2ffb55ecc270c6",
+      "event": "idle",
+      "line": "你盯着任务看，任务也在盯着你。僵局。",
+      "mood": "suspicious",
+      "action": "peek",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4003875,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b70c35696b88b7b8",
+      "event": "idle",
+      "line": "你目前的动作是：坐着。这也算一种坚持。",
+      "mood": "smug",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4003985,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "85992514f3a79030",
+      "event": "idle",
+      "line": "这个间隔已经不是思考了。思考有表情的。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4004097,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0cd8ca497b14ef73",
+      "event": "idle",
+      "line": "你打开了文件又关上了。这叫试探性劳动。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4004207,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "58621908775ac1c0",
+      "event": "idle",
+      "line": "屏保快要比你先开始工作了。",
+      "mood": "suspicious",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4004314,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e29f0dfb71afe0e3",
+      "event": "idle",
+      "line": "你在这个界面停留够久，可以申请居住证了。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4004424,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "ac74e78faf0b324c",
+      "event": "idle",
+      "line": "你的浏览器比你的计划更有行动力。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4004536,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "733bc4d1203efc28",
+      "event": "poke",
+      "line": "收到。一次桌面层面的轻微暴力。",
+      "mood": "startled",
+      "action": "startled_pop",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4004645,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e1cbf42399f84dd2",
+      "event": "poke",
+      "line": "你戳我，是因为任务戳不动吗。",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4004896,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "4d33d8c600988359",
+      "event": "poke",
+      "line": "再戳我我就开始有标准了。",
+      "mood": "smug",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4005036,
+      "used_count": 1,
+      "last_used_at": 1781215498.4299405
+    },
+    {
+      "id": "308e438f7f7f58d9",
+      "event": "poke",
+      "line": "好的，我醒了。并没有更有用。",
+      "mood": "sleepy",
+      "action": "sleepy_sag",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4005153,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "eb3cf441a6e7334b",
+      "event": "poke",
+      "line": "我没有痛觉，但我有很多意见。",
+      "mood": "smirk",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4005265,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "bacfad7e8aca266b",
+      "event": "poke",
+      "line": "你戳得很准。逃避得也很准。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4005382,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b7da8c9e53bd1974",
+      "event": "poke",
+      "line": "我弯了一下。不代表我同意。",
+      "mood": "guilty",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4005501,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "bf6de2cf5a14a472",
+      "event": "poke",
+      "line": "你对文具的兴趣，远超对任务的兴趣。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4005616,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e350ac82cb1d5ea9",
+      "event": "poke",
+      "line": "桌面暴力已记录。归档在'转移注意力'。",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400573,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2d5d6aaf54200394",
+      "event": "poke",
+      "line": "如果我会跑，现在就是跑的时候。",
+      "mood": "startled",
+      "action": "retreat_to_corner",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4005837,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "24551c37ee5cebcb",
+      "event": "poke",
+      "line": "连续戳击。你在做桌面上的力量训练吗。",
+      "mood": "startled",
+      "action": "shake",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4005947,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b463f06ac8dec51c",
+      "event": "poke",
+      "line": "我的弹性是有限的。就像你的专注力。",
+      "mood": "smirk",
+      "action": "shake",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4006054,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d1ded27d5f616c34",
+      "event": "poke",
+      "line": "我的金属被你的体温捂热了。谢谢吧。",
+      "mood": "shy",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4006164,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1877e3c2ba65934e",
+      "event": "poke",
+      "line": "戳我不会让任务变少。但我理解这种冲动。",
+      "mood": "innocent",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4006271,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "4aa3a46056f2cf7d",
+      "event": "poke",
+      "line": "已记录。这是今天第...算了不数了。",
+      "mood": "done",
+      "action": "flop",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400639,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c3502e90f1991779",
+      "event": "bored",
+      "line": "Ctrl+Z 是人生中最温柔的谎言。",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4006505,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5850e2869bfe7d02",
+      "event": "bored",
+      "line": "Esc键很孤独。每次被按都是因为别人想逃。",
+      "mood": "thinking",
+      "action": "peek",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4006617,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2fd40342c487f728",
+      "event": "bored",
+      "line": "打印机卡纸不是故障，是它在消化。",
+      "mood": "thinking",
+      "action": "bob",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4006724,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "9fcb9563f7784b0b",
+      "event": "bored",
+      "line": "键盘最累的是空格。一直被踩还不能抱怨。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400683,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7262fbf6a1ce4f55",
+      "event": "bored",
+      "line": "自动保存是这里唯一有执行力的。",
+      "mood": "thinking",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400696,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e2c121074055110c",
+      "event": "bored",
+      "line": "书签是好意的退休仪式。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4007068,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f8ac35639e321bed",
+      "event": "bored",
+      "line": "光标闪啊闪。它比你更急。",
+      "mood": "thinking",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400717,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "31cc2927c6feb7be",
+      "event": "bored",
+      "line": "密码是信任问题的文字版。",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4007292,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f2e7c9ade6f2bb74",
+      "event": "bored",
+      "line": "回收站见过的后悔，比你多。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400739,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "68ab1cc70229d9c5",
+      "event": "bored",
+      "line": "云存储。因为在本地丢东西还不够刺激。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4007497,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b5ff89703506787e",
+      "event": "bored",
+      "line": "WiFi和我有共同点。在场但不可靠。",
+      "mood": "thinking",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4007595,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a0f80c54181e4105",
+      "event": "bored",
+      "line": "删除键问两次。它是这里唯一有边界感的。",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4007692,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "04519c51ec9b305c",
+      "event": "bored",
+      "line": "进度条不动时，人类会自动开始反思人生。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400779,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2544bb7dc961ce3a",
+      "event": "bored",
+      "line": "保存按钮最大的作用，是让焦虑有了图标。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4007888,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "34a4ed65c69c74c0",
+      "event": "bored",
+      "line": "回形针不整理。只是让纸假装有秩序。",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4007986,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "96cae3daa1900dac",
+      "event": "bored",
+      "line": "剪贴板知道太多了。所以它一直保持沉默。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4008083,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5d2a24d223e3b119",
+      "event": "bored",
+      "line": "'稍后阅读'的意思是'永远不读，但带着诚意'。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4008195,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "53e728cd96fd5772",
+      "event": "bored",
+      "line": "最小化的窗口。眼不见，依然是你的问题。",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4008288,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f39e97292dde8849",
+      "event": "bored",
+      "line": "人类平均每天解锁手机96次。解锁的不是手机。",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4008386,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c1ca040adc1e929b",
+      "event": "bored",
+      "line": "浏览器标签越多，真正在看的越少。很民主。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4008482,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5a85805da9331d9c",
+      "event": "bored",
+      "line": "多数文件的一生：被创建，被遗忘，被清理。",
+      "mood": "thinking",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4008577,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c4ee04adc340382c",
+      "event": "bored",
+      "line": "桌面越干净的人，下载文件夹越混乱。守恒的。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4008672,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "701ed05f9131f30d",
+      "event": "bored",
+      "line": "拖放。我全部的社交生活，两个字。",
+      "mood": "thinking",
+      "action": "wiggle",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4008768,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "4685b716438d870f",
+      "event": "bored",
+      "line": "人在deadline前三小时的效率，是平时的四倍。可惜。",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4008865,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f5303c573a3f37d2",
+      "event": "bored",
+      "line": "窗口切得够快，任务会误以为自己已经被处理。",
+      "mood": "thinking",
+      "action": "twirl",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400896,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "14350b7663975516",
+      "event": "bored",
+      "line": "未完成事项会在桌面角落进行无性繁殖。",
+      "mood": "thinking",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400906,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "95d40a15f9c5c1e4",
+      "event": "bored",
+      "line": "关掉标签页不读。这叫委托。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4009154,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2f68eee92354d2a7",
+      "event": "bored",
+      "line": "据回形针内部统计，人类70%的复制没有粘贴。",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400925,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8d02d0ee5c255479",
+      "event": "bored",
+      "line": "文件名里的final_final_v3其实是一种呐喊。",
+      "mood": "thinking",
+      "action": "bob",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400935,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b8a6ea977f281e51",
+      "event": "bored",
+      "line": "桌面壁纸是所有图标的地基。没人感谢过它。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4009445,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0d445656c6534109",
+      "event": "bored",
+      "line": "据说关掉的标签页会去一个叫历史记录的养老院。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4009538,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "aff0879d36d5acf3",
+      "event": "bored",
+      "line": "工具提示：电脑在对自己的按钮进行解释性劳动。",
+      "mood": "thinking",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4009633,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "810ae6cac4d0f0c1",
+      "event": "bored",
+      "line": "加载转圈是电脑的冥想时间。",
+      "mood": "thinking",
+      "action": "twirl",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400973,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0b0613b051c72cf4",
+      "event": "bored",
+      "line": "重命名文件夹，它以为自己搬了家。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.400982,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5dc5ad8e5713b0cf",
+      "event": "bored",
+      "line": "根据办公用品学，拖延在周四下午获得轻微磁性。",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4009917,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f65178d238a5cac6",
+      "event": "bored",
+      "line": "任务管理器是电脑的体检报告。通常不看更健康。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401001,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "634a4404bc49216a",
+      "event": "ambient",
+      "line": "Alt+Tab 是你用得最流利的快捷键。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "rapid_switching"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4010103,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "6968a5fc6d094399",
+      "event": "ambient",
+      "line": "切换次数已超过输入次数。统计意义上，你在逃。",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "rapid_switching"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4010196,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "dd6b352cfc2c20f5",
+      "event": "ambient",
+      "line": "每个窗口获得三秒。很民主。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "rapid_switching"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4010289,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a437dc598bd5dc4b",
+      "event": "ambient",
+      "line": "这个来回切换很熟练。工作可能已经晕车了。",
+      "mood": "smirk",
+      "action": "patrol",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "rapid_switching"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4010384,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "37dc3924878f84fb",
+      "event": "ambient",
+      "line": "你现在的操作模式叫浏览式焦虑。",
+      "mood": "suspicious",
+      "action": "patrol",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "rapid_switching"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401053,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "3b4a67750cf1f2ac",
+      "event": "ambient",
+      "line": "盯着它不会让它变简单。我确认过了。",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "idle_staring"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401063,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d4f044fe38f1e2aa",
+      "event": "ambient",
+      "line": "你的目光很稳定。可惜不是在看进度条。",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "idle_staring"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401072,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d9d3a5074e621b1a",
+      "event": "ambient",
+      "line": "屏幕很亮，目光很空。一种现代静物。",
+      "mood": "thinking",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "idle_staring"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4010818,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "090b4057ba5f30bb",
+      "event": "ambient",
+      "line": "光标在眨眼。你也在眨眼。没人在打字。",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "idle_staring"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4010916,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f35194ad78134d40",
+      "event": "ambient",
+      "line": "你和屏幕对视这么久，它快先眨眼了。",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "idle_staring"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4011009,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b008b7b71d1cb09b",
+      "event": "ambient",
+      "line": "空白页面很安静。安静到像在等你先道歉。",
+      "mood": "smirk",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "blank_document"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4011104,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a3729b6430c99dc7",
+      "event": "ambient",
+      "line": "文档开了五分钟。目前最长的内容是文件名。",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "blank_document"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.40112,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "fb92f783ffacf3fd",
+      "event": "ambient",
+      "line": "第一行最难写。之后只是换一种难。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "blank_document"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4011297,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7f7f10b14c38050f",
+      "event": "ambient",
+      "line": "这张白纸的耐心，值得所有文具学习。",
+      "mood": "innocent",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "blank_document"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4011395,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d587b07edebfa332",
+      "event": "ambient",
+      "line": "空白。充满潜力。零行动。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "blank_document"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4011493,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2add31d73f965727",
+      "event": "ambient",
+      "line": "TODO 出现了。它看起来希望别人先动手。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "todo_visible"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4011588,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b7ab7b41f0d77acf",
+      "event": "ambient",
+      "line": "待办数量很稳定。因为新增和遗忘速度一样。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "todo_visible"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4011683,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b61c59a54fe48369",
+      "event": "ambient",
+      "line": "TODO 写得很详细。执行栏还是空的。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "todo_visible"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4011781,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0483058ff2905ea6",
+      "event": "ambient",
+      "line": "待办列表比多数员工都有资历了。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "todo_visible"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4011874,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "6627827b35c43e5f",
+      "event": "ambient",
+      "line": "任务：增长中。完成率：稳定。你：在场。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "todo_visible"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4011972,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0e6cb0bfc5619388",
+      "event": "ambient",
+      "line": "研究很深入。结论还在缓冲。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "browser_research",
+        "browsing"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401208,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "20bc5b36cabc9740",
+      "event": "ambient",
+      "line": "资料很多。决定权没有因此消失。",
+      "mood": "suspicious",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "browser_research",
+        "browsing"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4012184,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "03922166461afea8",
+      "event": "ambient",
+      "line": "你打开了第十二个标签页。很有深度。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "browser_research"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4012284,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7d378bac29d110c3",
+      "event": "ambient",
+      "line": "参考资料们互相看了一眼，觉得够了。",
+      "mood": "smirk",
+      "action": "patrol",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "browser_research"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4012387,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0a98a46caaa3dfa2",
+      "event": "ambient",
+      "line": "资料收集阶段已经可以毕业了。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "browser_research",
+        "browsing"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4012487,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "072f91a707c1d39f",
+      "event": "ambient",
+      "line": "你在认真工作。我决定安静三秒表示尊重。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deep_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4012587,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "30a2e388cec75d4d",
+      "event": "ambient",
+      "line": "难得看到你这么投入。我感动到微微氧化。",
+      "mood": "happy",
+      "action": "happy_bounce",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deep_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4012685,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "90e47e10ed99da57",
+      "event": "ambient",
+      "line": "你在进入状态。我假装自己是桌面的一部分。",
+      "mood": "innocent",
+      "action": "idle",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deep_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4012783,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2017f24d27100f31",
+      "event": "ambient",
+      "line": "深度工作中。夹夹暂时不夹。",
+      "mood": "innocent",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deep_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4012883,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "494549f5bd26cf49",
+      "event": "ambient",
+      "line": "认真的你和平时的你差了至少两个窗口。",
+      "mood": "happy",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deep_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4012983,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "62102f3060224b40",
+      "event": "ambient",
+      "line": "你专注挺久了。我先把嘴折起来。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "long_focus",
+        "deep_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4013083,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "72ed6bd42e37039e",
+      "event": "ambient",
+      "line": "持续工作超过四十分钟。你确定是人类吗。",
+      "mood": "startled",
+      "action": "startled_pop",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "long_focus"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4013183,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c974c95b2c5e0e95",
+      "event": "ambient",
+      "line": "你专注的时间已经超过我的注意力极限了。",
+      "mood": "proud",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "long_focus"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4013283,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "21fba99cdfda1f14",
+      "event": "ambient",
+      "line": "长时间专注。建议偶尔眨一下眼。",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "long_focus"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401338,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "356abaaaab29da3e",
+      "event": "ambient",
+      "line": "你专注到让我觉得自己多余了。日常。",
+      "mood": "innocent",
+      "action": "idle",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "long_focus"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4013479,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "dc957a0206393142",
+      "event": "ambient",
+      "line": "编辑器很认真。你可以象征性地加入一下。",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "app_editor",
+        "coding"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4013574,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "82eb16789502be99",
+      "event": "ambient",
+      "line": "代码写了两行，删了三行。净产出为负一。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_editor",
+        "coding"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401368,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8f02c45cc393e91b",
+      "event": "ambient",
+      "line": "你的缩进很整齐。逻辑也许也是。",
+      "mood": "innocent",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "app_editor",
+        "coding"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4013784,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "24b04e29e99cfb94",
+      "event": "ambient",
+      "line": "你盯着报错的表情，我很熟悉。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_editor",
+        "coding"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4013886,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "10426743655e82b4",
+      "event": "ambient",
+      "line": "代码在等你。它不着急，但光标在催。",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_editor",
+        "coding"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4013984,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7dbee1fdb55933ad",
+      "event": "ambient",
+      "line": "命令行是最诚实的界面。报错从不客气。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_terminal",
+        "terminal_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4014082,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "92a8ff5c8804fddd",
+      "event": "ambient",
+      "line": "终端打开了。电脑即将用黑底白字表达态度。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_terminal",
+        "terminal_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4014184,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "79b38c5650fd7d84",
+      "event": "ambient",
+      "line": "你打了一半命令又删掉了。很谨慎。很慢。",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_terminal"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4014287,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "24bb0f6193b2cabb",
+      "event": "ambient",
+      "line": "终端输出了一堆。你看懂了吗？我没有。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_terminal",
+        "terminal_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4014387,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d3efa33ec75f30be",
+      "event": "ambient",
+      "line": "终端在等你输入。它不着急。光标替它急。",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_terminal",
+        "terminal_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401449,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7902d09d45aa2387",
+      "event": "ambient",
+      "line": "你把问题交给了AI。我是AI，但你没问我。",
+      "mood": "sulky",
+      "action": "sulk",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_codex"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401459,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "708018774250152d",
+      "event": "ambient",
+      "line": "两个AI，一个人类。人类在数量上已经输了。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_codex"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401469,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e7e277235dc37e22",
+      "event": "ambient",
+      "line": "Codex在工作了。我在旁边提供精神支持。",
+      "mood": "innocent",
+      "action": "bob",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_codex"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4014971,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "6794a33704092d59",
+      "event": "ambient",
+      "line": "AI在思考。我也在思考。主要是思考它在想什么。",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_codex"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401508,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1a18570f07b86cbe",
+      "event": "ambient",
+      "line": "Codex在场。把假装镇定外包一点也行。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_codex"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4015183,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "96eaf77c80e9ed0f",
+      "event": "ambient",
+      "line": "整理文件是一种高级拖延。看起来很有用。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_file_manager",
+        "file_sorting"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4015286,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "79c0b354ff204611",
+      "event": "ambient",
+      "line": "文件夹被打开太久，会产生整理的幻觉。",
+      "mood": "smirk",
+      "action": "patrol",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_file_manager",
+        "file_sorting"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4015388,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f31c490a66c07af7",
+      "event": "ambient",
+      "line": "文件管理器里很安静。文件们各自假装有序。",
+      "mood": "thinking",
+      "action": "peek",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_file_manager",
+        "file_sorting"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4015489,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1ae55259a0fb961b",
+      "event": "ambient",
+      "line": "你打开的文件夹层数，比任务嵌套还深。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_file_manager"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401559,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7f7f9436cff0b3d8",
+      "event": "ambient",
+      "line": "文件夹那个打开的。这里是在找勇气吧。",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_file_manager"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4015684,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b065112aca741438",
+      "event": "ambient",
+      "line": "早。今天的拖延额度已经开始计时了。",
+      "mood": "smug",
+      "action": "bob",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "morning"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401578,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "700fca24b0781c75",
+      "event": "ambient",
+      "line": "新的一天。待办事项从昨天穿越过来了。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "morning"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4015877,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "9ce305132ea1659f",
+      "event": "ambient",
+      "line": "我比你先醒。作为金属制品，这很正常。",
+      "mood": "proud",
+      "action": "stretch",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "morning"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4015975,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "4c6d8dfe283e80dc",
+      "event": "ambient",
+      "line": "早安。意志力满格。持续时间不详。",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "morning"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4016068,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e20d4bdf26b6f8d7",
+      "event": "ambient",
+      "line": "一日之计在于晨。目前的计划是：打开电脑。",
+      "mood": "smirk",
+      "action": "bob",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "morning"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4016163,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1835bae72c3b0c3b",
+      "event": "ambient",
+      "line": "早上的你看起来比我还需要充电。",
+      "mood": "sleepy",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "morning"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401626,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "db407b261b25e996",
+      "event": "ambient",
+      "line": "早安。桌面和昨天一样。你呢？",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "morning"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401636,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c8b73585e9d3bc80",
+      "event": "ambient",
+      "line": "凌晨写的代码，白天大概率被自己删掉。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "late_night",
+        "coding"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4016454,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "4490dd27cfc9bc39",
+      "event": "ambient",
+      "line": "你还没睡。我也没睡。但我不需要睡。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "late_night"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4016554,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "dec98067ccd68d2d",
+      "event": "ambient",
+      "line": "这个时间还在工作。deadline一定很有表现力。",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "late_night"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4016652,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a57f46248cc03cac",
+      "event": "ambient",
+      "line": "深夜的屏幕特别亮。你的眼圈大概也是。",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "late_night"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401675,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7e4f0172ee8c21f3",
+      "event": "ambient",
+      "line": "现在这个时间，连光标都在打哈欠。",
+      "mood": "sleepy",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "late_night"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.401685,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8a19e4e610401ceb",
+      "event": "ambient",
+      "line": "夜深了。连金属都有点想打哈欠。",
+      "mood": "sleepy",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "late_night"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4016955,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "7fec497d89bc4df9",
+      "event": "ambient",
+      "line": "深夜工作。勤奋和失控，区别很微妙。",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "late_night"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4017055,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "dd435131c07d8178",
+      "event": "ambient",
+      "line": "周末还在工作。这叫热爱，还是叫别的什么。",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "weekend"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4017153,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a363eb64e2923e8b",
+      "event": "ambient",
+      "line": "周末了。电脑以为自己今天可以休息。",
+      "mood": "smirk",
+      "action": "sleepy_sag",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "weekend"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4017248,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "3233b6fae6f03932",
+      "event": "ambient",
+      "line": "今天本来可以不见面的。但你来了。",
+      "mood": "shy",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "weekend"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4017344,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "4ff0e121d26d8dcf",
+      "event": "ambient",
+      "line": "周末编辑器还开着。你的生活和代码一样，没有注释。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "weekend",
+        "coding"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4017441,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "eea48372760bb1f3",
+      "event": "ambient",
+      "line": "周末还开着电脑。你和我一样，没有社交生活。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "weekend"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4017546,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5ecd227614e8209c",
+      "event": "ambient",
+      "line": "周六。任务不知道今天星期几。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "weekend"
+      ],
+      "source": "seed",
+      "created_at": 1781215493.4017644,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2092005659fae5cd",
+      "event": "manual",
+      "line": "我在。虽然用途不明，但态度积极。",
+      "mood": "smirk",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.374996,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f2e606c091748e11",
+      "event": "manual",
+      "line": "你继续，我会假装没发现。",
+      "mood": "smirk",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3750324,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "135f8262a1ee7cb6",
+      "event": "manual",
+      "line": "需要我假装很懂吗？",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375054,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "6ab1325e03fbc88b",
+      "event": "manual",
+      "line": "这不是批评，是办公用品的客观反光。",
+      "mood": "smirk",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3750665,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "8119159f50e18a00",
+      "event": "manual",
+      "line": "我只是一个小文具，意见比较尖是结构问题。",
+      "mood": "smirk",
+      "action": "nod",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3750792,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e625afb4e75638e2",
+      "event": "manual",
+      "line": "你看起来很忙。主要是在忙着避免开始。",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3750906,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d82f0a16a0e4a67e",
+      "event": "manual",
+      "line": "如果准备也算进度，你已经很有成就了。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "general"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3751018,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "2ec48b90de8bbd97",
+      "event": "idle",
+      "line": "你停在这里有一小会儿了。文件也开始懂事地不打扰你。",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375114,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d7eb545d0cd1cad2",
+      "event": "idle",
+      "line": "这个窗口切得很有逃生路线。",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3751256,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c1967f7f1289cbc2",
+      "event": "idle",
+      "line": "你是在工作，还是在给工作预热？",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375137,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "3cb182f53dc86290",
+      "event": "idle",
+      "line": "空白文档很有耐心。它可能是这里最成熟的。",
+      "mood": "smirk",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3751483,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "564299dd30bafc14",
+      "event": "idle",
+      "line": "TODO 看起来很热闹。执行区比较冷清。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375159,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "9e774732522491e1",
+      "event": "idle",
+      "line": "你这个准备阶段，已经准备得很成熟了。",
+      "mood": "suspicious",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.37517,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d465b606b67e7e4a",
+      "event": "idle",
+      "line": "你不是没开始，你是在和开始保持距离。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375181,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "84a2b11e2a9fd44b",
+      "event": "idle",
+      "line": "参考资料已经够多了。它们开始互相参考了。",
+      "mood": "smirk",
+      "action": "scan",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3751924,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "9c33911cc38e11df",
+      "event": "idle",
+      "line": "你切窗口很流畅。像一种回避体操。",
+      "mood": "suspicious",
+      "action": "patrol",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3752034,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "c32bd9f7c4de80b1",
+      "event": "idle",
+      "line": "我先不说话。这个停顿自己已经很有内容。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3752143,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d439e48ebf2dedd5",
+      "event": "idle",
+      "line": "你看起来像在收集开始之前的空气。",
+      "mood": "smirk",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375225,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "38c94503e4514229",
+      "event": "idle",
+      "line": "拖延被包装成信息收集后，确实更体面了。",
+      "mood": "smug",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "procrastination"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3752363,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "5b62221738d572ba",
+      "event": "ambient",
+      "line": "你切窗口的速度很稳定。像在给开始找出口。",
+      "mood": "suspicious",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "rapid_switching",
+        "browser_research"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375248,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "6305b04c630fd71c",
+      "event": "ambient",
+      "line": "你盯着这里有一会儿了。它还没有自己变简单。",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "idle_staring"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3752599,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "94f320fd4ba50349",
+      "event": "ambient",
+      "line": "空白区域很安静。安静到像在等你先道歉。",
+      "mood": "smirk",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "blank_document"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3752713,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e228b36d4cf35b87",
+      "event": "ambient",
+      "line": "Codex 在场。现在可以把假装镇定外包一点点。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_codex"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3752828,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "cb2ffaae48947d8a",
+      "event": "ambient",
+      "line": "编辑器很认真。你也可以象征性地加入一下。",
+      "mood": "suspicious",
+      "action": "thinking_tilt",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "app_editor",
+        "coding"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3752937,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d9ceecf2d71cdf14",
+      "event": "ambient",
+      "line": "文件夹被打开太久，会开始产生整理的幻觉。",
+      "mood": "smirk",
+      "action": "patrol",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "app_file_manager",
+        "file_sorting"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3753057,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "a1266ae8f2e24242",
+      "event": "ambient",
+      "line": "资料看起来很多。决定权没有因此消失。",
+      "mood": "suspicious",
+      "action": "smug_sway",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "browser_research",
+        "browsing"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3753176,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "3228602b4e796a7d",
+      "event": "ambient",
+      "line": "你专注挺久了。我先把嘴折起来一点。",
+      "mood": "innocent",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "long_focus",
+        "deep_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3753293,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "ed301999d7cb7f61",
+      "event": "ambient",
+      "line": "这个深度工作看起来是真的。夹夹暂时不夹。",
+      "mood": "innocent",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "deep_work"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3753407,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "b95474bf61a490c7",
+      "event": "bored",
+      "line": "文件夹失恋了，因为它被另存为。",
+      "mood": "thinking",
+      "action": "twirl",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375352,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "f859f4179f2f8d62",
+      "event": "bored",
+      "line": "鼠标很努力，但它的人生总在被拖动。",
+      "mood": "thinking",
+      "action": "peek",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375363,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1adfc3481809c670",
+      "event": "bored",
+      "line": "回形针为什么不加班？因为它已经被夹住了。",
+      "mood": "thinking",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "cold_joke"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375374,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "83a7e3873c620186",
+      "event": "bored",
+      "line": "保存按钮最大的作用，是让焦虑拥有一个图标。",
+      "mood": "thinking",
+      "action": "nod",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3753855,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1d0b736a08f99405",
+      "event": "bored",
+      "line": "回形针最擅长的不是整理，是让纸假装有秩序。",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375397,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "d53346186102ede8",
+      "event": "bored",
+      "line": "如果窗口切得够快，任务会误以为自己已经被处理。",
+      "mood": "thinking",
+      "action": "twirl",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3754082,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "3c9fe25d6e0b4f25",
+      "event": "bored",
+      "line": "根据办公用品学，拖延会在周四下午获得轻微磁性。",
+      "mood": "thinking",
+      "action": "thinking_tilt",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3754191,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "0bff3f640840953f",
+      "event": "bored",
+      "line": "未完成事项会在桌面角落进行无性繁殖。很安静。",
+      "mood": "thinking",
+      "action": "sleepy_sag",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3754303,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "bd9458aad75107a9",
+      "event": "bored",
+      "line": "剪贴板知道太多了，所以它一直保持沉默。",
+      "mood": "thinking",
+      "action": "scan",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3754416,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "218b2096b9fd178b",
+      "event": "bored",
+      "line": "桌面图标站得很整齐。像一群暂时没有被面对的问题。",
+      "mood": "smirk",
+      "action": "patrol",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "nonsense"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375453,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "52badb1e081a4c07",
+      "event": "bored",
+      "line": "光标闪烁不是催促。只是它比较没有边界感。",
+      "mood": "thinking",
+      "action": "blink",
+      "bubble": "thought",
+      "performance": "",
+      "tags": [
+        "cold_fact"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3754647,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "1cd942bafdf9724b",
+      "event": "poke",
+      "line": "哎，我这根纸夹也有触觉的。大概。",
+      "mood": "startled",
+      "action": "startled_pop",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3754756,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "e7d6e53502136497",
+      "event": "poke",
+      "line": "你戳我，是因为任务戳不动吗？",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.375487,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "58150de6d5916cf5",
+      "event": "poke",
+      "line": "再戳我我就开始提供意见了。我很小声。",
+      "mood": "smirk",
+      "action": "wiggle",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3754985,
+      "used_count": 0,
+      "last_used_at": 0.0
+    },
+    {
+      "id": "410859c545d0708b",
+      "event": "poke",
+      "line": "我只是弯了一下，不代表我同意被当按钮。",
+      "mood": "guilty",
+      "action": "blink",
+      "bubble": "speech",
+      "performance": "",
+      "tags": [
+        "poke"
+      ],
+      "source": "seed",
+      "created_at": 1781215498.3755095,
+      "used_count": 0,
+      "last_used_at": 0.0
+    }
+  ],
+  "decks": {
+    "idle": [
+      "1a29dbaa9bf6c12e",
+      "effb50ae82a9f4b3",
+      "ee271927dd05c190",
+      "22e74a23410d2e68",
+      "a24f5a603b4b8553",
+      "8bbf283358dac307",
+      "fb1892715a1f68ff",
+      "6e2261def08b4009",
+      "222f7d1487e70cf2",
+      "3b0fbf1fa82bdcc2",
+      "53cd7c4b6a76852c",
+      "e9c02610960211fb"
+    ],
+    "poke": [
+      "4aa3a46056f2cf7d",
+      "bacfad7e8aca266b",
+      "410859c545d0708b",
+      "e7d6e53502136497",
+      "1cd942bafdf9724b",
+      "24551c37ee5cebcb",
+      "eb3cf441a6e7334b",
+      "4d33d8c600988359",
+      "e1cbf42399f84dd2",
+      "733bc4d1203efc28",
+      "58150de6d5916cf5",
+      "bf6de2cf5a14a472"
+    ]
+  },
+  "recent_ids": [
+    "3b0fbf1fa82bdcc2",
+    "4d33d8c600988359"
+  ]
+}

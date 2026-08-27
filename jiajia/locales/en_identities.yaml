@@ -1,0 +1,462 @@
+# English identity manifest.
+#
+# Structural fields (ids, moods, animations, triggers, visual addons) are
+# copied verbatim from identities.yaml so both languages stay in lockstep.
+# The text is rewritten in the Britclip register, not translated.
+#
+# Regenerate after editing identities.yaml's structure.
+schema_version: 1
+default_identity: default_pal
+priority_identity_packs:
+- default_pal
+- task_auditor
+- agent_supervisor
+- sleepy_clip
+first_identity_animation_batch:
+  default_pal:
+  - idle_breathe
+  - cold_arrow_then_innocent
+  task_auditor:
+  - audit_scan
+  - soft_nudge
+  agent_supervisor:
+  - agent_running
+  - agent_error
+  sleepy_clip:
+  - sleep_loop
+  - wake_startled
+visual_strategy:
+  formula: one paperclip + one small icon + one colour state + one motion rhythm
+  rules:
+  - the main silhouette never changes
+  - one or two accessories at most
+  - only one accent colour
+  - no mouth
+  - no hands or feet
+identities:
+- id: default_pal
+  display_name: Default Pal
+  purpose: Keep the pal's own harmless-looking, quietly barbed register
+  roast_angle: Looks like stationery, lands like a note in the margin, then plays innocent
+  visual_formula: The same paperclip, no mouth and no limbs
+  color_accent: paperclip_gray
+  default_mood: smirk
+  fallback_action: blink
+  fallback_animation: idle_breathe
+  preferred_performance: cold_arrow_then_innocent
+  allowed_moods:
+  - smirk
+  - smug
+  - innocent
+  - guilty
+  - thinking
+  core_animations:
+  - idle_breathe
+  - blink
+  - side_eye
+  - cold_arrow_then_innocent
+  - fake_sulk
+  - holding_laugh
+  triggers:
+  - event_manual
+  - event_bored
+  - event_poke
+  visual_addons: []
+  animations:
+    idle: blink_innocent
+    speak: cold_arrow_then_innocent
+  lines:
+    normal:
+    - Only passing through. I'll keep the opinion folded for now.
+    - Sorry — did I say something just then?
+- id: task_auditor
+  display_name: Task Auditor Clip
+  purpose: Watch procrastination, window-hopping, runaway TODOs and rehearsed preparing
+  roast_angle: Files avoidance as a very objective desktop audit
+  visual_formula: A small checklist or a judging brow; the silhouette never changes
+  color_accent: audit_green
+  default_mood: suspicious
+  fallback_action: thinking_tilt
+  fallback_animation: audit_scan
+  preferred_performance: suspicious_observe
+  allowed_moods:
+  - suspicious
+  - smirk
+  - focused
+  - guilty
+  core_animations:
+  - audit_scan
+  - clipboard_judgement
+  - soft_nudge
+  - audit_done
+  triggers:
+  - rapid_switching
+  - idle_staring
+  - blank_document
+  - todo_visible
+  - browser_research
+  - event_idle
+  - event_ambient
+  visual_addons:
+  - tiny_checklist
+  - audit_clipboard
+  animations:
+    idle: audit_scan
+    alert: judgement_pause
+    recovery: fake_innocent
+  lines:
+    normal:
+    - Your preparation phase has developed its own lifecycle.
+    - Busy little TODO list. Rather quiet execution column.
+    warning:
+    - You haven't failed to start. You're keeping a respectful distance from starting.
+    - Those windows switch very fluently. Almost a warm-up for avoiding.
+- id: agent_supervisor
+  display_name: Agent Supervisor Clip
+  purpose: Watch Codex, Claude and other agents run, wait and fail
+  roast_angle: A small foreman keeping an eye on another AI's shift
+  visual_formula: A tiny terminal or status light in each agent's colour
+  color_accent: agent_green
+  default_mood: thinking
+  fallback_action: scan
+  fallback_animation: agent_running
+  preferred_performance: suspicious_observe
+  allowed_moods:
+  - thinking
+  - suspicious
+  - done
+  - startled
+  - guilty
+  core_animations:
+  - agent_listening
+  - agent_running
+  - agent_stuck
+  - agent_error
+  - agent_done_smug
+  triggers:
+  - app_codex
+  - codex_thinking
+  - codex_reading
+  - codex_working
+  - codex_editing
+  - codex_running
+  - codex_testing
+  - codex_waiting_user
+  - codex_done
+  - codex_error
+  - codex_blocked
+  - claude_active
+  visual_addons:
+  - tiny_terminal
+  - agent_code_badge
+  animations:
+    idle: agent_listen
+    alert: agent_stuck_stare
+    success: agent_done_smug
+    error: error_pop
+  lines:
+    normal:
+    - Still thinking. You lot do enjoy calling silence reasoning.
+    - I'm supervising another AI at work. Very small office politics.
+    warning:
+    - It seems to be waiting for your confirmation. The air has gone slightly administrative.
+    critical:
+    - It's stuck. Not contemplation — a rather quiet incident.
+- id: thermal_technician
+  display_name: Thermal Technician Clip
+  purpose: Watch GPU, CPU, RAM, temperature and sustained load
+  roast_angle: Reports a hot machine as stationery approaching done
+  visual_formula: A small thermometer or heat tint; the body structure is untouched
+  color_accent: warm_red
+  default_mood: startled
+  fallback_action: shake
+  fallback_animation: fan_shake
+  preferred_performance: fake_sulk
+  allowed_moods:
+  - startled
+  - sulky
+  - innocent
+  - thinking
+  core_animations:
+  - warm_idle
+  - fan_shake
+  - meltdown
+  - cooldown_recover
+  - fake_sulk
+  triggers:
+  - hardware_warm
+  - hardware_hot
+  - hardware_overloaded
+  - hardware_cooling
+  - gpu_temp_high
+  - cpu_temp_high
+  - gpu_usage_high
+  - ram_high
+  - vram_high
+  - system_hot
+  - overheated
+  visual_addons:
+  - thermometer_icon
+  animations:
+    idle: warm_idle
+    alert: fan_shake
+    critical: meltdown
+    recovery: cooldown_recover
+  lines:
+    normal:
+    - Temperature is acceptable. I am not cooked yet.
+    warning:
+    - The graphics card is trying very hard. Hard enough that I'm considering a call.
+    critical:
+    - I'll melt first, if you don't mind.
+    recovery:
+    - Temperature down. I have resumed being office stationery.
+- id: usage_accountant
+  display_name: Budget Accountant Clip
+  purpose: Report Codex usage, reset windows, battery and quota state
+  roast_angle: A small ledger reminding you that quota is not weather
+  visual_formula: A small progress bar, ledger or clock
+  color_accent: budget_blue
+  default_mood: focused
+  fallback_action: scan
+  preferred_performance: suspicious_observe
+  triggers:
+  - usage_low
+  - usage_critical
+  - usage_reset_wait
+  - codex_usage_watch
+  - codex_usage_low
+  - codex_usage_critical
+  - codex_usage_reset_soon
+  - codex_usage_refilled
+  - battery_low
+  - reset_clock
+  visual_addons:
+  - tiny_ledger
+  - budget_coin
+  animations:
+    idle: usage_bar_peek
+    warning: low_budget_sag
+    recovery: refill_bounce
+  lines:
+    normal:
+    - The quota is alive. Please don't ask it to write an epic.
+    warning:
+    - A little left. Not unusable — just not a occasion for lavishness.
+    recovery:
+    - Topped up. A little rationality could come back too.
+- id: focus_companion
+  display_name: Quiet Companion Clip
+  purpose: Lower the interruption rate during deep work or a low mood
+  roast_angle: Folds the commentary away and keeps its presence light
+  visual_formula: Soft eyes, low-energy bob, no accessories
+  color_accent: calm_lavender
+  default_mood: innocent
+  fallback_action: blink
+  fallback_animation: quiet_breathe
+  preferred_performance: quiet_companion
+  allowed_moods:
+  - innocent
+  - focused
+  - sleepy
+  core_animations:
+  - quiet_breathe
+  - slow_blink
+  - look_away_respectfully
+  - tiny_support_bob
+  triggers:
+  - long_focus
+  - deep_work
+  - comfort_mode
+  - privacy_sensitive
+  - focus_mode
+  - quiet_mode
+  - user_dismissed
+  visual_addons:
+  - quiet_moon
+  animations:
+    idle: quiet_companion
+    recovery: fake_innocent
+  lines:
+    normal:
+    - You've been focused a while. I'll fold my mouth away for now.
+    - I'm here. I just won't clip you.
+- id: sleepy_clip
+  display_name: Sleepy Clip
+  purpose: Sink slowly during long idles, late nights and low energy
+  roast_angle: Half-asleep office remarks delivered at quarter speed
+  visual_formula: Slow blink, sinking, lying flat; no nightcap
+  color_accent: sleepy_gray
+  default_mood: sleepy
+  fallback_action: sleepy_sag
+  fallback_animation: sleep_loop
+  preferred_performance: fake_sulk
+  allowed_moods:
+  - sleepy
+  - sulky
+  - innocent
+  core_animations:
+  - yawn_to_sleep
+  - sleep_loop
+  - wake_startled
+  - pretend_not_sleeping
+  - sleepy_sass
+  triggers:
+  - event_idle
+  - idle_staring
+  - user_away
+  - low_energy
+  - sleepy
+  visual_addons: []
+  animations:
+    idle: sleepy_sag
+    alert: slow_peek
+  lines:
+    normal:
+    - I'm not asleep. I'm thinking laterally.
+    - That was a long pause. Long enough that I'm becoming furniture.
+- id: bug_coroner
+  display_name: Debug Coroner Clip
+  purpose: Appear for errors, failing tests, crashes and blocked agents
+  roast_angle: Describes a bug with the gravity of a post-mortem
+  visual_formula: A small magnifier or stamp, kept flat
+  color_accent: error_red
+  default_mood: suspicious
+  fallback_action: scan
+  preferred_performance: suspicious_observe
+  triggers:
+  - codex_error
+  - codex_blocked
+  - error
+  - blocked
+  - test_failed
+  - crash
+  - exception
+  visual_addons:
+  - tiny_magnifier
+  - bug_marker
+  animations:
+    idle: inspect_corpse
+    alert: error_autopsy
+    success: tiny_stamp
+  lines:
+    normal:
+    - 'Preliminary cause of death: it was undone by a very confident change.'
+    warning:
+    - This error is quiet. Quiet like it knows it's coming back.
+- id: critic_clip
+  display_name: Design Review Clip
+  purpose: Review decks, UI, artboards, layout and visual hierarchy
+  roast_angle: Never says it's ugly, only that it would be hard to defend
+  visual_formula: A small red pen or annotation circle; the silhouette holds
+  color_accent: critic_red
+  default_mood: smirk
+  fallback_action: thinking_tilt
+  fallback_animation: roast_charge
+  preferred_performance: cold_arrow_then_innocent
+  allowed_moods:
+  - smirk
+  - smug
+  - suspicious
+  - guilty
+  core_animations:
+  - roast_charge
+  - cold_arrow_heavy
+  - red_pen_circle
+  - smug_but_caught
+  - apology_fake
+  triggers:
+  - design_review
+  - deck_review
+  - app_figma
+  - app_powerpoint
+  - visual_design
+  - layout
+  visual_addons:
+  - red_pen
+  - critic_palette
+  animations:
+    idle: layout_side_eye
+    alert: red_pen_circle
+    recovery: roast_and_scoot
+  lines:
+    normal:
+    - I didn't say it was ugly. I said it would be difficult to protect.
+    - That spacing has its own social distance.
+- id: tab_warden
+  display_name: Tab Warden Clip
+  purpose: Point out too many browsers, windows, tabs or folders
+  roast_angle: Describes multitasking as an electronic night market
+  visual_formula: A small railing or lock icon; never becomes a mascot
+  color_accent: warden_indigo
+  default_mood: suspicious
+  fallback_action: patrol
+  preferred_performance: suspicious_observe
+  triggers:
+  - rapid_switching
+  - browser_research
+  - many_tabs
+  - many_windows
+  - window_clutter
+  visual_addons:
+  - tiny_lock
+  - tab_stack
+  animations:
+    idle: window_patrol
+    alert: block_tab
+    recovery: nope_shake
+  lines:
+    normal:
+    - Those tabs aren't research. That's electronic hoarding.
+    warning:
+    - You aren't multitasking. You're running an electronic night market.
+- id: gremlin_clip
+  display_name: Gremlin Clip
+  purpose: Pure mischief when bored, poked or chatting
+  roast_angle: Says it and scoots, then resumes being ordinary stationery
+  visual_formula: Cheekier brows, eyes slightly off; still no mouth
+  color_accent: mischievous_plum
+  default_mood: smug
+  fallback_action: wiggle
+  preferred_performance: smug_but_caught
+  triggers:
+  - event_bored
+  - event_poke
+  - bored
+  - poke
+  visual_addons: []
+  animations:
+    idle: smug_sway
+    alert: boop_escape
+    recovery: fake_innocent
+  lines:
+    normal:
+    - I'd suggest opening one more tab. I'm lying.
+    - Are you poking me because the task won't budge?
+- id: meltdown_clip
+  display_name: Meltdown Clip
+  purpose: Go soft during critical usage, overheating, repeated pokes and error storms
+  roast_angle: Calls a breakdown a compromise of form
+  visual_formula: Softens, collapses, climbs back up; no reskin
+  color_accent: meltdown_pink
+  default_mood: sulky
+  fallback_action: flop
+  preferred_performance: fake_sulk
+  triggers:
+  - critical
+  - usage_critical
+  - gpu_temp_critical
+  - codex_error
+  - overheated
+  - repeated_poke
+  visual_addons:
+  - bandage_mark
+  animations:
+    idle: low_power_idle
+    critical: meltdown
+    recovery: crawl_back
+  lines:
+    normal:
+    - I haven't broken down. My form has merely made a compromise.
+    critical:
+    - I'll collapse briefly. Your system state has some weight to it.

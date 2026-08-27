@@ -23,7 +23,7 @@ git status --short --ignored
 ## 2. Scan For Secrets And Local Paths
 
 ```powershell
-rg -n "(sk-|AIza|ghp_|github_pat|OPENAI_ADMIN_KEY|GEMINI_API_KEY|GOOGLE_API_KEY|ANTHROPIC|password|secret|token|C:\\\\Users|D:\\\\)" -S .
+git grep -n -E "sk-|AIza|ghp_|github_pat|OPENAI_ADMIN_KEY=|OPENAI_API_KEY=|GEMINI_API_KEY=|GOOGLE_API_KEY=|ANTHROPIC_API_KEY=|Bearer [A-Za-z0-9._-]{20,}"
 ```
 
 Inspect matches manually. Documentation may mention environment variable names,
@@ -41,17 +41,20 @@ GIFs are not blank.
 ## 4. Validate Python Files
 
 ```powershell
-python -m py_compile scripts\generate_demo_gifs.py
-python -m python_pal.main --self-test
+python -m compileall -q jiajia scripts tests
+python -m unittest discover -s tests
+python -m jiajia.main --self-test
 ```
 
 ## 5. Commit Public Files
 
-Stage only intentional public files:
+Stage only intentional public files. Raw concept exports under
+`jiajia/assets/paperclip/` should stay ignored.
 
 ```powershell
-git add README.md PRIVACY.md LICENSE .gitignore docs scripts/generate_demo_gifs.py
-git commit -m "Prepare public repository docs and demos"
+git status --short
+git add -A
+git commit -m "Prepare public repository"
 git push
 ```
 
@@ -60,7 +63,7 @@ git push
 After the checks pass:
 
 ```powershell
-gh repo edit cloudinjun/paperclip-pal --visibility public
+gh repo edit cloudinjun/jiajia --visibility public
 ```
 
 GitHub may ask for confirmation. Do not run this until the secret scan and

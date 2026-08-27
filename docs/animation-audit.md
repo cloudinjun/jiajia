@@ -4,7 +4,7 @@ This audit scores each visible animation for intent clarity and character appeal
 
 Scores use a 10-point scale:
 
-- 9-10: immediately readable and strongly specific to Paperclip Pal
+- 9-10: immediately readable and strongly specific to Jiajia
 - 7-8: readable, but can use stronger timing or character detail
 - 5-6: functional but generic
 - below 5: mostly a utility movement rather than character animation

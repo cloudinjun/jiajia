@@ -45,7 +45,12 @@ BODY_CURVES = (
 )
 BODY_MAIN_CURVES = BODY_CURVES[:-1]
 TAIL_START = BODY_CURVES[-2][2]
-TAIL_CURVES = (BODY_CURVES[-1],)
+# free tip extension, kept in sync with jiajia.body.TAIL_TIP_EXTENSION
+TAIL_TIP_EXTENSION = (
+    ((301.0, 250.726), (312.5, 243.0), (319.0, 233.0)),
+    ((319.0, 233.0), (325.5, 223.5), (329.5, 211.0)),
+)
+TAIL_CURVES = (BODY_CURVES[-1], *TAIL_TIP_EXTENSION)
 LEFT_BROW_START = (64.0, 56.7265)
 LEFT_BROW_CURVES = (
     ((64.0, 56.7265), (81.7087, 52.8505), (93.2292, 52.7265)),
@@ -131,7 +136,7 @@ BROW_POSES: dict[str, BrowPose] = {
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate public demo GIFs for Paperclip Pal.")
+    parser = argparse.ArgumentParser(description="Generate public demo GIFs for Jiajia.")
     parser.add_argument(
         "--out",
         type=Path,
