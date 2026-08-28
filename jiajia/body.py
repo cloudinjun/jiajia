@@ -18,7 +18,7 @@ from typing import ClassVar, NotRequired, TypedDict
 from collections.abc import Callable
 
 from .activity import ActivityPolicy, policy_for_frequency
-from .actions import ACTION_LABELS, ACTION_MENU_GROUPS
+from .actions import ACTION_LABELS, ACTION_MENU_GROUPS, action_label, menu_group_label
 from .alive import AliveCue, AliveLayer
 from .anim_physics import (
     SquashStretchSpring, ExpressionTweener, easing_for_action,
@@ -40,6 +40,9 @@ from .claude_usage import ClaudeUsageMonitor, ClaudeUsageStatus
 from .codex_status import CodexStatus, CodexStatusMonitor
 from .codex_usage import CodexUsageMonitor, CodexUsageStatus, format_reset_in
 from .decision import DecisionEngine, DecisionResult
+from .audio_ears import (
+    AudioEars, AudioEventDetector, announcement_allowed_for, audio_flavor, audio_line,
+)
 from .ears import Ears
 from .event_log import EventLog
 from .eyes import Eyes
@@ -134,7 +137,7 @@ from .svg_canvas import draw_svg_asset
 from .world import MoodSnapshot, WorldState
 
 
-BUBBLE_WIDTH = 260
+BUBBLE_WIDTH = 300
 BUBBLE_MIN_WIDTH = 150
 BUBBLE_MIN_HEIGHT = 72
 BUBBLE_MAX_LINES = 5
@@ -183,6 +186,7 @@ STATUS_BADGES: dict[str, tuple[str, str, str]] = {
 }
 CODEX_STATUS_POLL_MS = 2500
 CODEX_USAGE_POLL_MS = 60_000
+AUDIO_POLL_MS = 2500
 CLAUDE_STATUS_POLL_MS = 8000
 CLAUDE_USAGE_POLL_MS = 120_000
 CLAUDE_ACCOUNT_USAGE_POLL_MS = 60_000
@@ -287,6 +291,8 @@ class JiajiaApp(
         self.chat_brain = PalChatBrain(soul)
         self.chat_session = ChatSession()
         self.ears = Ears()
+        self.audio_ears = AudioEars()
+        self._audio_events = AudioEventDetector()
         self._eyes: Eyes | None = None
         self._eyes_model = soul.vision_model
         self.codex_status = CodexStatusMonitor(project_root / "codex_status.json")
@@ -552,6 +558,7 @@ class JiajiaApp(
         self.root.after(100, self._poll_brain)
         self.root.after(1500, self._poll_codex_status)
         self.root.after(6000, self._poll_codex_usage)
+        self.root.after(9000, self._poll_audio)
         self.root.after(3500, self._poll_claude_status)
         self.root.after(7500, self._poll_claude_usage)
         self.root.after(8000, self._poll_claude_account_usage)
@@ -656,26 +663,26 @@ class JiajiaApp(
         lang = self.soul.language
         self.menu = tk.Menu(self.root, tearoff=False)
         self.menu.add_command(label=menu_label("talk", lang), command=self._open_chat_input)
-        self.menu.add_command(label="Say something", command=lambda: self._ask_brain("manual"))
-        self.menu.add_command(label="Poke", command=lambda: self._poke(force=True))
+        self.menu.add_command(label=menu_label("say_something", lang), command=lambda: self._ask_brain("manual"))
+        self.menu.add_command(label=menu_label("poke", lang), command=lambda: self._poke(force=True))
 
         status_menu = tk.Menu(self.menu, tearoff=False)
-        status_menu.add_command(label="Status overview", command=self._show_status_overview)
+        status_menu.add_command(label=menu_label("status_overview", lang), command=self._show_status_overview)
         status_menu.add_separator()
-        status_menu.add_command(label="Codex status", command=self._show_codex_status)
-        status_menu.add_command(label="Codex usage", command=self._show_codex_usage)
-        status_menu.add_command(label="Claude status", command=self._show_claude_status)
-        status_menu.add_command(label="Claude usage", command=self._show_claude_usage)
-        status_menu.add_command(label="Claude account usage", command=self._show_claude_account_usage)
-        status_menu.add_command(label="OpenAI API billing", command=self._show_openai_billing)
-        status_menu.add_command(label="Hardware status", command=self._show_hardware_status)
+        status_menu.add_command(label=menu_label("codex_status", lang), command=self._show_codex_status)
+        status_menu.add_command(label=menu_label("codex_usage", lang), command=self._show_codex_usage)
+        status_menu.add_command(label=menu_label("claude_status", lang), command=self._show_claude_status)
+        status_menu.add_command(label=menu_label("claude_usage", lang), command=self._show_claude_usage)
+        status_menu.add_command(label=menu_label("claude_account_usage", lang), command=self._show_claude_account_usage)
+        status_menu.add_command(label=menu_label("openai_billing", lang), command=self._show_openai_billing)
+        status_menu.add_command(label=menu_label("hardware_status", lang), command=self._show_hardware_status)
         status_menu.add_separator()
-        status_menu.add_command(label="Last events", command=self._show_last_events)
-        status_menu.add_command(label="Morning digest", command=self._show_morning_digest)
-        self.menu.add_cascade(label="Status", menu=status_menu)
+        status_menu.add_command(label=menu_label("last_events", lang), command=self._show_last_events)
+        status_menu.add_command(label=menu_label("morning_digest", lang), command=self._show_morning_digest)
+        self.menu.add_cascade(label=menu_label("status", lang), menu=status_menu)
 
         action_menu = tk.Menu(self.menu, tearoff=False)
-        action_menu.add_command(label="Boredom line", command=lambda: self._ask_brain("bored"))
+        action_menu.add_command(label=menu_label("boredom_line", lang), command=lambda: self._ask_brain("bored"))
         action_menu.add_command(label=menu_label("cheesy_love", lang), command=self._ask_cheesy_love)
         action_menu.add_command(label=menu_label("quiz", lang), command=lambda: self._offer_absurd_quiz(force=True))
         action_menu.add_separator()
@@ -683,16 +690,16 @@ class JiajiaApp(
             group_menu = tk.Menu(action_menu, tearoff=False)
             for action_id in action_ids:
                 group_menu.add_command(
-                    label=ACTION_LABELS[action_id],
+                    label=action_label(action_id, lang),
                     command=lambda action_id=action_id: self._perform_action(action_id),
                 )
-            action_menu.add_cascade(label=group_label, menu=group_menu)
-        self.menu.add_cascade(label="Actions", menu=action_menu)
+            action_menu.add_cascade(label=menu_group_label(group_label, lang), menu=group_menu)
+        self.menu.add_cascade(label=menu_label("actions", lang), menu=action_menu)
 
         mode_menu = tk.Menu(self.menu, tearoff=False)
         identity_menu = tk.Menu(self.menu, tearoff=False)
         identity_menu.add_radiobutton(
-            label="Auto",
+            label=menu_label("identity_auto", lang),
             variable=self._identity_var,
             value="auto",
             command=lambda: self._set_identity("auto"),
@@ -704,7 +711,7 @@ class JiajiaApp(
                 value=pack.id,
                 command=lambda identity_id=pack.id: self._set_identity(identity_id),
             )
-        mode_menu.add_cascade(label="Identity", menu=identity_menu)
+        mode_menu.add_cascade(label=menu_label("identity", lang), menu=identity_menu)
         language_menu = tk.Menu(self.menu, tearoff=False)
         for language, label in LANGUAGE_OPTIONS:
             language_menu.add_radiobutton(
@@ -722,27 +729,26 @@ class JiajiaApp(
                 value=key,
                 command=lambda k=key: self._set_frequency(k),
             )
-        activity_title = "Activity" if self.soul.language == "en" else "活跃度"
-        mode_menu.add_cascade(label=activity_title, menu=freq_menu)
+        mode_menu.add_cascade(label=menu_label("activity", lang), menu=freq_menu)
         tail_menu = tk.Menu(self.menu, tearoff=False)
         tail_menu.add_radiobutton(
-            label="Short (tip only)",
+            label=menu_label("tail_short", lang),
             variable=self._tail_mode_var,
             value="short",
             command=lambda: self._set_tail_mode("short"),
         )
         tail_menu.add_radiobutton(
-            label="Long (cat tail)",
+            label=menu_label("tail_long", lang),
             variable=self._tail_mode_var,
             value="long",
             command=lambda: self._set_tail_mode("long"),
         )
-        mode_menu.add_cascade(label="Tail", menu=tail_menu)
+        mode_menu.add_cascade(label=menu_label("tail_menu", lang), menu=tail_menu)
         mode_menu.add_separator()
-        mode_menu.add_command(label="Quiet 30 min", command=lambda: self._quiet_for(30 * 60))
-        mode_menu.add_checkbutton(label="Focus mode", variable=self._focus_var, command=self._toggle_focus_mode)
-        mode_menu.add_command(label="Summon / resume", command=self._resume_auto_reactions)
-        self.menu.add_cascade(label="Mode", menu=mode_menu)
+        mode_menu.add_command(label=menu_label("quiet_30", lang), command=lambda: self._quiet_for(30 * 60))
+        mode_menu.add_checkbutton(label=menu_label("focus_mode", lang), variable=self._focus_var, command=self._toggle_focus_mode)
+        mode_menu.add_command(label=menu_label("resume", lang), command=self._resume_auto_reactions)
+        self.menu.add_cascade(label=menu_label("mode", lang), menu=mode_menu)
 
         debug_menu = tk.Menu(self.menu, tearoff=False)
         preview_menu = tk.Menu(debug_menu, tearoff=False)
@@ -751,15 +757,15 @@ class JiajiaApp(
                 label=performance_id,
                 command=lambda performance_id=performance_id: self._preview_performance(performance_id),
             )
-        debug_menu.add_cascade(label="Animation Preview", menu=preview_menu)
+        debug_menu.add_cascade(label=menu_label("animation_preview", lang), menu=preview_menu)
         debug_menu.add_separator()
-        debug_menu.add_command(label="Scripted demo", command=self._run_scripted_demo)
-        debug_menu.add_command(label="Debug last decision", command=self._show_last_decision_debug)
-        debug_menu.add_command(label="Last chat context", command=self._show_last_chat_context)
-        debug_menu.add_command(label="Debug animation", command=self._show_last_animation_debug)
-        debug_menu.add_command(label="Debug aliveness", command=self._show_alive_debug)
-        debug_menu.add_command(label="Debug identity", command=self._show_identity_debug)
-        self.menu.add_cascade(label="Developer", menu=debug_menu)
+        debug_menu.add_command(label=menu_label("scripted_demo", lang), command=self._run_scripted_demo)
+        debug_menu.add_command(label=menu_label("debug_decision", lang), command=self._show_last_decision_debug)
+        debug_menu.add_command(label=menu_label("debug_chat_context", lang), command=self._show_last_chat_context)
+        debug_menu.add_command(label=menu_label("debug_animation", lang), command=self._show_last_animation_debug)
+        debug_menu.add_command(label=menu_label("debug_alive", lang), command=self._show_alive_debug)
+        debug_menu.add_command(label=menu_label("debug_identity", lang), command=self._show_identity_debug)
+        self.menu.add_cascade(label=menu_label("developer", lang), menu=debug_menu)
 
         self.menu.add_separator()
         self.menu.add_command(label=menu_label("quit", lang), command=self._quit)
@@ -1499,6 +1505,7 @@ class JiajiaApp(
     def _world_state(self) -> WorldState:
         return WorldState(
             user_activity=self.ears.sample(),
+            audio=self.audio_ears.sample(),
             screen=self.eyes.sample(),
             codex=self.codex_status.sample(),
             codex_usage=self._last_codex_usage_status,
@@ -1666,6 +1673,42 @@ class JiajiaApp(
         if status.level in {"unavailable", "normal"} or status.stale:
             return False
         return bool(status.event_id and status.event_id != self._logged_codex_usage_event)
+
+    def _poll_audio(self) -> None:
+        """Hear the room and, when something actually changed, say so once.
+
+        The detector owns the signal judgement (sustains, cooldowns, one event
+        at a time); this owns the manners: nothing while auto reactions are
+        paused, nothing in a quiet tier, nothing while a bubble is up or the
+        brain is talking — and nothing at all during a call, because a bubble
+        popping up mid screen-share is an incident, not a companion.
+        """
+        context = self.audio_ears.sample()
+        ear = self.ears.sample()
+        event = self._audio_events.observe(context, time.time(), ear.app_category)
+        if event and self._should_announce_audio(ear.app_category):
+            flavor = self._audio_events.session_flavor
+            line = audio_line(event, flavor, self.soul.language)
+            if line:
+                mood, action = {
+                    "audio_started": ("smirk", "curious_lean"),
+                    "audio_loud": ("suspicious", "peek"),
+                    "audio_marathon": ("thinking", "thinking_tilt"),
+                    "audio_ended": ("thinking", "blink"),
+                }.get(event, ("smirk", "blink"))
+                self._apply_reaction(
+                    Reaction(True, line, mood, action, "thought", "", event=event)
+                )
+        self.root.after(self._adaptive_poll_ms(AUDIO_POLL_MS), self._poll_audio)
+
+    def _should_announce_audio(self, app_category: str) -> bool:
+        if not announcement_allowed_for(app_category):
+            return False
+        if self._auto_reactions_paused():
+            return False
+        if not self._activity_policy().ambient_enabled:
+            return False
+        return not (self.state.brain_busy or self._bubble_items)
 
     def _should_announce_codex_usage(self, status: CodexUsageStatus) -> bool:
         if self._auto_reactions_paused():
@@ -2926,6 +2969,10 @@ class JiajiaApp(
 
     def _animate(self) -> None:
         self._anim_tick += 1
+        # topmost decays on Windows (newer topmost windows insert above, shell
+        # events demote); re-assert every ~3s so the pet stays a desktop pet
+        if self._anim_tick % 90 == 0:
+            self._assert_windows_on_top()
         self._anim_t += ANIM_TICK_SCALE
         self.mood.tick()
         rate = self.mood.breath_rate()
@@ -3237,7 +3284,10 @@ class JiajiaApp(
         self.bubble_canvas.configure(width=bubble_width, height=bubble_height)
         self._position_bubble(bubble_height, bubble_width)
         self.bubble_root.deiconify()
-        self.bubble_root.lift()
+        # raise the pal WITH its bubble — lifting only the bubble is how the
+        # bubble ended up floating over other windows while the pal stayed
+        # buried behind them
+        self._assert_windows_on_top()
 
         x1, y1 = 4, 4
         x2 = bubble_width - 4
@@ -3308,6 +3358,15 @@ class JiajiaApp(
         self._animate_thought_dots()
 
     def _animate_thought_dots(self) -> None:
+        """Bob the thought-trail dots. Stale-proof by construction.
+
+        These three dots (radii 5 / 3.5 / 2.2, reticking every 95ms) are the
+        only blinking three-element drawing in the app, so any leftover copy of
+        them inside a later bubble means this animator outlived its items. If a
+        dot id is ever dead, stop the whole animation rather than keep poking
+        the canvas — a silently dying frame is invisible; a surviving orphan
+        blinks in the corner of the next bubble.
+        """
         if not self._thought_dot_items:
             self._thought_dot_after = None
             return
@@ -3319,13 +3378,19 @@ class JiajiaApp(
             pulse = (math.sin(self._thought_dot_phase * 0.72 - index * 0.9) + 1) / 2
             animated_radius = radius * (0.72 + pulse * 0.42)
             animated_y = cy - pulse * 2.4
-            self.bubble_canvas.coords(
-                item,
-                cx - animated_radius,
-                animated_y - animated_radius,
-                cx + animated_radius,
-                animated_y + animated_radius,
-            )
+            try:
+                self.bubble_canvas.coords(
+                    item,
+                    cx - animated_radius,
+                    animated_y - animated_radius,
+                    cx + animated_radius,
+                    animated_y + animated_radius,
+                )
+            except tk.TclError:
+                self._thought_dot_items.clear()
+                self._thought_dot_base.clear()
+                self._thought_dot_after = None
+                return
         self._thought_dot_after = self.root.after(95, self._animate_thought_dots)
 
     def _position_bubble(self, bubble_height: int | None = None, bubble_width: int | None = None) -> None:
