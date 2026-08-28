@@ -669,6 +669,11 @@ TAIL_OSCILLATIONS: dict[str, dict[str, object]] = {
     "tail_bell_jingle": {"freq": 1.1, "amp": 29.0, "cycles": 1.5, "attack": 0.25, "decay": 0.35, "wave": 0.7, "engage": TAIL_TIP_ENGAGE},
 }
 
+# How fast a swing loses amplitude, as a multiple of the whole motion. At 1.6
+# the last pass carries about 20% of the first — a stiff wire, not a spring.
+METAL_DAMPING = 1.6
+
+
 def tail_oscillation_pose(params: dict[str, object], t_seconds: float, duration_override: float = 0.0):
     """Sample a tail oscillation at time t.
 
@@ -689,6 +694,14 @@ def tail_oscillation_pose(params: dict[str, object], t_seconds: float, duration_
         env = _smoothstep((duration - t_seconds) / decay)
     else:
         env = 1.0
+    # Steel loses energy; rubber stores it. The envelope above is a trapezoid —
+    # it held FULL amplitude across the middle, so the tail swung as hard on
+    # its seventh pass as its first. That constant-amplitude wobble is what
+    # reads as gum. A real wire's free vibration decays exponentially, so the
+    # first swing is the big one and each one after is visibly smaller.
+    damping = float(params.get("damping", METAL_DAMPING))
+    if damping > 0.0:
+        env *= math.exp(-damping * (t_seconds / duration))
     phase = -2.0 * math.pi * freq * t_seconds  # wave travels root → tip
     return (
         float(params["amp"]) * env,

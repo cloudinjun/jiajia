@@ -236,6 +236,12 @@ def posed_tail_points(
     return points
 
 
+# Curvature gains for the inner wire, calibrated so the existing gesture
+# amplitudes keep roughly their old on-screen travel. See posed_chin_points.
+_CHIN_TIP_GAIN = 0.000084
+_CHIN_MID_GAIN = 0.000116
+
+
 def posed_chin_points(
     base_coords: tuple[float, ...],
     amount_x: float = 0.0,
@@ -243,26 +249,61 @@ def posed_chin_points(
     mid_x: float = 0.0,
     mid_y: float = 0.0,
 ) -> list[tuple[float, float]]:
-    """Displace the inner core with virtual mid/tip anchors.
+    """Pose the inner core by BENDING it, never by stretching it.
 
-    Positive `amount_y` curls the free tip upward. The inner core path runs from
-    its free upper tip toward the body joint, so the final point stays locked and
-    the core never visually detaches from the body.
+    The core is a length of the same steel as the body, and it is the pal's
+    hand: it presses against the mouth and its tip articulates. So it is posed
+    the way the tail is — integrate a curvature profile along the wire and let
+    position fall out of the headings. Two consequences matter:
+
+      * length is exactly preserved, because every segment keeps the length it
+        had and only its direction changes. The previous displacement model
+        stretched the wire by up to 4.4%, which is what read as elastic.
+      * the bend is a C, not an S. Curvature here keeps one sign along the
+        wire; the old model subtracted a full sine period, bowing the wire one
+        way then the other, which is a whip and not an arm.
+
+    `amount_*` drives the free tip, `mid_*` bows the middle. The array runs
+    from the free upper tip toward the body joint, so integration walks it
+    backwards: the joint is the anchor, and error accumulates toward the tip
+    where it belongs.
     """
-    pair_count = max(1, len(base_coords) // 2)
-    points: list[tuple[float, float]] = []
-    for index in range(pair_count):
-        x = base_coords[index * 2]
-        y = base_coords[index * 2 + 1]
-        progress = index / max(1, pair_count - 1)
-        free_progress = 1.0 - progress
-        root_lock = _smoothstep(free_progress)
-        tip_bias = free_progress ** 1.45
-        mid_bias = math.sin(progress * math.pi) ** 1.2
-        counter_bias = math.sin(progress * math.pi * 2.0) * 0.24
-        cx = amount_x * tip_bias + mid_x * mid_bias - amount_x * counter_bias
-        cy = amount_y * tip_bias + mid_y * mid_bias - amount_y * counter_bias * 0.5
-        cx *= root_lock
-        cy *= root_lock
-        points.append((x + cx, y - cy))
+    base = _uniform_wire(tuple(base_coords))
+    pair_count = max(1, len(base) // 2)
+    if pair_count < 3:
+        return [(base[i * 2], base[i * 2 + 1]) for i in range(pair_count)]
+
+    # walk root -> tip, then flip back to the caller's tip -> root order
+    reversed_coords: list[float] = []
+    for index in range(pair_count - 1, -1, -1):
+        reversed_coords.extend((base[index * 2], base[index * 2 + 1]))
+    rooted = tuple(reversed_coords)
+
+    lengths, base_angles, _turns = _base_frame(rooted)
+    arc = _arc_progress(rooted)
+
+    points = [(rooted[0], rooted[1])]
+    heading_extra = 0.0
+    for index, seg_len in enumerate(lengths):
+        progress = arc[index + 1]          # 0 at the joint, 1 at the free tip
+        # the joint is clamped, so bend has to grow away from it
+        anchor_gate = _smoothstep(min(1.0, progress / 0.28))
+        # tip drive: curvature rises toward the free end
+        tip_share = anchor_gate * progress
+        # mid drive: a single hump, so the wire bows once
+        mid_share = anchor_gate * math.sin(progress * math.pi)
+
+        kappa_x = -amount_x * _CHIN_TIP_GAIN * tip_share
+        kappa_x += -mid_x * _CHIN_MID_GAIN * mid_share
+        kappa_y = amount_y * _CHIN_TIP_GAIN * tip_share
+        kappa_y += mid_y * _CHIN_MID_GAIN * mid_share
+        # one bending plane: the two drives combine into a single signed
+        # curvature, which is what keeps the result a C rather than an S
+        heading_extra += (kappa_x + kappa_y) * seg_len
+
+        angle = base_angles[index] + heading_extra
+        px, py = points[-1]
+        points.append((px + math.cos(angle) * seg_len, py + math.sin(angle) * seg_len))
+
+    points.reverse()
     return points
