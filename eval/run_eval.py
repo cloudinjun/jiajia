@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from jiajia.animation_resolver import AnimationResolver
+from jiajia.console import make_printable
 from jiajia.ears import EarContext
 from jiajia.interruptibility import assess_interruptibility
 from jiajia.soul import _load_yaml
@@ -171,6 +172,7 @@ def score_resolver(scenarios: list[dict], report: Report) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    make_printable()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--verbose", action="store_true", help="print every failure")
     parser.add_argument("--json", action="store_true", help="emit machine-readable output")
