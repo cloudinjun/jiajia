@@ -261,6 +261,26 @@ told me so.
 
 ## Demo
 
+| User opens chat and asks | Active reply |
+|---|---|
+| ![Open chat, type, wait, and receive a reply](docs/media/user-chat.gif) | ![Jiajia speaking while active](docs/media/active-talking.gif) |
+
+| Poke reaction | Drag to reposition |
+|---|---|
+| ![User pokes Jiajia](docs/media/user-poke.gif) | ![User drags Jiajia to a new position](docs/media/user-drag.gif) |
+
+### Roast lines
+
+| Self-aware | Procrastination |
+|---|---|
+| ![My profession is clipping paper; my side job is telling the truth](docs/media/quotes/professional-truth.gif) | ![You work hard at not starting](docs/media/quotes/working-not-starting.gif) |
+
+| Coding | AI collaboration |
+|---|---|
+| ![Two lines written, three deleted, net output minus one](docs/media/quotes/negative-code-output.gif) | ![Two AIs and one human; the human has lost numerically](docs/media/quotes/two-ai-one-human.gif) |
+
+All 14 quote demos: [Jiajia roast GIF gallery](docs/media/quotes/README.md).
+
 | Idle | Cold arrow, then innocent | Sleepy |
 |---|---|---|
 | ![Idle breathe](docs/media/idle-breathe.gif) | ![Cold arrow then innocent](docs/media/cold-arrow-then-innocent.gif) | ![Sleepy sag](docs/media/sleepy-sag.gif) |

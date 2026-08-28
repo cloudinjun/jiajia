@@ -48,7 +48,7 @@ from .interruptibility import Interruptibility, assess_interruptibility
 from .openai_billing import OpenAIBillingMonitor, OpenAIBillingStatus
 from .care import CareEngine
 from .particles import ParticleEmitter
-from .language import LANGUAGE_OPTIONS, language_label, normalize_language, soul_path_for_language
+from .language import LANGUAGE_OPTIONS, language_label, menu_label, normalize_language, soul_path_for_language
 from .performance import PERFORMANCE_PHRASES, phrase_for_reaction
 from .performance_run import RunRegistry
 from .quiz import (
@@ -653,8 +653,9 @@ class JiajiaApp(
         self.canvas.bind("<Double-Button-1>", lambda _event: self._poke(force=True))
 
     def _install_menu(self) -> None:
+        lang = self.soul.language
         self.menu = tk.Menu(self.root, tearoff=False)
-        self.menu.add_command(label="Talk to 夹夹", command=self._open_chat_input)
+        self.menu.add_command(label=menu_label("talk", lang), command=self._open_chat_input)
         self.menu.add_command(label="Say something", command=lambda: self._ask_brain("manual"))
         self.menu.add_command(label="Poke", command=lambda: self._poke(force=True))
 
@@ -675,8 +676,8 @@ class JiajiaApp(
 
         action_menu = tk.Menu(self.menu, tearoff=False)
         action_menu.add_command(label="Boredom line", command=lambda: self._ask_brain("bored"))
-        action_menu.add_command(label="土味情话", command=self._ask_cheesy_love)
-        action_menu.add_command(label="Absurd quiz / 小测验", command=lambda: self._offer_absurd_quiz(force=True))
+        action_menu.add_command(label=menu_label("cheesy_love", lang), command=self._ask_cheesy_love)
+        action_menu.add_command(label=menu_label("quiz", lang), command=lambda: self._offer_absurd_quiz(force=True))
         action_menu.add_separator()
         for group_label, action_ids in ACTION_MENU_GROUPS:
             group_menu = tk.Menu(action_menu, tearoff=False)
@@ -712,7 +713,7 @@ class JiajiaApp(
                 value=language,
                 command=lambda language=language: self._set_language(language),
             )
-        mode_menu.add_cascade(label="Language / \u8bed\u8a00", menu=language_menu)
+        mode_menu.add_cascade(label=menu_label("language", lang), menu=language_menu)
         freq_menu = tk.Menu(self.menu, tearoff=False)
         for key, _mult in FREQUENCY_PRESETS:
             freq_menu.add_radiobutton(
@@ -761,7 +762,7 @@ class JiajiaApp(
         self.menu.add_cascade(label="Developer", menu=debug_menu)
 
         self.menu.add_separator()
-        self.menu.add_command(label="退出", command=self._quit)
+        self.menu.add_command(label=menu_label("quit", lang), command=self._quit)
 
     def _show_context_menu(self, event: tk.Event) -> None:
         self._popup_context_menu()

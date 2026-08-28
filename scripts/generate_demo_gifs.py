@@ -147,6 +147,10 @@ def main() -> None:
 
     args.out.mkdir(parents=True, exist_ok=True)
     build_hero(args.out / "hero-interaction.gif")
+    build_user_chat(args.out / "user-chat.gif")
+    build_active_talking(args.out / "active-talking.gif")
+    build_user_poke(args.out / "user-poke.gif")
+    build_user_drag(args.out / "user-drag.gif")
     build_idle(args.out / "idle-breathe.gif")
     build_cold_arrow(args.out / "cold-arrow-then-innocent.gif")
     build_sleepy(args.out / "sleepy-sag.gif")
@@ -241,6 +245,321 @@ def build_hero(path: Path) -> None:
         for _ in range(10)
     )
     save_gif(frames, path)
+
+
+def build_user_chat(path: Path) -> None:
+    """Show the real interaction loop: context menu, chat input, wait, reply."""
+    frames: list[Image.Image] = []
+    pointer_start = (314.0, 332.0)
+    pointer_pal = (218.0, 250.0)
+    pointer_talk = (238.0, 262.0)
+
+    for index in range(12):
+        t = motion_ease_in_out((index + 1) / 12)
+        pointer = lerp_point(pointer_start, pointer_pal, t)
+        frames.append(
+            render_frame(
+                action=(-1.5 * t, -1.0 * t, 1.0, 1.0),
+                eye="side_eye",
+                brows="soft",
+                pointer=(*pointer, False),
+            )
+        )
+
+    for index in range(3):
+        frames.append(
+            render_frame(
+                action=(-2, 2, 1.03, 0.96),
+                eye="wide",
+                brows="innocent",
+                pointer=(*pointer_pal, index < 2),
+                context_menu=-1 if index == 2 else None,
+            )
+        )
+
+    for index in range(10):
+        t = ui_ease_out((index + 1) / 10)
+        pointer = lerp_point(pointer_pal, pointer_talk, t)
+        frames.append(
+            render_frame(
+                action=(-5, 1, 0.94, 1.05),
+                eye="side_eye",
+                brows="judge",
+                pointer=(*pointer, False),
+                context_menu=0,
+            )
+        )
+
+    for index in range(3):
+        frames.append(
+            render_frame(
+                action=(-3, 2, 0.98, 1.02),
+                eye="round",
+                brows="soft",
+                pointer=(*pointer_talk, index < 2),
+                context_menu=0 if index < 2 else None,
+                chat_text="" if index == 2 else None,
+            )
+        )
+
+    prompt = "agent status?"
+    typed_steps = [prompt[:count] for count in range(len(prompt) + 1)]
+    for index, typed in enumerate(typed_steps):
+        phase = index / max(1, len(typed_steps) - 1)
+        frames.append(
+            render_frame(
+                action=(-2 + phase * 2, -1.5 * math.sin(phase * math.pi), 1.0, 1.0),
+                eye="round",
+                brows="soft",
+                chat_text=typed,
+            )
+        )
+    frames.extend(
+        render_frame(action=(0, -1, 1.0, 1.0), eye="round", brows="soft", chat_text=prompt)
+        for _ in range(4)
+    )
+
+    thinking = action_states("thinking_tilt")
+    for index in range(20):
+        frames.append(
+            render_frame(
+                action=thinking[index % len(thinking)],
+                eye="side_eye" if index > 8 else "neutral",
+                brows="judge" if index > 8 else "soft",
+                bubble=("thought", "Checking agent status...", USAGE),
+                badge=("C", CODEX),
+                effect="search_rings",
+                wire_color="#9fbdb5",
+            )
+        )
+
+    for index in range(32):
+        phase = index / 32.0
+        syllable = math.sin(phase * math.tau * 4)
+        frames.append(
+            render_frame(
+                action=(syllable * 0.7, -abs(syllable) * 1.5, 1.0 + abs(syllable) * 0.012, 1.0 - abs(syllable) * 0.016),
+                eye="blink" if index in {21, 22} else "wide",
+                brows="innocent",
+                bubble=("speech", "Codex is waiting.\nYour move.", CODEX),
+                badge=("C", CODEX),
+                talk_level=talk_level(phase),
+                tail_wag=math.sin(phase * math.tau * 2) * 4.0,
+                wire_color="#9fbdb5",
+            )
+        )
+
+    frames.extend(render_frame(eye="round", brows="innocent") for _ in range(8))
+    save_gif(frames, path, disposal=2)
+
+
+def build_active_talking(path: Path) -> None:
+    """A clean loop for an already-active pal speaking to the user."""
+    frames: list[Image.Image] = []
+    for index in range(72):
+        phase = index / 72.0
+        syllable = math.sin(phase * math.tau * 9)
+        breath = math.sin(phase * math.tau)
+        frames.append(
+            render_frame(
+                action=(breath * 0.8, -abs(syllable) * 1.6, 1.0 + abs(syllable) * 0.01, 1.0 - abs(syllable) * 0.015),
+                eye="blink" if index in {43, 44} else "round",
+                brows="soft",
+                bubble=("speech", "The agents are working.\nI am keeping watch.", USAGE),
+                talk_level=talk_level(phase),
+                tail_wag=math.sin(phase * math.tau * 2) * 4.5,
+                wire_color="#9daebf",
+            )
+        )
+    save_gif(frames, path, disposal=2)
+
+
+def build_user_poke(path: Path) -> None:
+    """Show direct click feedback and the short spoken reaction it triggers."""
+    frames: list[Image.Image] = []
+    pointer_start = (316.0, 330.0)
+    pointer_hit = (198.0, 236.0)
+
+    for index in range(12):
+        t = motion_ease_in_out((index + 1) / 12)
+        pointer = lerp_point(pointer_start, pointer_hit, t)
+        frames.append(
+            render_frame(
+                eye="side_eye",
+                brows="judge",
+                pointer=(*pointer, False),
+                tail_wag=-2.0 * t,
+            )
+        )
+
+    pressed = (0.0, 7.0, 1.07, 0.90)
+    for index in range(3):
+        t = ui_ease_out((index + 1) / 3)
+        frames.append(
+            render_frame(
+                action=lerp_action((0.0, 0.0, 1.0, 1.0), pressed, t),
+                eye="wide",
+                brows="innocent",
+                pointer=(*pointer_hit, True),
+                tail_wag=-7.0,
+            )
+        )
+
+    rebound = (0.0, -5.0, 0.96, 1.07)
+    for index in range(4):
+        t = ui_ease_out((index + 1) / 4)
+        frames.append(
+            render_frame(
+                action=lerp_action(pressed, rebound, t),
+                eye="wide",
+                brows="innocent",
+                pointer=(*pointer_hit, False),
+                tail_wag=9.0,
+            )
+        )
+
+    for index in range(9):
+        t = ui_ease_out((index + 1) / 9)
+        frames.append(
+            render_frame(
+                action=lerp_action(rebound, (0.0, 0.0, 1.0, 1.0), t),
+                eye="side_eye",
+                brows="judge",
+                bubble=("speech", "Yes? That was my face.", BROW),
+                pointer=(*pointer_hit, False),
+                talk_level=talk_level(index / 9.0),
+                tail_wag=9.0 * (1.0 - t),
+            )
+        )
+
+    for index in range(22):
+        phase = index / 22.0
+        pointer = lerp_point(pointer_hit, pointer_start, motion_ease_in_out(phase))
+        frames.append(
+            render_frame(
+                action=(math.sin(phase * math.pi) * -1.2, 0, 1.0, 1.0),
+                eye="blink" if index in {13, 14} else "side_eye",
+                brows="judge",
+                bubble=("speech", "Yes? That was my face.", BROW),
+                pointer=(*pointer, False),
+                talk_level=talk_level(phase) if index < 10 else 0,
+                tail_wag=-math.sin(phase * math.pi) * 3.0,
+            )
+        )
+
+    frames.extend(render_frame(eye="round", brows="soft", pointer=(*pointer_start, False)) for _ in range(8))
+    save_gif(frames, path, disposal=2)
+
+
+def build_user_drag(path: Path) -> None:
+    """Show the desktop pet being grabbed, moved, and moved back."""
+    frames: list[Image.Image] = []
+    pointer_rest = (314.0, 330.0)
+    grip_left = (176.0, 164.0)
+    grip_right = (216.0, 164.0)
+    drag_dx = 40.0
+
+    for index in range(10):
+        t = motion_ease_in_out((index + 1) / 10)
+        pointer = lerp_point(pointer_rest, grip_left, t)
+        frames.append(render_frame(eye="side_eye", brows="soft", pointer=(*pointer, False)))
+
+    append_drag_grip(frames, 0.0, grip_left)
+    append_drag_leg(frames, 0.0, drag_dx, grip_left, grip_right, direction=1.0)
+    append_drag_settle(frames, drag_dx, grip_right, direction=1.0, eye="side_eye", brows="judge")
+
+    for index in range(8):
+        phase = index / 8.0
+        frames.append(
+            render_frame(
+                action=(drag_dx, 0.0, 1.0, 1.0),
+                eye="blink" if index in {5, 6} else "side_eye",
+                brows="judge",
+                pointer=(*grip_right, False),
+                bubble=("speech", "I had a spot.", BROW),
+                talk_level=talk_level(phase),
+            )
+        )
+
+    append_drag_grip(frames, drag_dx, grip_right)
+    append_drag_leg(frames, drag_dx, 0.0, grip_right, grip_left, direction=-1.0)
+    append_drag_settle(frames, 0.0, grip_left, direction=-1.0, eye="round", brows="soft")
+
+    for index in range(10):
+        t = motion_ease_in_out((index + 1) / 10)
+        pointer = lerp_point(grip_left, pointer_rest, t)
+        frames.append(render_frame(eye="round", brows="soft", pointer=(*pointer, False)))
+
+    save_gif(frames, path, disposal=2)
+
+
+def append_drag_grip(
+    frames: list[Image.Image],
+    dx: float,
+    pointer: tuple[float, float],
+) -> None:
+    frames.extend(
+        render_frame(
+            action=(dx, 3, 1.02, 0.96),
+            eye="wide",
+            brows="innocent",
+            pointer=(*pointer, True),
+        )
+        for _ in range(3)
+    )
+
+
+def append_drag_leg(
+    frames: list[Image.Image],
+    start_dx: float,
+    end_dx: float,
+    pointer_start: tuple[float, float],
+    pointer_end: tuple[float, float],
+    *,
+    direction: float,
+) -> None:
+    for index in range(18):
+        t = motion_ease_in_out((index + 1) / 18)
+        dx = start_dx + (end_dx - start_dx) * t
+        pointer = lerp_point(pointer_start, pointer_end, t)
+        frames.append(
+            render_frame(
+                action=(dx, 2.0 + math.sin(t * math.pi) * 3.0, 0.98, 1.04),
+                eye="side_eye",
+                brows="judge",
+                pointer=(*pointer, True),
+                tail_wag=-direction * 10.0 * math.sin(t * math.pi),
+                drag_path=(pointer_start, pointer_end),
+            )
+        )
+
+
+def append_drag_settle(
+    frames: list[Image.Image],
+    base_dx: float,
+    pointer: tuple[float, float],
+    *,
+    direction: float,
+    eye: str,
+    brows: str,
+) -> None:
+    for index in range(12):
+        t = ui_ease_out((index + 1) / 12)
+        settle = math.sin(t * math.pi * 3) * (1.0 - t)
+        frames.append(
+            render_frame(
+                action=(
+                    base_dx + direction * settle * 3.0,
+                    settle * 2.0,
+                    1.0 - settle * 0.012,
+                    1.0 + settle * 0.018,
+                ),
+                eye=eye,
+                brows=brows,
+                pointer=(*pointer, False),
+                tail_wag=direction * settle * 8.0,
+            )
+        )
 
 
 def build_idle(path: Path) -> None:
@@ -445,6 +764,53 @@ def linear(t: float) -> float:
     return t
 
 
+def cubic_bezier_y(t: float, x1: float, y1: float, x2: float, y2: float) -> float:
+    """Evaluate a CSS cubic-bezier timing curve at progress *t*."""
+    u = t
+    for _ in range(8):
+        inverse = 1.0 - u
+        x = 3 * inverse * inverse * u * x1 + 3 * inverse * u * u * x2 + u**3
+        derivative = (
+            3 * inverse * inverse * x1
+            + 6 * inverse * u * (x2 - x1)
+            + 3 * u * u * (1.0 - x2)
+        )
+        if abs(derivative) < 1e-7:
+            break
+        u = min(1.0, max(0.0, u - (x - t) / derivative))
+    inverse = 1.0 - u
+    return 3 * inverse * inverse * u * y1 + 3 * inverse * u * u * y2 + u**3
+
+
+def ui_ease_out(t: float) -> float:
+    return cubic_bezier_y(t, 0.23, 1.0, 0.32, 1.0)
+
+
+def motion_ease_in_out(t: float) -> float:
+    return cubic_bezier_y(t, 0.77, 0.0, 0.175, 1.0)
+
+
+def lerp_point(
+    start: tuple[float, float],
+    end: tuple[float, float],
+    t: float,
+) -> tuple[float, float]:
+    return (start[0] + (end[0] - start[0]) * t, start[1] + (end[1] - start[1]) * t)
+
+
+def lerp_action(start: ActionState, end: ActionState, t: float) -> ActionState:
+    return (
+        start[0] + (end[0] - start[0]) * t,
+        start[1] + (end[1] - start[1]) * t,
+        start[2] + (end[2] - start[2]) * t,
+        start[3] + (end[3] - start[3]) * t,
+    )
+
+
+def talk_level(phase: float) -> int:
+    return max(1, min(3, round(2 + math.sin(phase * math.tau * 6))))
+
+
 def render_frame(
     *,
     action: ActionState = (0.0, 0.0, 1.0, 1.0),
@@ -456,6 +822,11 @@ def render_frame(
     decoration: str = "",
     input_text: str = "",
     stage_label: str = "",
+    chat_text: str | None = None,
+    context_menu: int | None = None,
+    pointer: tuple[float, float, bool] | None = None,
+    drag_path: tuple[tuple[float, float], tuple[float, float]] | None = None,
+    talk_level: int = 0,
     effect: str = "",
     wire_color: str = WIRE,
 ) -> Image.Image:
@@ -464,6 +835,8 @@ def render_frame(
 
     if effect in {"search_rings", "status_scan", "sleep_droop", "cursor_ping"}:
         draw_effect(draw, effect)
+    if drag_path:
+        draw_drag_path(draw, drag_path)
     draw_character(draw, action=action, eye=eye, brows=brows, tail_wag=tail_wag, wire_color=wire_color)
     if effect in {"cold_spark", "innocent_glow", "tail_motion"}:
         draw_effect(draw, effect)
@@ -472,9 +845,15 @@ def render_frame(
     if badge:
         draw_badge(draw, badge[0], badge[1])
     if bubble:
-        draw_bubble(draw, bubble[0], bubble[1], bubble[2])
+        draw_bubble(draw, bubble[0], bubble[1], bubble[2], talk_level=talk_level)
+    if context_menu is not None:
+        draw_context_menu(draw, context_menu)
     if input_text or stage_label:
         draw_input_panel(draw, input_text, stage_label)
+    if chat_text is not None:
+        draw_chat_input(draw, chat_text)
+    if pointer:
+        draw_pointer(draw, *pointer)
 
     return image.resize((STAGE_W, STAGE_H), Image.Resampling.LANCZOS).convert("P", palette=Image.Palette.ADAPTIVE)
 
@@ -640,8 +1019,15 @@ def line(draw: ImageDraw.ImageDraw, points: list[tuple[float, float]], fill: str
         draw.ellipse((x - radius, y - radius, x + radius, y + radius), fill=fill)
 
 
-def draw_bubble(draw: ImageDraw.ImageDraw, kind: str, text: str, accent: str) -> None:
-    font = load_font(18 if "\n" not in text else 16)
+def draw_bubble(
+    draw: ImageDraw.ImageDraw,
+    kind: str,
+    text: str,
+    accent: str,
+    *,
+    talk_level: int = 0,
+) -> None:
+    font = load_text_font(text, 18 if "\n" not in text else 16)
     x1, y1, x2, y2 = 38 * SS, 24 * SS, 322 * SS, 110 * SS
     fill = "#fdfdfd" if kind == "speech" else "#f7f5fb"
     draw.rounded_rectangle((x1, y1, x2, y2), radius=12 * SS, fill=fill, outline=accent, width=2 * SS)
@@ -660,6 +1046,15 @@ def draw_bubble(draw: ImageDraw.ImageDraw, kind: str, text: str, accent: str) ->
             outline=accent,
         )
     draw.multiline_text((54 * SS, 43 * SS), text, font=font, fill=TEXT, spacing=4 * SS)
+    if kind == "speech" and talk_level:
+        heights = (4, 7, 5)
+        active = max(1, min(3, talk_level))
+        for index, height in enumerate(heights):
+            x = (286 + index * 7) * SS
+            y2 = 53 * SS
+            y1 = y2 - height * SS
+            color = accent if index < active else "#d6dce2"
+            draw.rounded_rectangle((x, y1, x + 3 * SS, y2), radius=1 * SS, fill=color)
 
 
 def draw_effect(draw: ImageDraw.ImageDraw, effect: str) -> None:
@@ -730,6 +1125,62 @@ def draw_input_panel(draw: ImageDraw.ImageDraw, text: str, stage_label: str) -> 
     draw.text((55 * SS, 388 * SS), f"> {text}{caret}", font=input_font, fill=TEXT)
 
 
+def draw_chat_input(draw: ImageDraw.ImageDraw, text: str) -> None:
+    font = load_font(15)
+    x1, y1, x2, y2 = 37 * SS, 374 * SS, 323 * SS, 412 * SS
+    draw.rectangle((x1, y1, x2, y2), fill="#d4dee8")
+    draw.rectangle(((38 * SS), (375 * SS), (322 * SS), (411 * SS)), fill="#fdfdfd")
+    caret = "|" if len(text) % 2 == 0 else ""
+    draw.text((49 * SS, 383 * SS), f"{text}{caret}", font=font, fill=TEXT)
+
+
+def draw_context_menu(draw: ImageDraw.ImageDraw, selected: int) -> None:
+    font = load_font(13)
+    items = ("Talk", "Poke", "Status")
+    x1, y1, x2 = 208 * SS, 246 * SS, 320 * SS
+    item_h = 24 * SS
+    y2 = y1 + item_h * len(items)
+    draw.rectangle((x1, y1, x2, y2), fill="#ffffff", outline="#cbd4dc", width=1 * SS)
+    for index, label in enumerate(items):
+        top = y1 + item_h * index
+        if index == selected:
+            draw.rectangle((x1 + SS, top + SS, x2 - SS, top + item_h - SS), fill="#e8f0f7")
+        draw.text((218 * SS, top + 5 * SS), label, font=font, fill=TEXT)
+
+
+def draw_pointer(draw: ImageDraw.ImageDraw, x: float, y: float, pressed: bool) -> None:
+    px, py = x * SS, y * SS
+    points = [
+        (px, py),
+        (px, py + 19 * SS),
+        (px + 5 * SS, py + 14 * SS),
+        (px + 10 * SS, py + 23 * SS),
+        (px + 14 * SS, py + 21 * SS),
+        (px + 9 * SS, py + 12 * SS),
+        (px + 17 * SS, py + 11 * SS),
+    ]
+    draw.polygon(points, fill="#ffffff")
+    draw.line([*points, points[0]], fill=TEXT, width=1 * SS, joint="curve")
+    if pressed:
+        radius = 10 * SS
+        draw.ellipse((px - radius, py - radius, px + radius, py + radius), outline=USAGE, width=2 * SS)
+
+
+def draw_drag_path(
+    draw: ImageDraw.ImageDraw,
+    path: tuple[tuple[float, float], tuple[float, float]],
+) -> None:
+    start, end = path
+    draw.line(
+        (start[0] * SS, start[1] * SS, end[0] * SS, end[1] * SS),
+        fill="#d7e0e9",
+        width=2 * SS,
+    )
+    for x, y in (start, end):
+        radius = 3 * SS
+        draw.ellipse((x * SS - radius, y * SS - radius, x * SS + radius, y * SS + radius), fill="#c3cfda")
+
+
 def draw_badge(draw: ImageDraw.ImageDraw, label: str, color: str) -> None:
     font = load_font(13)
     cx, cy, r = 245 * SS, 158 * SS, 16 * SS
@@ -755,17 +1206,30 @@ def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
-def save_gif(frames: list[Image.Image], path: Path) -> None:
+def load_text_font(text: str, size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    if any("\u3400" <= char <= "\u9fff" for char in text):
+        for candidate in (
+            Path("C:/Windows/Fonts/msyh.ttc"),
+            Path("C:/Windows/Fonts/msyhl.ttc"),
+        ):
+            if candidate.exists():
+                return ImageFont.truetype(str(candidate), size * SS)
+    return load_font(size)
+
+
+def save_gif(frames: list[Image.Image], path: Path, *, disposal: int | None = None) -> None:
     if not frames:
         raise ValueError(f"no frames for {path}")
-    frames[0].save(
-        path,
-        save_all=True,
-        append_images=frames[1:],
-        duration=FRAME_MS,
-        loop=0,
-        optimize=True,
-    )
+    options: dict[str, object] = {
+        "save_all": True,
+        "append_images": frames[1:],
+        "duration": FRAME_MS,
+        "loop": 0,
+        "optimize": True,
+    }
+    if disposal is not None:
+        options["disposal"] = disposal
+    frames[0].save(path, **options)
 
 
 if __name__ == "__main__":

@@ -67,3 +67,34 @@ def identities_path_for_language(package_root: Path, language: str) -> Path:
         if en_path.exists():
             return en_path
     return package_root / "identities.yaml"
+
+
+# Menu labels that differ by language. Anything not listed here is already
+# language-neutral (proper nouns like "Codex", or English terms the Chinese
+# menu also uses).
+#
+# This exists because the menu carried hardcoded Chinese — "Talk to 夹夹",
+# "土味情话", "退出" — which stayed Chinese in English mode. The character's
+# name is the pal's own, so it is romanised rather than translated.
+MENU_LABELS: dict[str, dict[str, str]] = {
+    "zh-CN": {
+        "talk": "和夹夹聊天",
+        "cheesy_love": "土味情话",
+        "quiz": "小测验",
+        "language": "语言",
+        "quit": "退出",
+    },
+    "en": {
+        "talk": "Talk to Jiajia",
+        "cheesy_love": "Cheesy line",
+        "quiz": "Absurd quiz",
+        "language": "Language",
+        "quit": "Quit",
+    },
+}
+
+
+def menu_label(key: str, language: str = DEFAULT_LANGUAGE) -> str:
+    """Display text for a menu entry in the pal's language."""
+    lang = "en" if normalize_language(language) == "en" else "zh-CN"
+    return MENU_LABELS[lang].get(key, MENU_LABELS["zh-CN"].get(key, key))
