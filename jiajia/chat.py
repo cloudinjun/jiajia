@@ -323,6 +323,13 @@ def build_chat_context(
                 if session.alive
             ][:4],
         },
+        "audio": {
+            "available": world.audio.available,
+            "playing": world.audio.playing,
+            "level": world.audio.level,
+            "session_seconds": round(world.audio.session_seconds, 1),
+            "silence_seconds": round(world.audio.silence_seconds, 1),
+        },
         "hardware": {
             "level": hardware.level,
             "summary": hardware.summary_line,

@@ -28,6 +28,7 @@ from jiajia.mood import FREQUENCY_PRESETS, frequency_label, normalize_frequency
 from jiajia.pal_panels import _QUIZ_COPY
 from jiajia.performance import performance_prompt
 from jiajia.quiz import build_report, format_report, load_quiz_packets
+from jiajia.language import MENU_LABELS, menu_label
 from jiajia.soul import load_soul
 
 CJK = re.compile(r"[㐀-䶿一-鿿　-〿！-～]")
@@ -235,6 +236,46 @@ class StatusDispatcherTests(unittest.TestCase):
         for language in ("en", "zh-CN"):
             context = dict(STATUS_CONTEXT, language_mode=language)
             self.assertIsNone(status_reaction("status_nonsense", context))
+
+
+class MenuLabelTest(unittest.TestCase):
+    """The right-click menu is the product surface; it must not leak Chinese.
+
+    This class exists because it did. "Talk to 夹夹", "土味情话" and "退出" were
+    written straight into `_install_menu`, so English mode showed them anyway.
+    The rest of this file checked reaction lines and prompts, which is why the
+    most visible strings in the app were the ones nobody was asserting on.
+    """
+
+    KEYS = ("talk", "cheesy_love", "quiz", "language", "quit")
+
+    def test_english_menu_labels_are_ascii(self) -> None:
+        for key in self.KEYS:
+            with self.subTest(key=key):
+                label = menu_label(key, "en")
+                self.assertEqual(cjk_in(label), "", f"{key} leaked {cjk_in(label)!r} in {label!r}")
+
+    def test_chinese_menu_labels_stay_chinese(self) -> None:
+        for key in ("cheesy_love", "quiz", "quit"):
+            with self.subTest(key=key):
+                self.assertNotEqual(cjk_in(menu_label(key, "zh-CN")), "", f"{key} lost its Chinese")
+
+    def test_every_key_exists_in_both_languages(self) -> None:
+        self.assertEqual(set(MENU_LABELS["en"]), set(MENU_LABELS["zh-CN"]))
+
+    def test_menu_builder_has_no_hardcoded_chinese_labels(self) -> None:
+        """A label written inline cannot be translated, so none may exist."""
+        source = (PACKAGE_ROOT / "body.py").read_text(encoding="utf-8")
+        offenders = [
+            line.strip()
+            for line in source.splitlines()
+            if "label=" in line and cjk_in(line)
+        ]
+        self.assertFalse(
+            offenders,
+            "menu labels must go through menu_label() so they can switch language: "
+            + "; ".join(offenders),
+        )
 
 
 if __name__ == "__main__":

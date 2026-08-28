@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import time
 
 from .claude_account_usage import ClaudeAccountUsageStatus
@@ -8,6 +8,7 @@ from .claude_status import ClaudeOverview
 from .claude_usage import ClaudeUsageStatus
 from .codex_status import CodexStatus
 from .codex_usage import CodexUsageStatus
+from .audio_ears import AudioContext
 from .ears import EarContext
 from .eyes import ScreenContext
 from .hardware_status import HardwareSnapshot
@@ -44,6 +45,7 @@ class WorldState:
     hardware: HardwareSnapshot
     pal: PalState
     mood: MoodSnapshot
+    audio: AudioContext = field(default_factory=AudioContext)
     sampled_at: float = 0.0
 
     def __post_init__(self) -> None:
@@ -64,6 +66,7 @@ class WorldState:
         tags.update(self.claude_account_usage.tags)
         tags.update(self.openai_billing.tags)
         tags.update(self.hardware.tags)
+        tags.update(self.audio.audio_tags)
         return sorted(tags)
 
     def as_context(self, event: str) -> dict[str, object]:
@@ -80,6 +83,7 @@ class WorldState:
             **self.claude_account_usage.as_dict(),
             **self.openai_billing.as_dict(),
             **self.hardware.as_dict(),
+            **self.audio.as_dict(),
             "claude_total_alive": self.claude.total_alive,
             "claude_active_count": self.claude.active_count,
             "claude_sessions": [

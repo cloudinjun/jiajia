@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="820" viewBox="0 0 1560 820" role="img" aria-labelledby="title desc">
+  <title id="title">夹夹是怎么动起来的？</title>
+  <desc id="desc">夹夹从电脑状态和用户互动中接收信号，保护用户专注时间，选择话语和动作，再通过桌面窗口表演出来。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#495057"/>
+    </marker>
+    <marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#868e96"/>
+    </marker>
+    <style>
+      .title { font: 700 34px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #2f2f2f; }
+      .card-title { font: 700 21px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #30343b; text-anchor: middle; }
+      .card-copy { font: 19px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #3d3d3d; text-anchor: middle; }
+      .small { font: 18px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #6c757d; text-anchor: middle; }
+      .code { font: 16px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #868e96; text-anchor: middle; }
+    </style>
+  </defs>
+  <rect width="1560" height="820" fill="#fffdf7"/>
+  <text class="title" x="60" y="82">夹夹是怎么动起来的？</text>
+
+  <rect x="60" y="120" width="390" height="54" rx="22" fill="#ebfbee" stroke="#2b8a3e" stroke-width="2"/>
+  <text x="255" y="154" font-family="Microsoft YaHei, Noto Sans SC, sans-serif" font-size="20" font-weight="700" fill="#2b8a3e" text-anchor="middle">只看状态，不看你写的内容</text>
+
+  <rect x="60" y="250" width="240" height="280" rx="24" fill="#fff3bf" stroke="#e67700" stroke-width="3"/>
+  <text class="card-title" x="180" y="315">1  发生了一件事</text>
+  <text class="card-copy" x="180" y="375">电脑忙不忙</text>
+  <text class="card-copy" x="180" y="413">AI 在等你吗</text>
+  <text class="card-copy" x="180" y="451">你来戳夹夹</text>
+
+  <rect x="350" y="250" width="240" height="280" rx="24" fill="#d3f9d8" stroke="#2b8a3e" stroke-width="3"/>
+  <text class="card-title" x="470" y="315">2  小耳朵收信号</text>
+  <text class="card-copy" x="470" y="375">只收“小纸条”</text>
+  <text class="card-copy" x="470" y="413">空闲 · 忙碌</text>
+  <text class="card-copy" x="470" y="451">出错 · 等待</text>
+
+  <rect x="640" y="210" width="280" height="360" rx="28" fill="#d0ebff" stroke="#1971c2" stroke-width="4"/>
+  <text class="card-title" x="780" y="282">3  小管家做决定</text>
+  <text class="card-copy" x="780" y="350">现在该安静？</text>
+  <text class="card-copy" x="780" y="391">该提醒？</text>
+  <text class="card-copy" x="780" y="432">该说句话？</text>
+  <text class="card-copy" x="780" y="500">先保护你的专心时间</text>
+
+  <rect x="970" y="250" width="240" height="280" rx="24" fill="#e5dbff" stroke="#7048e8" stroke-width="3"/>
+  <text class="card-title" x="1090" y="315">4  话和动作排队</text>
+  <text class="card-copy" x="1090" y="375">安全小词库先上</text>
+  <text class="card-copy" x="1090" y="413">本地 AI 可帮忙</text>
+  <text class="card-copy" x="1090" y="451">重要消息先演</text>
+
+  <rect x="1260" y="250" width="240" height="280" rx="24" fill="#ffe3e3" stroke="#c92a2a" stroke-width="3"/>
+  <text class="card-title" x="1380" y="315">5  夹夹演给你看</text>
+  <text class="card-copy" x="1380" y="375">表情和动作</text>
+  <text class="card-copy" x="1380" y="413">气泡和小徽章</text>
+  <text class="card-copy" x="1380" y="451">拖 · 戳 · 聊天</text>
+
+  <path d="M305 390 H345" fill="none" stroke="#495057" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M595 390 H635" fill="none" stroke="#495057" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M925 390 H965" fill="none" stroke="#495057" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1215 390 H1255" fill="none" stroke="#495057" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <path d="M1380 535 V670 H180 V535" fill="none" stroke="#868e96" stroke-width="2" stroke-dasharray="10 8" marker-end="url(#arrow-muted)"/>
+  <rect x="620" y="641" width="320" height="36" rx="14" fill="#fffdf7"/>
+  <text class="small" x="780" y="666">你一互动，故事就再走一圈</text>
+
+  <text class="code" x="780" y="758">代码住址：状态监测 → ears.py → world.py + decision.py → brain_ollama.py + animations.yaml → body.py + pal_*.py</text>
+</svg>

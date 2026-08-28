@@ -60,6 +60,48 @@ def _button_down(user32: object, virtual_key: int) -> bool:
 class WindowMixin:
     """Window placement, monitor geometry and global pointer polling."""
 
+    def _assert_windows_on_top(self) -> None:
+        """Re-assert the pal (and its visible bubble) at the top of the topmost band.
+
+        `-topmost` is not a property Windows preserves: the topmost band is
+        ordered by most-recent insertion, and shell events or any other topmost
+        window push older entries down. The bubble re-lifted itself on every
+        show while the pal was only made topmost once at startup — which is
+        exactly why the bubble kept floating above other windows while the pal
+        sank behind them. Both are re-inserted here, pal first and bubble
+        second so the bubble stays above the pal, with SWP_NOACTIVATE so the
+        user's focus is never stolen.
+        """
+        windows = [self.root]
+        try:
+            bubble_visible = self.bubble_root.state() != "withdrawn"
+        except tk.TclError:
+            bubble_visible = False
+        if bubble_visible:
+            windows.append(self.bubble_root)
+
+        if self._user32 and self.root.tk.call("tk", "windowingsystem") == "win32":
+            HWND_TOPMOST = -1
+            SWP_NOSIZE, SWP_NOMOVE, SWP_NOACTIVATE = 0x0001, 0x0002, 0x0010
+            GA_ROOT = 2
+            for window in windows:
+                try:
+                    hwnd = self._user32.GetAncestor(window.winfo_id(), GA_ROOT)
+                    if hwnd:
+                        self._user32.SetWindowPos(
+                            hwnd, HWND_TOPMOST, 0, 0, 0, 0,
+                            SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE,
+                        )
+                except (tk.TclError, OSError):
+                    pass
+            return
+        for window in windows:
+            try:
+                window.attributes("-topmost", True)
+                window.lift()
+            except tk.TclError:
+                pass
+
     def _place_initially(self) -> None:
         self.root.update_idletasks()
         screen_w = self.root.winfo_screenwidth()

@@ -82,6 +82,115 @@ ACTION_LABELS: dict[str, str] = {
     "thinking_loop": "Thinking loop",
 }
 
+
+# Chinese display names for the action menu. The ids stay language-independent;
+# only what the menu SHOWS follows the language. English lives in ACTION_LABELS.
+ACTION_LABELS_ZH: dict[str, str] = {
+    "happy_bounce": "开心蹦跳",
+    "dance": "跳舞",
+    "celebrate": "庆祝",
+    "excited_spin": "兴奋转圈",
+    "smug_sway": "得意摇摆",
+    "sulk": "委屈",
+    "hide": "躲起来",
+    "thinking_tilt": "歪头思考",
+    "sleepy_sag": "犯困下沉",
+    "alarm_jolt": "闹钟惊醒",
+    "flop": "瘫倒",
+    "melt": "融化",
+    "stretch": "伸懒腰",
+    "scan": "扫视",
+    "patrol": "巡逻",
+    "curious_lean": "好奇凑近",
+    "shiver": "发抖",
+    "wiggle": "扭一扭",
+    "blink": "眨眼",
+    "fake_innocent_blink": "装乖眨眼",
+    "peek": "偷看",
+    "jump": "跳跃",
+    "spin_jump": "空翻跳",
+    "twirl": "转身",
+    "shake": "摇头",
+    "sneeze": "打喷嚏",
+    "peekaboo": "躲猫猫",
+    "startled_pop": "吓一跳",
+    "tail_wag": "摇尾巴",
+    "tail_tip_flick": "尾尖轻甩",
+    "tail_guilty_tuck": "心虚夹尾",
+    "tail_alert_snap": "尾巴警觉",
+    "nod": "点头",
+    "tail_idle_slow": "尾巴慢摆",
+    "tail_smug_sway": "得意摆尾",
+    "tail_sleepy_droop": "尾巴垂落",
+    "tail_frantic_innocent": "慌乱摆尾",
+    "tail_raise_excited": "兴奋竖尾",
+    "tail_question_hook": "疑问尾钩",
+    "tail_bristle": "尾巴绷紧",
+    "inner_cover_oops": "捂嘴糟糕",
+    "inner_side_smirk": "内芯窃笑",
+    "inner_shy_retract": "害羞缩回",
+    "inner_droop": "内芯垂落",
+    "oops_innocent_combo": "装无辜连招",
+    "britclip_enter": "换上英伦装",
+    "britclip_exit": "脱下英伦装",
+    "tip_hat": "抬帽致意",
+    "bow_tie_check": "整理领结",
+    "cane_tap": "手杖轻点",
+    "polite_bow": "礼貌鞠躬",
+    "hat_tip_oops": "抬帽装傻",
+    "paper_blanket": "纸被子",
+    "paper_surfboard": "纸冲浪板",
+    "paper_peek_curtain": "纸帘偷看",
+    "paper_fan": "纸扇",
+    "paper_whisper_fan": "纸扇密语",
+    "paper_oops_cover": "纸挡脸",
+    "paper_tent": "纸帐篷",
+    "paper_pillow": "纸枕头",
+    "paper_stage": "纸舞台",
+    "thinking_loop": "持续思考",
+    "tool_working": "工具运行",
+    "paper_editing": "伏案修改",
+    "paper_sorting": "纸张分类",
+    "waiting_stare": "等待凝视",
+    "permission_request": "请求许可",
+    "reconnect_scan": "重连搜寻",
+    "error_autopsy": "检查错误",
+    "twist_scoot": "扭身挪动",
+    "mini_hop_shift": "小跳挪位",
+    "relocate_hop": "跳跃搬家",
+    "zoomies": "疯跑",
+    "moonwalk": "太空步",
+    "pounce": "扑击",
+    "roast_and_scoot": "吐槽就跑",
+    "retreat_to_corner": "退到角落",
+    "drop_in": "伞降登场",
+}
+
+MENU_GROUP_LABELS_ZH: dict[str, str] = {
+    "Mood": "心情",
+    "State": "姿态",
+    "Reactive": "反应",
+    "Tail": "尾巴",
+    "Inner": "内芯",
+    "Costume": "服装",
+    "Paper Props": "纸道具",
+    "Agent": "工作状态",
+    "Movement": "移动",
+}
+
+
+def action_label(action_id: str, language: str = "zh-CN") -> str:
+    """The action's menu name in the pal's language."""
+    if str(language).startswith("en"):
+        return ACTION_LABELS.get(action_id, action_id)
+    return ACTION_LABELS_ZH.get(action_id, ACTION_LABELS.get(action_id, action_id))
+
+
+def menu_group_label(group: str, language: str = "zh-CN") -> str:
+    if str(language).startswith("en"):
+        return group
+    return MENU_GROUP_LABELS_ZH.get(group, group)
+
 ACTION_MENU_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Mood", ("happy_bounce", "dance", "celebrate", "excited_spin", "smug_sway", "sulk", "hide")),
     ("State", ("thinking_tilt", "sleepy_sag", "alarm_jolt", "flop", "melt", "stretch", "scan", "patrol", "curious_lean", "shiver")),

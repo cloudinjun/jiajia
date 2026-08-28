@@ -1005,17 +1005,26 @@ ACTION_FACE_SCRIPTS: dict[str, tuple[FaceFrame, ...]] = {
         (900, 'narrow', 'skeptical', (1.2, 0.9), None),
         (1340, 'round', 'neutral', None, {'blink': 'quick'}),
     ),
+    # 盲测里 GPT / Gemini / Claude 都读成打盹：旧版是 half_closed + openness 0.55
+    # 收尾还接一次 slow blink，那就是睡着的语法。改成全程睁眼看着用户，
+    # 只用两次稀疏的 quick blink 证明还醒着。
     "waiting_stare": (
         (0, 'round', 'neutral', None, None),
-        (300, 'half_closed', 'neutral', (0.0, -0.2), {'openness': 0.55}),
-        (1200, 'half_closed', 'neutral', (0.0, -0.2), {'blink': 'slow'}),
-        (2000, 'round', 'neutral', None, None),
+        (260, 'round', 'soft', (0.0, -0.15), None),
+        (1100, 'round', 'soft', (0.0, -0.15), {'blink': 'quick'}),
+        (1900, 'round', 'soft', (0.15, -0.15), None),
+        (2900, 'round', 'soft', (0.0, -0.15), {'blink': 'quick'}),
+        (3300, 'round', 'soft', None, None),
     ),
+    # 旧版 wide + pupil 1.1 全被读成惊讶或警觉。wide 表达的是“被吓到”，
+    # 不是“在请求”。改用 curious + 单侧挑眉（询问的通用信号），
+    # 并把姿势保持 1.7 秒——提出一次，然后等。
     "permission_request": (
         (0, 'round', 'neutral', None, None),
-        (220, 'wide', 'soft', (0.0, -0.6), {'pupil': 1.1}),
-        (900, 'wide', 'soft', (0.0, -0.6), {'blink': 'quick'}),
-        (1500, 'round', 'neutral', None, None),
+        (180, 'curious', 'curious', (0.0, -0.3), {'pupil': 1.05}),
+        (500, 'curious', 'curious', (0.0, -0.5), {'pupil': 1.05, 'brow_r': (0.0, -2.4, 0.1)}),
+        (2200, 'curious', 'curious', (0.0, -0.5), {'pupil': 1.05, 'brow_r': (0.0, -2.4, 0.1)}),
+        (2700, 'round', 'soft', None, None),
     ),
     "paper_sorting": (
         (0, 'round', 'neutral', (0.0, 0.5), None),
@@ -1029,17 +1038,28 @@ ACTION_FACE_SCRIPTS: dict[str, tuple[FaceFrame, ...]] = {
         (880, 'wide', 'worried', (1.8, -0.2), None),
         (1300, 'round', 'neutral', None, {'blink': 'quick'}),
     ),
+    # 盲测 0/10，最常见读法就是“慢眨眼”——因为这条脚本字面上以 slow blink 收尾，
+    # 而 suspicious_slit 收窄眼睑本身就接近困倦。改成 70ms 内到位的惊慌瞬态、
+    # 收缩的瞳孔、震颤和非对称皱眉，收尾停在 worried 而不是 neutral。
     "error_autopsy": (
         (0, 'round', 'neutral', None, None),
-        (340, 'suspicious_slit', 'judge', (-1.0, 0.8), {'pupil': 0.85}),
-        (1200, 'suspicious_slit', 'judge', (-1.0, 0.8), None),
-        (1800, 'round', 'neutral', None, {'blink': 'slow'}),
+        (70, 'startled_dot', 'panic', (0.6, -0.4), {'pupil': 0.55, 'tremble': 380}),
+        (240, 'startled_dot', 'panic', (-0.8, 0.2),
+            {'pupil': 0.5, 'tremble': 300, 'brow_l': (-0.5, 2.0, -0.14), 'brow_r': (0.4, 1.4, 0.12)}),
+        (900, 'narrow', 'panic', (-0.9, 0.35),
+            {'pupil': 0.6, 'brow_l': (-0.5, 2.0, -0.14), 'brow_r': (0.4, 1.4, 0.12)}),
+        (2100, 'round', 'worried', None, None),
     ),
+    # narrow + slow blink 是困倦的语法，两侧对称又让它读成发呆。
+    # 改成向上偏视（peek_up），两侧幅度与停留都不对称，挑眉左右互换，
+    # 收尾用 quick blink。
     "thinking_loop": (
         (0, 'round', 'neutral', None, None),
-        (400, 'narrow', 'skeptical', (-1.0, -0.5), None),
-        (1200, 'narrow', 'skeptical', (1.0, -0.5), None),
-        (2100, 'round', 'neutral', None, {'blink': 'slow'}),
+        (180, 'peek_up', 'curious', (-0.9, -1.0), {'brow_l': (-0.3, 1.4, -0.1)}),
+        (760, 'peek_up', 'curious', (-1.0, -1.1), {'brow_l': (-0.3, 1.4, -0.1)}),
+        (1180, 'curious', 'curious', (0.2, -0.6), None),
+        (1560, 'peek_up', 'curious', (0.85, -1.0), {'brow_r': (0.0, -2.0, 0.08)}),
+        (2300, 'round', 'curious', None, {'blink': 'quick'}),
     ),
 
     # ── halo family: the innocence performance ──
