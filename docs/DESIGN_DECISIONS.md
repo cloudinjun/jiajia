@@ -48,6 +48,17 @@ other channels had to move there or be cut.
 The action count went *up* while the prop count went down by 86% — the
 vocabulary grew in the channel that compounds.
 
+Both counts are checkable. The before is commit `b680381`, when the package
+was still named `python_pal`:
+
+```
+git show b680381:python_pal/prop_shapes.py   # ACTION_PROP_CUES — 52 entries
+git show b680381:python_pal/actions.py       # ACTION_LABELS    — 68 entries
+```
+
+The after is the current tree: `DEFAULT_PROP_ACTIONS` holds 7 ids and
+`ACTION_LABELS` holds 78.
+
 This decision is enforced, not just documented.
 [`test_action_semantics.py`](../tests/test_action_semantics.py) asserts it:
 
