@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -169,6 +170,37 @@ def _load_simple_yaml(text: str) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
+# Folded (>) and literal (|) block openers. Blank lines inside a block are
+# already gone by the time the parser sees them, so a literal block keeps its
+# line breaks but not its paragraphs; nothing here uses one.
+_BLOCK_SCALARS = frozenset({">", ">-", ">+", "|", "|-", "|+"})
+
+
+def _split_key(text: str) -> tuple[str, str] | None:
+    """Split "key: value" at the colon that actually separates the two.
+
+    A colon inside quotes or inside a flow collection belongs to the value.
+    The roast lines are full of them ("Preliminary cause of death: ..."), and
+    splitting on the first colon turned those lines into single-key maps.
+    """
+    depth = 0
+    quote = ""
+    for position, char in enumerate(text):
+        if quote:
+            if char == quote:
+                quote = ""
+            continue
+        if char in "'\"":
+            quote = char
+        elif char in "[{":
+            depth += 1
+        elif char in "]}":
+            depth -= 1
+        elif char == ":" and depth == 0 and (position + 1 == len(text) or text[position + 1] == " "):
+            return text[:position].strip(), text[position + 1:].strip()
+    return None
+
+
 def _parse_block(lines: list[tuple[int, str]], index: int, indent: int) -> tuple[Any, int]:
     if index >= len(lines):
         return {}, index
@@ -186,9 +218,9 @@ def _parse_block(lines: list[tuple[int, str]], index: int, indent: int) -> tuple
             if not item_text:
                 child_indent = lines[index][0] if index < len(lines) else indent + 2
                 item, index = _parse_block(lines, index, child_indent)
-            elif ":" in item_text:
-                key, raw_value = item_text.split(":", 1)
-                item = {key.strip(): _parse_scalar(raw_value.strip()) if raw_value.strip() else {}}
+            elif (pair := _split_key(item_text)) is not None:
+                key, raw_value = pair
+                item = {key: _parse_scalar(raw_value) if raw_value else None}
                 if index < len(lines) and lines[index][0] > indent:
                     child, index = _parse_block(lines, index, lines[index][0])
                     if isinstance(child, dict):
@@ -203,19 +235,58 @@ def _parse_block(lines: list[tuple[int, str]], index: int, indent: int) -> tuple
         current_indent, content = lines[index]
         if current_indent < indent:
             break
-        if current_indent != indent or ":" not in content:
+        pair = _split_key(content)
+        if current_indent != indent or pair is None:
             index += 1
             continue
-        key, raw_value = content.split(":", 1)
-        key = key.strip()
-        raw_value = raw_value.strip()
+        key, raw_value = pair
         index += 1
+        if raw_value in _BLOCK_SCALARS:
+            body: list[str] = []
+            while index < len(lines) and lines[index][0] > indent:
+                body.append(lines[index][1])
+                index += 1
+            folded = ("\n" if raw_value[0] == "|" else " ").join(body)
+            values[key] = folded if raw_value.endswith("-") else folded + "\n"
+            continue
         if raw_value:
             values[key] = _parse_scalar(raw_value)
             continue
         child_indent = lines[index][0] if index < len(lines) else indent + 2
         values[key], index = _parse_block(lines, index, child_indent)
     return values, index
+
+
+# Deliberately narrower than float(): "inf" and "nan" are words a roast line
+# could plausibly contain, and YAML does not read them as numbers either.
+_NUMBER = re.compile(r"[-+]?(?:\d+|\d*\.\d+|\d+\.)(?:[eE][-+]?\d+)?")
+
+
+def _split_flow(body: str) -> list[str]:
+    """Split the inside of a flow collection on its top-level commas."""
+    items: list[str] = []
+    current: list[str] = []
+    depth = 0
+    quote = ""
+    for char in body:
+        if quote:
+            current.append(char)
+            if char == quote:
+                quote = ""
+            continue
+        if char in "'\"":
+            quote = char
+        elif char in "[{":
+            depth += 1
+        elif char in "]}":
+            depth -= 1
+        elif char == "," and depth == 0:
+            items.append("".join(current).strip())
+            current = []
+            continue
+        current.append(char)
+    items.append("".join(current).strip())
+    return [item for item in items if item]
 
 
 def _parse_scalar(value: str) -> Any:
@@ -225,16 +296,23 @@ def _parse_scalar(value: str) -> Any:
         return False
     if value in {"null", "None", "~"}:
         return None
-    if value == "[]":
-        return []
-    if value == "{}":
-        return {}
     if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
         return value[1:-1]
-    try:
-        return int(value)
-    except ValueError:
-        return value
+    if value.startswith("[") and value.endswith("]"):
+        return [_parse_scalar(item) for item in _split_flow(value[1:-1])]
+    if value.startswith("{") and value.endswith("}"):
+        mapping: dict[str, Any] = {}
+        for item in _split_flow(value[1:-1]):
+            key, separator, raw = item.partition(":")
+            if separator:
+                mapping[str(_parse_scalar(key.strip()))] = _parse_scalar(raw.strip())
+        return mapping
+    if _NUMBER.fullmatch(value):
+        try:
+            return int(value)
+        except ValueError:
+            return float(value)
+    return value
 
 
 def _dict(value: Any) -> dict[str, Any]:
