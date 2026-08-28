@@ -273,13 +273,13 @@ told me so.
 
 | Self-aware | Procrastination |
 |---|---|
-| ![My profession is clipping paper; my side job is telling the truth](docs/media/quotes/professional-truth.gif) | ![You work hard at not starting](docs/media/quotes/working-not-starting.gif) |
+| ![I have opinions; they are structural](docs/media/quotes/en/professional-truth.gif) | ![I admire the commitment to not committing](docs/media/quotes/en/working-not-starting.gif) |
 
 | Coding | AI collaboration |
 |---|---|
-| ![Two lines written, three deleted, net output minus one](docs/media/quotes/negative-code-output.gif) | ![Two AIs and one human; the human has lost numerically](docs/media/quotes/two-ai-one-human.gif) |
+| ![Code is open and waiting for a human](docs/media/quotes/en/negative-code-output.gif) | ![Two AIs and one human; the human is outnumbered](docs/media/quotes/en/two-ai-one-human.gif) |
 
-All 14 quote demos: [Jiajia roast GIF gallery](docs/media/quotes/README.md).
+All 14 English quote demos: [Jiajia roast GIF gallery](docs/media/quotes/en/README.md).
 
 | Idle | Cold arrow, then innocent | Sleepy |
 |---|---|---|

@@ -19,4 +19,6 @@ Generated from the live Chinese line bank.
 | 冷知识 | ![保存按钮最大的作用，是让焦虑有了图标。](save-anxiety-icon.gif) |
 | 文件命名 | ![文件名里的final_final_v3其实是一种呐喊。](final-final-v3.gif) |
 
-Regenerate: `python scripts/generate_quote_gifs.py`
+English gallery: [English](en/README.md)
+
+Regenerate: `python scripts/generate_quote_gifs.py --language zh`

@@ -1,0 +1,63 @@
+{
+  "language": "en",
+  "render_version": 1,
+  "frame_ms": 50,
+  "quotes": {
+    "professional-truth": {
+      "source_id": "009337c56d2c4d7b",
+      "signature": "e9ac8dc750545c44"
+    },
+    "encouragement-no-evidence": {
+      "source_id": "7e781ffa1e69e038",
+      "signature": "c25ce2ca7d45f89c"
+    },
+    "working-not-starting": {
+      "source_id": "19361a260105d690",
+      "signature": "459592e60919271c"
+    },
+    "deadline-waiting": {
+      "source_id": "df3e3165d52307c5",
+      "signature": "5fe59abb62c4b050"
+    },
+    "blank-document-filename": {
+      "source_id": "364fcda5778a1b2b",
+      "signature": "8e71bcb369c670d4"
+    },
+    "todo-you-present": {
+      "source_id": "5f1cc72d2987b719",
+      "signature": "dd828a21c78c0ba3"
+    },
+    "window-switching-escape": {
+      "source_id": "d84a3b3348e37740",
+      "signature": "67f4443cbbc0cbc0"
+    },
+    "twelve-tabs": {
+      "source_id": "0588f03f24e3f46f",
+      "signature": "deaeb4dd32c31538"
+    },
+    "negative-code-output": {
+      "source_id": "b6297ce11b0399fd",
+      "signature": "c5e487cdc75ff592"
+    },
+    "two-ai-one-human": {
+      "source_id": "8417b866bb5d5111",
+      "signature": "760cbc914fb0185b"
+    },
+    "late-night-control": {
+      "source_id": "ab7efd32f2629b6c",
+      "signature": "cee551faeab9c26a"
+    },
+    "poke-vs-task": {
+      "source_id": "dd2f3c4d1f72a09a",
+      "signature": "9c664934e83a12cb"
+    },
+    "save-anxiety-icon": {
+      "source_id": "a5ad99a781e9a7ae",
+      "signature": "c444c04775f5af36"
+    },
+    "final-final-v3": {
+      "source_id": "06ccedb81ec51bf2",
+      "signature": "061a9992cd463ae9"
+    }
+  }
+}

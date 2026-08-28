@@ -1,62 +1,63 @@
 {
+  "language": "zh",
   "render_version": 1,
   "frame_ms": 50,
   "quotes": {
     "professional-truth": {
       "source_id": "22deccb74a7f5339",
-      "signature": "935808d1273214b1"
+      "signature": "7f316e9f95926e3e"
     },
     "encouragement-no-evidence": {
       "source_id": "635589d8ae6b585c",
-      "signature": "9f0996a9c4bf6282"
+      "signature": "ed7a22a2c46ded7d"
     },
     "working-not-starting": {
       "source_id": "3b0fbf1fa82bdcc2",
-      "signature": "fef7b3def069014c"
+      "signature": "a72f4e9843863adb"
     },
     "deadline-waiting": {
       "source_id": "5c27c592d0279a0e",
-      "signature": "9c61aa433092bf36"
+      "signature": "718e191e7d708ae4"
     },
     "blank-document-filename": {
       "source_id": "a3729b6430c99dc7",
-      "signature": "a3633d33314554b2"
+      "signature": "25124f6db26e3226"
     },
     "todo-you-present": {
       "source_id": "6627827b35c43e5f",
-      "signature": "f70851921fee0b2b"
+      "signature": "1e3295039e33b95b"
     },
     "window-switching-escape": {
       "source_id": "6968a5fc6d094399",
-      "signature": "4ed64fe5b15d0d24"
+      "signature": "d849d48e5e38030c"
     },
     "twelve-tabs": {
       "source_id": "03922166461afea8",
-      "signature": "e9d3b310caf31725"
+      "signature": "79ac1ac73b6cf1d4"
     },
     "negative-code-output": {
       "source_id": "82eb16789502be99",
-      "signature": "d2a746dc88182d35"
+      "signature": "a59e554a47c9138d"
     },
     "two-ai-one-human": {
       "source_id": "708018774250152d",
-      "signature": "742b1140b9c88b9f"
+      "signature": "12d72d58a2620110"
     },
     "late-night-control": {
       "source_id": "7fec497d89bc4df9",
-      "signature": "1ca5ed1fd99210a8"
+      "signature": "b9db1f7c58954f25"
     },
     "poke-vs-task": {
       "source_id": "bf6de2cf5a14a472",
-      "signature": "a4813522454548de"
+      "signature": "3dbcc9ff7078346a"
     },
     "save-anxiety-icon": {
       "source_id": "2544bb7dc961ce3a",
-      "signature": "619473b340b25e0b"
+      "signature": "e961e563ab4565b4"
     },
     "final-final-v3": {
       "source_id": "8d02d0ee5c255479",
-      "signature": "82a0de70a28f2d33"
+      "signature": "18f94bf30dc48726"
     }
   }
 }

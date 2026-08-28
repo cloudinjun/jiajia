@@ -64,8 +64,13 @@ animation_assets:
   public_gifs:
     readme_demos: docs/media/
     per_action_library: docs/media/actions/
-    generator: scripts/generate_action_gifs.py
+    roast_gallery: docs/media/quotes/
+    roast_gallery_en: docs/media/quotes/en/
+    demo_generator: scripts/generate_demo_gifs.py
+    action_generator: scripts/generate_action_gifs.py
+    quote_generator: scripts/generate_quote_gifs.py
     regression_test: tests/test_action_gifs.py
+    quote_regression_test: tests/test_quote_gifs.py
 
 costumes:
   britclip:

@@ -33,10 +33,15 @@ but it should not contain actual values.
 
 ```powershell
 python scripts\generate_demo_gifs.py
+python scripts\generate_quote_gifs.py
+python scripts\generate_quote_gifs.py --check
+python scripts\generate_quote_gifs.py --language en
+python scripts\generate_quote_gifs.py --language en --check
 ```
 
-Open `docs/media/` and verify that the character is not clipped and that the
-GIFs are not blank.
+Open `docs/media/`, `docs/media/quotes/`, and `docs/media/quotes/en/`. Verify
+that the character and quote text are not clipped and that the GIFs are not
+blank.
 
 ## 4. Validate Python Files
 

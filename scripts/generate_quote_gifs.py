@@ -4,6 +4,7 @@ Every demo points to an entry ID in ``jiajia/locales/zh_seeds.yaml`` so the
 public GIF copy cannot silently drift away from the runtime line bank.
 
     python scripts/generate_quote_gifs.py
+    python scripts/generate_quote_gifs.py --language en
     python scripts/generate_quote_gifs.py --check
 """
 from __future__ import annotations
@@ -37,10 +38,10 @@ from generate_demo_gifs import (
 )
 
 
-SOURCE_PATH = REPO_ROOT / "jiajia" / "locales" / "zh_seeds.yaml"
-DEFAULT_OUT = REPO_ROOT / "docs" / "media" / "quotes"
+QUOTE_ROOT = REPO_ROOT / "docs" / "media" / "quotes"
 RENDER_VERSION = 1
 QUOTE_FRAMES = 64
+GALLERY_FILENAME = "jiajia-roast-showcase.gif"
 
 
 @dataclass(frozen=True)
@@ -51,7 +52,7 @@ class QuoteDemo:
     accent: str
 
 
-QUOTE_DEMOS = (
+ZH_QUOTE_DEMOS = (
     QuoteDemo("professional-truth", "22deccb74a7f5339", "自我介绍", BROW),
     QuoteDemo("encouragement-no-evidence", "635589d8ae6b585c", "虚假鼓励", USAGE),
     QuoteDemo("working-not-starting", "3b0fbf1fa82bdcc2", "拖延", "#d97757"),
@@ -68,9 +69,40 @@ QUOTE_DEMOS = (
     QuoteDemo("final-final-v3", "8d02d0ee5c255479", "文件命名", "#d97757"),
 )
 
+EN_QUOTE_DEMOS = (
+    QuoteDemo("professional-truth", "009337c56d2c4d7b", "Self-aware", BROW),
+    QuoteDemo("encouragement-no-evidence", "7e781ffa1e69e038", "Encouragement", USAGE),
+    QuoteDemo("working-not-starting", "19361a260105d690", "Procrastination", "#d97757"),
+    QuoteDemo("deadline-waiting", "df3e3165d52307c5", "Deadline", "#d97757"),
+    QuoteDemo("blank-document-filename", "364fcda5778a1b2b", "Blank document", USAGE),
+    QuoteDemo("todo-you-present", "5f1cc72d2987b719", "TODO", "#d97757"),
+    QuoteDemo("window-switching-escape", "d84a3b3348e37740", "Tab switching", USAGE),
+    QuoteDemo("twelve-tabs", "0588f03f24e3f46f", "Browser research", USAGE),
+    QuoteDemo("negative-code-output", "b6297ce11b0399fd", "Coding", CODEX),
+    QuoteDemo("two-ai-one-human", "8417b866bb5d5111", "AI collaboration", CODEX),
+    QuoteDemo("late-night-control", "ab7efd32f2629b6c", "Late-night work", "#6b5b95"),
+    QuoteDemo("poke-vs-task", "dd2f3c4d1f72a09a", "Poke", BROW),
+    QuoteDemo("save-anxiety-icon", "a5ad99a781e9a7ae", "Cold fact", USAGE),
+    QuoteDemo("final-final-v3", "06ccedb81ec51bf2", "File naming", "#d97757"),
+)
 
-def load_source_entries() -> dict[str, dict[str, object]]:
-    data = json.loads(SOURCE_PATH.read_text(encoding="utf-8"))
+
+def quote_demos(language: str) -> tuple[QuoteDemo, ...]:
+    return EN_QUOTE_DEMOS if language == "en" else ZH_QUOTE_DEMOS
+
+
+def source_path(language: str) -> Path:
+    prefix = "en" if language == "en" else "zh"
+    return REPO_ROOT / "jiajia" / "locales" / f"{prefix}_seeds.yaml"
+
+
+def default_out(language: str) -> Path:
+    return QUOTE_ROOT / "en" if language == "en" else QUOTE_ROOT
+
+
+def load_source_entries(language: str = "zh") -> dict[str, dict[str, object]]:
+    path = source_path(language)
+    data = json.loads(path.read_text(encoding="utf-8"))
     entries = data.get("entries", [])
     return {
         str(entry["id"]): entry
@@ -79,17 +111,38 @@ def load_source_entries() -> dict[str, dict[str, object]]:
     }
 
 
-def selected_entries() -> dict[str, dict[str, object]]:
-    source = load_source_entries()
-    missing = [demo.source_id for demo in QUOTE_DEMOS if demo.source_id not in source]
+def selected_entries(language: str = "zh") -> dict[str, dict[str, object]]:
+    demos = quote_demos(language)
+    source = load_source_entries(language)
+    missing = [demo.source_id for demo in demos if demo.source_id not in source]
     if missing:
-        raise ValueError(f"quote demo source IDs missing from {SOURCE_PATH}: {missing}")
-    return {demo.slug: source[demo.source_id] for demo in QUOTE_DEMOS}
+        raise ValueError(f"quote demo source IDs missing from {source_path(language)}: {missing}")
+    return {demo.slug: source[demo.source_id] for demo in demos}
 
 
-def wrap_quote(text: str, max_width: int = 238) -> str:
-    font = load_text_font(text, 16)
+def wrap_quote(text: str, language: str) -> str:
+    font_size = 16 if language == "zh" else 15
+    max_width = 238 if language == "zh" else 216
+    max_lines = 2 if language == "zh" else 3
+    font = load_text_font(text, font_size)
     measure = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+
+    if language == "en":
+        lines: list[str] = []
+        current = ""
+        for word in text.split():
+            candidate = f"{current} {word}".strip()
+            if current and measure.textlength(candidate, font=font) > max_width * SS:
+                lines.append(current)
+                current = word
+            else:
+                current = candidate
+        if current:
+            lines.append(current)
+        if len(lines) > max_lines:
+            raise ValueError(f"quote needs more than {max_lines} lines: {text!r}")
+        return "\n".join(lines)
+
     lines: list[str] = []
     current = ""
     closing = "，。！？；：、,.!?;:)）]】"
@@ -102,13 +155,13 @@ def wrap_quote(text: str, max_width: int = 238) -> str:
             current = candidate
     if current:
         lines.append(current)
-    if len(lines) > 2:
-        raise ValueError(f"quote needs more than two lines: {text!r}")
+    if len(lines) > max_lines:
+        raise ValueError(f"quote needs more than {max_lines} lines: {text!r}")
     return "\n".join(lines)
 
 
-def render_quote(demo: QuoteDemo, entry: dict[str, object]) -> list[Image.Image]:
-    text = wrap_quote(str(entry["line"]))
+def render_quote(demo: QuoteDemo, entry: dict[str, object], language: str) -> list[Image.Image]:
+    text = wrap_quote(str(entry["line"]), language)
     bubble = str(entry.get("bubble") or "speech")
     action_key = str(entry.get("action") or "blink")
     mood = str(entry.get("mood") or "smirk")
@@ -180,8 +233,9 @@ def quote_pose(
     return body, eye, brows, tail
 
 
-def quote_signature(demo: QuoteDemo, entry: dict[str, object]) -> str:
+def quote_signature(demo: QuoteDemo, entry: dict[str, object], language: str) -> str:
     values = (
+        language,
         demo.slug,
         demo.source_id,
         demo.scene,
@@ -197,42 +251,68 @@ def quote_signature(demo: QuoteDemo, entry: dict[str, object]) -> str:
     return hashlib.sha256("|".join(values).encode("utf-8")).hexdigest()[:16]
 
 
-def build_manifest(entries: dict[str, dict[str, object]] | None = None) -> dict[str, object]:
-    chosen = entries or selected_entries()
+def build_manifest(
+    entries: dict[str, dict[str, object]] | None = None,
+    language: str = "zh",
+) -> dict[str, object]:
+    demos = quote_demos(language)
+    chosen = entries or selected_entries(language)
     return {
+        "language": language,
         "render_version": RENDER_VERSION,
         "frame_ms": FRAME_MS,
         "quotes": {
             demo.slug: {
                 "source_id": demo.source_id,
-                "signature": quote_signature(demo, chosen[demo.slug]),
+                "signature": quote_signature(demo, chosen[demo.slug], language),
             }
-            for demo in QUOTE_DEMOS
+            for demo in demos
         },
     }
 
 
-def write_index(out_dir: Path, entries: dict[str, dict[str, object]]) -> None:
+def write_index(
+    out_dir: Path,
+    entries: dict[str, dict[str, object]],
+    language: str,
+) -> None:
+    demos = quote_demos(language)
+    title = "Jiajia Roast GIFs — English" if language == "en" else "Jiajia Roast GIFs"
+    source_label = "English" if language == "en" else "Chinese"
     lines = [
-        "# Jiajia Roast GIFs",
+        f"# {title}",
         "",
-        "Generated from the live Chinese line bank.",
+        f"Generated from the live {source_label} line bank.",
         "",
+    ]
+    if (out_dir / GALLERY_FILENAME).exists():
+        lines += [
+            f"![All {len(demos)} Jiajia roast quotes]({GALLERY_FILENAME})",
+            "",
+        ]
+    lines += [
         "| Scene | Preview |",
         "|---|---|",
     ]
-    for demo in QUOTE_DEMOS:
+    for demo in demos:
         quote = str(entries[demo.slug]["line"])
         lines.append(f"| {demo.scene} | ![{quote}]({demo.slug}.gif) |")
+    sibling_link = "Chinese gallery: [Chinese](../README.md)" if language == "en" else "English gallery: [English](en/README.md)"
     lines += [
         "",
-        "Regenerate: `python scripts/generate_quote_gifs.py`",
+        sibling_link,
+        "",
+        f"Regenerate: `python scripts/generate_quote_gifs.py --language {language}`",
         "",
     ]
     (out_dir / "README.md").write_text("\n".join(lines), encoding="utf-8")
 
 
-def check_outputs(out_dir: Path, expected: dict[str, object]) -> int:
+def check_outputs(
+    out_dir: Path,
+    expected: dict[str, object],
+    demos: tuple[QuoteDemo, ...],
+) -> int:
     manifest_path = out_dir / "manifest.json"
     if not manifest_path.exists():
         print(f"stale: no manifest at {manifest_path}")
@@ -241,46 +321,50 @@ def check_outputs(out_dir: Path, expected: dict[str, object]) -> int:
     problems: list[str] = []
     if current != expected:
         problems.append("manifest does not match the selected line-bank entries")
-    for demo in QUOTE_DEMOS:
+    for demo in demos:
         if not (out_dir / f"{demo.slug}.gif").exists():
             problems.append(f"missing GIF: {demo.slug}.gif")
     if problems:
         print("\n".join(f"- {problem}" for problem in problems))
         print("run: python scripts/generate_quote_gifs.py")
         return 1
-    print(f"in sync — {len(QUOTE_DEMOS)} quote GIFs")
+    print(f"in sync — {len(demos)} quote GIFs")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Render Jiajia roast quote GIFs.")
-    parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--language", choices=("zh", "en"), default="zh")
+    parser.add_argument("--out", type=Path, default=None)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
-    entries = selected_entries()
-    expected = build_manifest(entries)
+    language: str = args.language
+    demos = quote_demos(language)
+    out_dir: Path = args.out or default_out(language)
+    entries = selected_entries(language)
+    expected = build_manifest(entries, language)
     if args.check:
-        return check_outputs(args.out, expected)
+        return check_outputs(out_dir, expected, demos)
 
-    args.out.mkdir(parents=True, exist_ok=True)
-    for demo in QUOTE_DEMOS:
-        frames = render_quote(demo, entries[demo.slug])
-        save_gif(frames, args.out / f"{demo.slug}.gif", disposal=2)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for demo in demos:
+        frames = render_quote(demo, entries[demo.slug], language)
+        save_gif(frames, out_dir / f"{demo.slug}.gif", disposal=2)
         print(f"{demo.slug:28s} {len(frames) * FRAME_MS / 1000:.1f}s")
 
-    expected_slugs = {demo.slug for demo in QUOTE_DEMOS}
-    for gif in args.out.glob("*.gif"):
+    expected_slugs = {demo.slug for demo in demos} | {Path(GALLERY_FILENAME).stem}
+    for gif in out_dir.glob("*.gif"):
         if gif.stem not in expected_slugs:
             gif.unlink()
             print(f"removed stale {gif.name}")
 
-    (args.out / "manifest.json").write_text(
+    (out_dir / "manifest.json").write_text(
         json.dumps(expected, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
-    write_index(args.out, entries)
-    print(f"wrote {len(QUOTE_DEMOS)} quote GIFs to {args.out}")
+    write_index(out_dir, entries, language)
+    print(f"wrote {len(demos)} quote GIFs to {out_dir}")
     return 0
 
 

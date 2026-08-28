@@ -1027,7 +1027,9 @@ def draw_bubble(
     *,
     talk_level: int = 0,
 ) -> None:
-    font = load_text_font(text, 18 if "\n" not in text else 16)
+    line_count = text.count("\n") + 1
+    font_size = 18 if line_count == 1 else 16 if line_count == 2 else 14
+    font = load_text_font(text, font_size)
     x1, y1, x2, y2 = 38 * SS, 24 * SS, 322 * SS, 110 * SS
     fill = "#fdfdfd" if kind == "speech" else "#f7f5fb"
     draw.rounded_rectangle((x1, y1, x2, y2), radius=12 * SS, fill=fill, outline=accent, width=2 * SS)
