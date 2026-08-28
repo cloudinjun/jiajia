@@ -123,12 +123,10 @@ class IdentityManifest:
 
     def level_for(self, event: str, context: dict[str, object] | None, pack: IdentityPack) -> str:
         tags = _context_tags(event, context or {})
-        if tags & {"critical", "usage_critical", "gpu_temp_critical", "codex_error", "codex_blocked", "error", "blocked"}:
-            if pack.lines.get("critical"):
-                return "critical"
-        if tags & {"recovery", "codex_done", "done", "refill", "cooldown_recover"}:
-            if pack.lines.get("recovery"):
-                return "recovery"
+        if tags & {"critical", "usage_critical", "gpu_temp_critical", "codex_error", "codex_blocked", "error", "blocked"} and pack.lines.get("critical"):
+            return "critical"
+        if tags & {"recovery", "codex_done", "done", "refill", "cooldown_recover"} and pack.lines.get("recovery"):
+            return "recovery"
         if event in {"ambient", "idle"} and pack.lines.get("warning"):
             return "warning"
         return "normal"

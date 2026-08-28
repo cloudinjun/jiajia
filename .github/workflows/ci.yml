@@ -6,7 +6,38 @@ on:
 
 jobs:
   tests:
-    name: Python tests
+    name: Tests (py${{ matrix.python-version }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[media]"
+
+      - name: Compile
+        run: python -m compileall -q jiajia scripts tests
+
+      - name: Test suite
+        run: python -m unittest discover -s tests
+
+      - name: Self-test
+        run: python -m jiajia.main --self-test
+
+  behavior:
+    name: Behavior evaluation
     runs-on: windows-latest
 
     steps:
@@ -18,10 +49,34 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install test dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install ".[media]"
+      - name: Install
+        run: python -m pip install .
 
-      - name: Test suite
-        run: python -m unittest discover -s tests
+      # Scores the runtime against ground truth written from design intent.
+      # A failure here means the shipped behavior and the stated policy have
+      # diverged, which the unit tests cannot detect on their own.
+      - name: Score behavior against design intent
+        run: python eval/run_eval.py --strict
+
+  lint:
+    name: Lint and types
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tooling
+        run: python -m pip install ruff mypy
+
+      - name: Ruff
+        run: python -m ruff check .
+
+      # Scoped to the behavior and policy layer; see [tool.mypy] in pyproject.
+      - name: Mypy
+        run: python -m mypy

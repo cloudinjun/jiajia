@@ -38,7 +38,7 @@ def _load_signatures() -> dict[str, str]:
 class ActionGifLibraryTest(unittest.TestCase):
     def setUp(self) -> None:
         try:
-            import PIL  # noqa: F401
+            import PIL
         except ImportError:
             self.skipTest("Pillow not installed; cannot verify the action GIF library")
         if not MANIFEST.exists():

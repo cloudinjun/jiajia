@@ -8,25 +8,22 @@ into JiajiaApp.
 from __future__ import annotations
 
 import math
-import random
 import re
-import time
 import tkinter as tk
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
+from collections.abc import Callable
 
 from .decorations import DecorationDefinition
 from .language import normalize_language
 from .pal_canvas import _rounded_rect
 from .pal_geometry import (
     TRANSPARENT,
-    BROW, DECORATION_SCALE, PAL_CENTER_X, PAL_HEIGHT, PAL_PAD_X, PAL_PAD_Y,
-    PAL_SCALE, PAL_SCALE_PIVOT_Y, PAL_WIDTH, WIRE, _clamp, _ease_out_sine,
-    _smoothstep, _source_point,
+    BROW, DECORATION_SCALE, PAL_HEIGHT, PAL_PAD_X, PAL_PAD_Y,
+    PAL_WIDTH,
 )
 from .pal_motion import (
-    ACTION_DECORATION_CUES, ACTION_FRAMES, IDENTITY_STATE_CUES, PropFrames,
+    ACTION_DECORATION_CUES, ACTION_FRAMES, IDENTITY_STATE_CUES,
 )
 from .state import Reaction
 from .svg_canvas import draw_svg_asset

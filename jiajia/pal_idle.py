@@ -10,23 +10,18 @@ from __future__ import annotations
 import math
 import random
 import time
-import tkinter as tk
 
 from .animation_resolver import ResolvedAnimation
 from .decision import DecisionResult
 from .pal_geometry import (
-    ANIM_TICK_SCALE, PAL_CENTER_X, PAL_HEIGHT, PAL_LOOK_CENTER_X,
-    PAL_LOOK_CENTER_Y, PAL_PAD_Y, _clamp,
+    PAL_CENTER_X, PAL_HEIGHT, PAL_PAD_Y,
 )
 from .pal_motion import (
-    ACTION_DECORATION_CUES, ACTION_FRAMES, COMMON_IDLE_ACTIONS,
-    INNER_GESTURE_FRAMES, LARGE_IDLE_ACTIONS, LOW_STIMULUS_IDLE_ACTIONS,
-    MID_IDLE_ACTIONS, MOVE_ACTION_DURATIONS, MOVE_IDLE_ACTIONS,
-    RARE_IDLE_ACTIONS, TAIL_MOTION_FRAMES, TAIL_OSCILLATIONS, TAIL_POSTURES,
-    TailPose, _POSTURE_ENTER_S, _POSTURE_EXIT_S,
+    COMMON_IDLE_ACTIONS,
+    LARGE_IDLE_ACTIONS, LOW_STIMULUS_IDLE_ACTIONS,
+    MID_IDLE_ACTIONS, MOVE_IDLE_ACTIONS,
+    RARE_IDLE_ACTIONS, TailPose,
 )
-from .pal_window import GLOBAL_MOUSE_POLL_MS
-from .prop_shapes import ACTION_PROP_CUES, prop_cue_duration_ms
 from .state import Reaction
 
 AMBIENT_MIN_MS = 18_000
@@ -128,7 +123,7 @@ class IdleMixin:
 
         if not usable:
             return random.choice(LOW_STIMULUS_IDLE_ACTIONS)
-        names, weights, sources, resolved_items = zip(*usable)
+        names, weights, sources, resolved_items = zip(*usable, strict=False)
         choice_index = random.choices(range(len(names)), weights=weights, k=1)[0]
         chosen = names[choice_index]
         resolved = resolved_items[choice_index]
@@ -146,9 +141,7 @@ class IdleMixin:
             return False
         if name in MOVE_IDLE_ACTIONS and now - self._last_move_idle_action_at < 180:
             return False
-        if self._recent_idle_actions and self._recent_idle_actions[-1] == name:
-            return False
-        return True
+        return not (self._recent_idle_actions and self._recent_idle_actions[-1] == name)
 
     def _play_idle_animation(self, name: str, source: str = "idle") -> None:
         resolved = self.animation_resolver.resolve(name)

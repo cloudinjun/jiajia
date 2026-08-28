@@ -12,7 +12,7 @@ import threading
 import time
 import tkinter as tk
 from datetime import date
-from typing import Callable
+from collections.abc import Callable
 
 from .chat import build_chat_context, detect_chat_command
 from .chat_language import status_reaction

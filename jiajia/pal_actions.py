@@ -10,16 +10,14 @@ face script, and the small reflexes (blink, wiggle, scan).
 """
 from __future__ import annotations
 
-import math
 import random
 import time
 import tkinter as tk
-from typing import Callable
+from collections.abc import Callable
 
 from .anim_physics import easing_for_action
 from .pal_geometry import (
-    ANIM_TICK_MS, LERP_TICK_MS, PAL_CENTER_X, PAL_PAD_Y, PAL_SCALE,
-    ActionFrames, _clamp, _ease_out_cubic, _ease_out_sine,
+    LERP_TICK_MS, ActionFrames, _ease_out_cubic, _ease_out_sine,
     _geometry_position, _jitter_frames, _smoothstep, _source_point,
 )
 from .pal_motion import (
@@ -27,13 +25,10 @@ from .pal_motion import (
     ACTION_SELF_PARTICLES, ACTION_SHADOW_ACTIONS, ACTION_TAIL_MOTIONS,
     ACTION_FRAMES, BLINK_FRAMES, _acting_frames, BODY_BEND_NEUTRAL, GUILTY_DART_SEQUENCE,
     INNER_GESTURE_FRAMES, INNER_NEUTRAL_POSE, MELT_PUDDLE_HOLD_MS,
-    MELT_RECOVERY_FRAMES, MELT_SINK_FRAMES, MOVE_ACTION_DURATIONS,
-    MOVE_IDLE_ACTIONS, PAPER_PROP_ACTIONS, SCAN_LOOK_HOLD_MS,
+    MELT_RECOVERY_FRAMES, MELT_SINK_FRAMES, MOVE_IDLE_ACTIONS, PAPER_PROP_ACTIONS, SCAN_LOOK_HOLD_MS,
     SCAN_LOOK_TARGETS, SLOW_BLINK_FRAMES, TAIL_HAND_POSE, TAIL_MOTION_FRAMES,
-    TAIL_NEUTRAL_POSE, TAIL_OSCILLATIONS, TAIL_POSTURES, TAIL_TIP_LAG_MS,
-    WIGGLE_FRAMES, _POSTURE_ENTER_S, _POSTURE_EXIT_S,
-    BodyBend, InnerPose, PropFrames, TailPose,
-    tail_hand_pose, tail_oscillation_pose, tail_posture_pose,
+    TAIL_NEUTRAL_POSE, TAIL_OSCILLATIONS, TAIL_POSTURES, WIGGLE_FRAMES, _POSTURE_ENTER_S, BodyBend, InnerPose, PropFrames, TailPose,
+    tail_oscillation_pose, tail_posture_pose,
 )
 from .action_timing import action_duration_ms
 from .prop_shapes import (
@@ -632,7 +627,7 @@ class ActionMixin:
                 left = tuple(ex.get("brow_l", base[0]))
                 right = tuple(ex.get("brow_r", base[1]))
                 self._action_prop_after.append(
-                    self.root.after(220, lambda l=left, r=right: self._apply_brow_spec(l, r))
+                    self.root.after(220, lambda line=left, r=right: self._apply_brow_spec(line, r))
                 )
             if "pupil" in ex:
                 scale = float(ex["pupil"])
@@ -751,7 +746,7 @@ class ActionMixin:
                 return self._actor_point(origin[0] + x, origin[1] + y)
 
             rsx, rsy = (abs(v) for v in self._pal_scale)
-        for item, prim in zip(items, posed):
+        for item, prim in zip(items, posed, strict=False):
             kind = prim[0]
             try:
                 if kind == "line" or kind == "polygon":

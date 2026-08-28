@@ -362,7 +362,7 @@ def _empty_bank() -> dict[str, object]:
 
 
 def _line_id(event: str, line: str) -> str:
-    digest = hashlib.sha1(f"{event}\n{line}".encode("utf-8")).hexdigest()
+    digest = hashlib.sha1(f"{event}\n{line}".encode()).hexdigest()
     return digest[:16]
 
 

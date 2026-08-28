@@ -63,7 +63,7 @@ def _load_phrases() -> dict[str, PerformancePhrase]:
     manifest_path = Path(__file__).resolve().parent / "animations.yaml"
     try:
         manifest = load_animation_manifest(manifest_path)
-    except Exception:  # noqa: BLE001 - a missing manifest must not break import
+    except Exception:
         return {}
     return {
         name: _phrase_from_definition(definition)

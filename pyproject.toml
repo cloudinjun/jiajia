@@ -43,3 +43,68 @@ jiajia = [
 [tool.jiajia]
 runtime_dependencies = []
 runtime_note = "The desktop pet runtime uses the Python standard library and Tkinter; optional extras support GIF generation and hardware metrics."
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["docs", "eval/scenarios.yaml"]
+
+[tool.ruff.lint]
+# Correctness and clarity, not style policing. The character files are long by
+# nature (keyframe tables, pose math) and reformatting them would bury the
+# animation history in whitespace diffs.
+select = [
+  "E",    # pycodestyle errors
+  "F",    # pyflakes: unused imports, undefined names
+  "B",    # bugbear: likely bugs
+  "UP",   # pyupgrade: outdated syntax
+  "SIM",  # simplifiable constructs
+  "RUF",  # ruff-specific
+]
+ignore = [
+  "E501",    # long lines: keyframe tables read better wide
+  "B008",    # function call in default arg: used deliberately for dataclass factories
+  "SIM108",  # ternary-instead-of-if: hurts readability in pose math
+  "SIM105",  # contextlib.suppress: try/except/pass around optional imports is clearer
+  # This is a bilingual project. Full-width CJK punctuation in Chinese strings
+  # is correct, not a homoglyph mistake, and these rules flag every line of it.
+  "RUF001",
+  "RUF002",
+  "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011", "F401"]   # assert False is fine; bare imports probe optional deps
+"scripts/*" = ["B905", "E402"]  # zip strict / sys.path setup before imports
+"eval/*" = ["E402"]           # sys.path setup before imports
+# body.py re-exports motion tables, pose helpers and geometry constants that the
+# offline GIF renderer reads as `B.<NAME>`. They look unused to a static pass
+# but removing them breaks scripts/generate_action_gifs.py. The real fix is for
+# the renderer to import from pal_motion/pal_geometry directly; until then this
+# is a known and deliberate exception rather than an oversight.
+"jiajia/body.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+# Strictness is applied where it pays: the behavior and policy layer. The Tk
+# rendering mixins traffic in untyped Tkinter handles, so requiring annotations
+# there would produce noise rather than safety.
+files = [
+  "jiajia/interruptibility.py",
+  "jiajia/decision.py",
+  "jiajia/world.py",
+  "jiajia/animation_resolver.py",
+  "jiajia/performance_run.py",
+  "jiajia/action_timing.py",
+  "jiajia/state.py",
+  "jiajia/language.py",
+  "jiajia/i18n.py",
+]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+# Report only on the files above. Following imports would drag the Tk
+# rendering layer back in, which is exactly the scope this excludes.
+follow_imports = "silent"
