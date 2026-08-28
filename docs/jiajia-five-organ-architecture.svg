@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="960" viewBox="0 0 1800 960" role="img" aria-labelledby="title desc">
+  <title id="title">夹夹的五个小伙伴：输入、处理、输出</title>
+  <desc id="desc">耳朵和眼睛把低隐私状态送给大脑，大脑决定回应，再把台词交给嘴，把心情和动作交给身体。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#495057"/>
+    </marker>
+    <style>
+      .title { font: 700 34px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #2f2f2f; }
+      .organ { font: 700 24px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #30343b; }
+      .copy { font: 19px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #343a40; }
+      .label { font: 18px "Microsoft YaHei", "Noto Sans SC", sans-serif; fill: #6c757d; text-anchor: middle; }
+      .key { font-weight: 700; }
+    </style>
+  </defs>
+  <rect width="1800" height="960" fill="#fffdf7"/>
+  <text class="title" x="60" y="82">夹夹的五个小伙伴：输入 → 处理 → 输出</text>
+
+  <rect x="60" y="160" width="500" height="310" rx="26" fill="#d3f9d8" stroke="#2b8a3e" stroke-width="3"/>
+  <text class="organ" x="95" y="210">耳朵｜ears.py + 状态监测</text>
+  <text class="copy" x="95" y="263"><tspan class="key">输入｜</tspan>当前应用、空闲多久、是否全屏</text>
+  <text class="copy" x="155" y="298">AI / 用量 / 硬件小状态</text>
+  <text class="copy" x="95" y="351"><tspan class="key">处理｜</tspan>只读元数据，分类、计时、打标签</text>
+  <text class="copy" x="95" y="404"><tspan class="key">输出｜</tspan>“现在在忙什么”的状态小纸条</text>
+
+  <rect x="60" y="560" width="500" height="310" rx="26" fill="#c5f6fa" stroke="#0c8599" stroke-width="3"/>
+  <text class="organ" x="95" y="610">眼睛｜eyes.py（可选）</text>
+  <text class="copy" x="95" y="663"><tspan class="key">输入｜</tspan>低清屏幕缩略图</text>
+  <text class="copy" x="95" y="716"><tspan class="key">处理｜</tspan>本机模型只看“大概在做什么”</text>
+  <text class="copy" x="155" y="751">不抄文字；隐私只打标签</text>
+  <text class="copy" x="95" y="804"><tspan class="key">输出｜</tspan>场景标签 + 简短概括 + 可信度</text>
+
+  <rect x="670" y="280" width="500" height="470" rx="30" fill="#fff3bf" stroke="#e67700" stroke-width="4"/>
+  <text class="organ" x="705" y="330">大脑｜world + decision + Ollama</text>
+  <text class="copy" x="705" y="388"><tspan class="key">输入｜</tspan>两张小纸条 + 你的互动</text>
+  <text class="copy" x="765" y="423">夹夹的心情和最近说过的话</text>
+  <text class="copy" x="705" y="482"><tspan class="key">处理｜</tspan>拼成世界状态</text>
+  <text class="copy" x="765" y="517">先过隐私 / 打扰 / 冷却规则</text>
+  <text class="copy" x="765" y="552">安全词库优先；本地 AI 可帮忙</text>
+  <text class="copy" x="705" y="611"><tspan class="key">输出｜</tspan>表演卡 Reaction</text>
+  <text class="copy" x="765" y="646">说不说、台词、心情、动作</text>
+
+  <rect x="1320" y="160" width="420" height="310" rx="26" fill="#e5dbff" stroke="#7048e8" stroke-width="3"/>
+  <text class="organ" x="1350" y="210">嘴｜chat.py + pal_panels.py</text>
+  <text class="copy" x="1350" y="270"><tspan class="key">输入｜</tspan>你输入的话 + 大脑给的台词</text>
+  <text class="copy" x="1350" y="335"><tspan class="key">处理｜</tspan>识别命令、短聊、分页</text>
+  <text class="copy" x="1410" y="370">选择气泡样式</text>
+  <text class="copy" x="1350" y="425"><tspan class="key">输出｜</tspan>聊天窗口 + 说话 / 想法气泡</text>
+
+  <rect x="1320" y="560" width="420" height="310" rx="26" fill="#ffe3e3" stroke="#c92a2a" stroke-width="3"/>
+  <text class="organ" x="1350" y="610">身体｜body.py + pal_*.py</text>
+  <text class="copy" x="1350" y="665"><tspan class="key">输入｜</tspan>表演卡 + 动画清单</text>
+  <text class="copy" x="1350" y="718"><tspan class="key">处理｜</tspan>动作名纠错、按重要性排队</text>
+  <text class="copy" x="1410" y="753">关键帧 + 弹簧 + Tk 绘制</text>
+  <text class="copy" x="1350" y="806"><tspan class="key">输出｜</tspan>眼神、姿势、尾巴、道具</text>
+  <text class="copy" x="1410" y="841">移动、徽章</text>
+
+  <path d="M565 315 L665 390" fill="none" stroke="#495057" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M565 715 L665 640" fill="none" stroke="#495057" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1175 420 L1315 315" fill="none" stroke="#495057" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1175 650 L1315 715" fill="none" stroke="#495057" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="552" y="323" width="126" height="32" rx="12" fill="#fffdf7"/>
+  <text class="label" x="615" y="346">活动和状态</text>
+  <rect x="566" y="661" width="106" height="32" rx="12" fill="#fffdf7"/>
+  <text class="label" x="619" y="684">场景标签</text>
+  <rect x="1215" y="347" width="58" height="32" rx="12" fill="#fffdf7"/>
+  <text class="label" x="1244" y="370">台词</text>
+  <rect x="1187" y="679" width="126" height="32" rx="12" fill="#fffdf7"/>
+  <text class="label" x="1250" y="702">心情和动作</text>
+</svg>

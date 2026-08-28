@@ -133,6 +133,7 @@ Three worked examples, with before/after evidence:
 flowchart TB
     subgraph sense["Sensing — metadata only"]
         ears["ears.py<br/>process category, idle, focus"]
+        audio["audio_ears.py<br/>playing, level, session length"]
         codex["codex_usage.py<br/>rate-limit counters"]
         claude["claude_usage.py<br/>token metadata"]
         hw["hardware_status.py<br/>CPU / GPU / RAM"]
@@ -152,6 +153,7 @@ flowchart TB
     end
 
     ears --> world
+    audio --> world
     codex --> world
     claude --> world
     hw --> world
@@ -163,6 +165,11 @@ flowchart TB
     resolver --> anim
     anim --> body
 ```
+
+The same system drawn without the file names, for a reader who wants the shape
+before the modules:
+[five organs](docs/jiajia-five-organ-architecture.svg) — what each part takes
+in, what it does with it, what comes out.
 
 The declarative core is [`animations.yaml`](jiajia/animations.yaml): 16 logical
 states, 10 agent state visuals, 20 performance phrases and 8 state rules, each
